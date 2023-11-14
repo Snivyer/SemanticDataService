@@ -11,9 +11,13 @@
 
 namespace SDS
 {
+    using Key = std::vector<int>;          // 查询key
+    
     class Metadata
     {
-
+    private:
+        virtual std::string getMeta(Key key);
+        virtual void putMeta(Key key, std::string value);
 
 
     };

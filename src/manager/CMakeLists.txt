@@ -1,7 +1,8 @@
 add_library(
   manager
   OBJECT
-  content_metadata.cpp
+  cnt_meta.cpp
+  sto_meta.cpp
 )
 
 set(ALL_OBJECT_FILES
