@@ -15,7 +15,7 @@
 namespace SDS
 {
    
-    class SematicSpace
+    class SemanticSpace
     {
     public:    
         std::string SSName;         // 语义空间名称
@@ -28,8 +28,6 @@ namespace SDS
         ContentMeta cntMeta;        // 内容描述符
 
         int createSemanticSpace(std::string SSName, std::string GeoName);       // 创建语义空间
-
-
 
     };
 

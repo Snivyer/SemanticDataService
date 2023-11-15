@@ -43,6 +43,8 @@
         "string": "cpp",
         "string_view": "cpp",
         "iostream": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "cstring": "cpp",
+        "unordered_set": "cpp"
     }
 }
