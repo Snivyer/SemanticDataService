@@ -1,0 +1,61 @@
+# NetCDF C Configuration Summary
+==============================
+
+# General
+-------
+NetCDF Version:		4.9.2
+Dispatch Version:       5
+Configured On:		Wed Sep 13 17:01:39 HKT 2023
+Host System:		x86_64-pc-linux-gnu
+Build Directory: 	/tmp/vagrant/spack-stage/spack-stage-netcdf-c-4.9.2-qzx5pyghyy3bxefilr6jil4w7x6ipalx/spack-src
+Install Prefix:         /home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/netcdf-c-4.9.2-qzx5pyghyy3bxefilr6jil4w7x6ipalx
+Plugin Install Prefix:  /home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/netcdf-c-4.9.2-qzx5pyghyy3bxefilr6jil4w7x6ipalx/plugins
+
+# Compiling Options
+-----------------
+C Compiler:		/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/openmpi-4.1.5-udvwkaht4c37k3hujrr7gndmufjyvdfa/bin/mpicc
+CFLAGS:			 -fno-strict-aliasing
+CPPFLAGS:		
+LDFLAGS:		-L/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/hdf5-1.14.1-2-iytkkjhvrgjdhyxfvuu5eh4vy7f4rqsz/lib -L/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/zlib-1.2.13-wesrecuyl2v6vhwnzxpqhz2xmcdn2tex/lib -L/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/libaec-1.0.6-jl4nrkzuidbozobgumeelvay3l7k232b/lib64 -L/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/bzip2-1.0.8-t45nrl3hlpydrqe43hle3y3stpzqwqmt/lib -L/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/zstd-1.5.5-cthe2eud5t3kmofpcpfmjx5aq34amycf/lib -L/home/vagrant/spack/opt/spack/linux-centos7-ivybridge/gcc-9.3.1/c-blosc-1.21.4-sbey4qg4gr5nscroceqctmwcrc5fzgen/lib64
+AM_CFLAGS:		
+AM_CPPFLAGS:		
+AM_LDFLAGS:		
+Shared Library:		yes
+Static Library:		yes
+Extra libraries:	-lhdf5_hl -lhdf5 -lm -lz -ldl -lsz -lbz2 -lzstd -lblosc 
+XML Parser:             tinyxml2 (bundled)
+
+# Features
+--------
+Benchmarks:		no
+NetCDF-2 API:		yes
+HDF4 Support:		no
+HDF5 Support:		yes
+NetCDF-4 API:		yes
+CDF5 Support:		yes
+NC-4 Parallel Support:	yes
+PnetCDF Support:	no
+
+DAP2 Support:		no
+DAP4 Support:		no
+Byte-Range Support:	no
+
+S3 Support:	        no
+
+NCZarr Support:		yes
+NCZarr Zip Support:     no
+
+Diskless Support:	yes
+MMap Support:		no
+JNA Support:		no
+ERANGE Fill Support:	no
+Relaxed Boundary Check:	yes
+
+Multi-Filter Support:	yes
+Quantization:		yes
+Logging:     		no
+SZIP Write Support:     yes
+Standard Filters:       deflate bz2 blosc zstd
+ZSTD Support:           yes
+Parallel Filters:       yes
+

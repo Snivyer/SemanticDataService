@@ -1,39 +1,50 @@
+
+
 #include "manager/cnt_meta.h"
+#include "abstract/GIS/geo_read.h"
 
 
-namespace SDS
-{
+namespace SDS {
 
-    ContentMeta::ContentMeta()
-    {
-        this->desc = new ContentDesc();
+ContentMeta::ContentMeta() {
+
+    this->desc = new ContentDesc();
+}
+
+ContentMeta::~ContentMeta() {
+
+
+    if(this->desc != nullptr) {
+        delete this->desc;
     }
 
-    ContentMeta::~ContentMeta()
-    {
-        if(this->desc != NULL)
-        {
-            delete this->desc;
-        }
-    }
-
-    // 提取空间描述符
-    void ContentMeta::extractSSDesc(std::string geoName)
-    {
-        // 这里的代码，学弟会给我的
-
-        this->desc->ssDesc.geoName = std::string("江西省赣州市");
-        this->desc->ssDesc.adCode = std::string("360732");
-        this->desc->ssDesc.geoCentral = {114, 25};
-        this->desc->ssDesc.geoPerimeter.push_back(GeoCoordinate{100.0, 110.0});
-        this->desc->ssDesc.geoPerimeter.push_back(GeoCoordinate{100.0, 120.0});
-        this->desc->ssDesc.geoPerimeter.push_back(GeoCoordinate{130.0, 110.0});
-        this->desc->ssDesc.geoPerimeter.push_back(GeoCoordinate{130.0, 120.0});
-    }
+}
 
 
-    bool ContentMeta::string_to_tm(std::string timeStr, tm &time)
-    {
+void ContentMeta::extractSSDesc(std::string province, std::string city, std::string district) {
+    getJsonInfo(this->desc->ssDesc, province, city, district);
+}
+
+void ContentMeta::putSSDesc(MetaStore* &ms) {
+
+    std::stringstream fmt;
+    fmt << "INSERT INTO SSDESC VALUES ('"   << desc->ssDesc.geoName << "','" 
+                                            << desc->ssDesc.adCode << "', ["
+                                            << desc->ssDesc.geoCentral.logitude << ","
+                                            << desc->ssDesc.geoCentral.latitude << "], [[" 
+                                            << desc->ssDesc.geoPerimeter[0].logitude << ","
+                                            << desc->ssDesc.geoPerimeter[0].latitude << "],["
+                                            << desc->ssDesc.geoPerimeter[1].logitude << ","
+                                            << desc->ssDesc.geoPerimeter[1].latitude << "],["
+                                            << desc->ssDesc.geoPerimeter[2].logitude << ","
+                                            << desc->ssDesc.geoPerimeter[2].latitude << "],["
+                                            << desc->ssDesc.geoPerimeter[3].logitude << ","
+                                            << desc->ssDesc.geoPerimeter[3].latitude << "]])";
+    
+    ms->excuteNonQuery(fmt.str());
+}
+
+bool ContentMeta::string_to_tm(std::string timeStr, tm &time) {
         int year = 0, month = 0, day = 0, hour = 0, minute = 0, sec =0;
 
         if(sscanf(timeStr.c_str(), "%4d%2d%2dT%2d%2d%2d",
@@ -63,62 +74,90 @@ namespace SDS
         }
     }
 
-    // 提取时间段元素据
-    void ContentMeta::extractTSDesc(std::string startTimeStr, std::string endTimeStr, 
-                            time_t inteval, std::string reportTimeStr)
-    {
-        
-        tm reportT, startT, endT;
-     
-        string_to_tm(startTimeStr, startT);
-        string_to_tm(endTimeStr, endT);
-        string_to_tm(reportTimeStr, reportT);
+// 提取时间段元素据
+void ContentMeta::extractTSDesc(std::string startTimeStr, std::string endTimeStr, 
+                            time_t inteval, std::string reportTimeStr) {
 
-        // 创建连续时间段描述符
-        struct TSDesc tsDesc = {
-            reportT,
-            startT,
-            endT,
-            inteval
-        };
+}
 
-        // 将连续时间段加入到时间中
-        // 注意：这里日后需要排序。。。
-        int tsID = this->desc->tDesc.tsDesc.size() + 1;
-        this->desc->tDesc.tsID.push_back(tsID);
-        this->desc->tDesc.tsDesc.push_back(tsDesc);
-    }
+void ContentMeta::extractTSDesc(std::string dirpath) {
 
-    // 提取变量描述符
-    void ContentMeta::extractVLDesc(std::string pathName)
-    {
-        // openNC
 
-        // 循环读取变量，填充变量描述符
+}
 
-        while(1)
-        {
-            struct VarDesc var = {
-                std::string("T2D"),
-                3,
-                0.01,
-                std::string("double"),
-                {0, 334, 334},
-                0,
-                1
-            };
 
-            int varID = this->desc->vDesc.vlDesc.size() + 1;
+// 提取变量描述符
+void ContentMeta::extractVLDesc(std::string pathName) {
+      
+}
 
-            this->desc->vDesc.varID.push_back(varID);
-            this->desc->vDesc.vlDesc.push_back(var);
 
+std::string ContentMeta::getMeta(Key key) {
+
+}
+
+
+void ContentMeta::putMeta(Key key, std::string value) {
+
+}    
+
+
+void ContentMeta::printSSDesc() {
+    
+    std::cout << "  地理空间名字： " << desc->ssDesc.geoName << std::endl;
+    std::cout << "  行政编码： " << desc->ssDesc.adCode << std::endl;
+    std::cout << "  中心经纬度： " <<  desc->ssDesc.geoCentral.logitude <<" , "
+                                  << desc->ssDesc.geoCentral.latitude << std::endl;
+
+    std::cout << "  地理周界: "<< std::endl;
+    for(int i = 0; i < desc->ssDesc.geoPerimeter.size(); i++){
+            std::cout << "      " << desc->ssDesc.geoPerimeter[i].logitude
+            <<" , "<< desc->ssDesc.geoPerimeter[i].latitude << std::endl; 
         }
 
-        // 关闭NC
+}
 
 
-    }
+
+void ContentMeta::putMetaWithJson(std::string path, MetaStore* &ms) {
+
+    std::time_t now = std::time(nullptr);
+    struct std::tm* ptm = std::localtime(&now);
+    char buffer[32];
+    std::strftime(buffer, 32,  "%Y-%m-%d-%H-%M-%S", ptm);
+
+    std::string fileName = path + std::string(buffer) + ".json'";
+    std::string sql = "COPY SSDESC TO '" + fileName;
+    ms->excuteNonQuery(sql);
+
+}
+
+void ContentMeta::putMetaWithCSV(std::string path, MetaStore* &ms) {
+
+    std::time_t now = std::time(nullptr);
+    struct std::tm* ptm = std::localtime(&now);
+    char buffer[32];
+    std::strftime(buffer, 32, "%Y-%m-%d-%H-%M-%S", ptm);
+
+    std::string fileName = path + std::string(buffer) + ".csv";
+    std::string sql = "COPY SSDESC TO '" + fileName + "' WITH (HEADER true)";
+    ms->excuteNonQuery(sql);
+
+}
+
+void ContentMeta::putMetaWithParquet(std::string path, MetaStore* &ms) {
+
+    
+    std::time_t now = std::time(nullptr);
+    struct std::tm* ptm = std::localtime(&now);
+    char buffer[32];
+    std::strftime(buffer, 32, "%Y-%m-%d-%H-%M-%S", ptm);
+
+    std::string fileName = path + std::string(buffer) + ".parquet";
+    std::string sql = "COPY SSDESC TO '" + fileName + "' (FORMAT 'parquet')";
+    ms->excuteNonQuery(sql);
+
+} 
 
 
 

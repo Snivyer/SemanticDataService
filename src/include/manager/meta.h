@@ -5,8 +5,10 @@
    which storing metadata with LevelDB
 */
 
-#ifndef METADATA_H_
-#define METADATA_H_
+#pragma once
+#include <string>
+#include <vector>
+#include "abstract/meta/meta_store.h"
 
 
 namespace SDS
@@ -15,14 +17,14 @@ namespace SDS
     
     class Metadata
     {
-    private:
-        virtual std::string getMeta(Key key);
-        virtual void putMeta(Key key, std::string value);
 
-
+    public:
+        virtual std::string getMeta(Key key) {};
+        virtual void putMeta(Key key, std::string value) {};
+        virtual void putMetaWithJson(std::string path, MetaStore* &ms) {};
+        virtual void putMetaWithCSV(std::string path, MetaStore* &ms)  {};
+        virtual void putMetaWithParquet(std::string path, MetaStore* &ms) {};
     };
 
 
 }
-
-#endif

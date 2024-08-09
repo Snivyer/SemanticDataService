@@ -4,8 +4,7 @@
    ceph adaptor 
 */
 
-#ifndef CEPH_ADAPTOR_H_
-#define CEPH_ADAPTOR_H_
+#pragma once
 
 #include "adaptor.h"
 
@@ -16,7 +15,6 @@ namespace SDS
     {
     public:
         CephAdaptor(struct ConnectConfig &connConfig);
-        ~CephAdaptor();
 
 
         bool connect();
@@ -46,4 +44,3 @@ namespace SDS
 
 
 }
-#endif

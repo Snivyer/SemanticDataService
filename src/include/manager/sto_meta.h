@@ -5,8 +5,7 @@
     of the storage metadata and construction of address index.
 */
 
-#ifndef STORAGE_METADATA_H_
-#define STORAGE_METADATA_H_
+#pragma once
 
 #include "meta.h"
 #include <string>
@@ -40,7 +39,7 @@ namespace SDS
     // 文件路径列表
     struct FilePathList
     {
-        std::string DirPath;
+        std::string dirPath;
         std::vector<std::string> fileNames;
     };
 
@@ -59,6 +58,9 @@ namespace SDS
         size_t capacity;
         StoreSpaceKind  kind;
         struct SystemDesc sysDesc;
+
+        StoreDesc():size(0),capacity(2) {};
+
     };
 
     // 存储模板
@@ -72,52 +74,33 @@ namespace SDS
 
 
     // 存储元数据管理类
-    class StorageMeta: public Metadata
+    class StoreMeta : public Metadata
     {
     public:
-        StorageMeta();
-        ~StorageMeta();
-
-        size_t storageID;
-        StoreDesc* desc;
-
-    
-
+  
         /*------提取元数据------*/
-        void extractStoreDesc(struct StoreTemplate &stoT);        // 根据存储模板，提取存储描述符
+        void extractStoreDesc(StoreTemplate &stoT, StoreDesc &desc);      
       
 
         /*------获取元数据------*/
-        StoreDesc getCntMeta(size_t StorageID);
-
-
+        StoreDesc getStoreMeta(size_t StoreID);
 
         
-    private:
-
-
+        void putMeta(Key key, std::string value) override;
+        void putMetaWithJson(std::string path, MetaStore* &ms) override;
+        void putMetaWithCSV(std::string path, MetaStore* &ms) override;
+        void putMetaWithParquet(std::string path, MetaStore* &ms) override;
         std::string getMeta(Key key) override;
-        void putMeta(Key key, std::string value) override;      
+        
+    private:
+          
 
 
 
     };
 
 
-    
-
-
-
-
-
-
-
-
-
-
-
 }
 
 
 
-#endif

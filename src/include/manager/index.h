@@ -5,8 +5,7 @@
 */
 
 
-#ifndef INDEX_H_
-#define INDEX_H_
+#pragma once
 #include <string>
 #include <vector>
 
@@ -32,7 +31,10 @@ namespace SDS
         IndexType type;         // 索引类型
         void*  rootNode;        // 索引根节点
         size_t nodeNum;         // 检索数量
+        void*  rootDesc;        // 根节点描述符
     };
+
+
 
     class BaseIndex
     {
@@ -42,22 +44,18 @@ namespace SDS
         BaseIndex(struct IndexEntrance &entrance) 
         {
             this->entrance = entrance;
-        }
+        };
 
-        ~BaseIndex();
+        ~BaseIndex() {};
         
-        virtual bool search(SearchTerm &term, ResultSet &result);       // 查询节点
-        virtual bool insert(SearchTerm &term, ResultSet &result);       // 插入节点
-        virtual bool remove(SearchTerm &term, ResultSet &result);       // 移除节点
+        virtual bool search(SearchTerm &term, ResultSet &result) = 0;       // 查询节点
+        virtual bool insert(SearchTerm &term, ResultSet &result) = 0;      // 插入节点
+        virtual bool remove(SearchTerm &term, ResultSet &result) = 0;      // 移除节点
         virtual bool update(SearchTerm &oldTerm, SearchTerm 
-                            &newTerm, ResultSet &result);               // 更新节点
-        virtual bool persist(std::string fileName); 
+                            &newTerm, ResultSet &result) = 0;               // 更新节点
+        virtual bool persist(std::string fileName) = 0; 
 
     };
 
 
 }
-
-
-
-#endif

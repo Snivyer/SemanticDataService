@@ -4,8 +4,7 @@
    lustre adaptor 
 */
 
-#ifndef LUSTRE_ADAPTOR_H_
-#define LUSTRE_ADAPTOR_H_
+#pragma once
 
 #include "adaptor.h"
 
@@ -16,7 +15,6 @@ namespace SDS
     {
     public:
         LustreAdaptor(struct ConnectConfig &connConfig);
-        ~LustreAdaptor();
 
 
         bool connect();
@@ -48,5 +46,3 @@ namespace SDS
 
 }
 
-
-#endif
