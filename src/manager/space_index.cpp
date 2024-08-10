@@ -4,21 +4,21 @@
 namespace SDS {
 
     // 初始化空间索引
-    SpaceIndex::SpaceIndex(struct IndexEntrance &entrance):BaseIndex(entrance)
+    SpaceIndex::SpaceIndex()
     {
         // 声明索引类型为空间索引
-        this->entrance.type = IndexType::Space;
-        this->entrance.rootNode = NULL;
-        this->entrance.nodeNum = 0;
+        _entrance.type = IndexType::Space;
+        _entrance.rootNode = NULL;
+        _entrance.nodeNum = 0;
     }
 
     // 析构函数
     SpaceIndex::~SpaceIndex()
     {
     
-        if(this->entrance.rootNode != NULL)
+        if(this->_entrance.rootNode != NULL)
         {
-            struct SpaceNode* node = (SpaceNode*) this->entrance.rootNode;
+            SpaceNode* node = (SpaceNode*) _entrance.rootNode;
 
             // 构建解析队列
             std::queue<struct SpaceNode*> destructorList;       
@@ -85,9 +85,6 @@ namespace SDS {
         return false;
     }
 
-
-
-
     /**
      * 根据空间的行政编码，检索对应的空间索引节点
      * @param 行政编码
@@ -95,9 +92,9 @@ namespace SDS {
     */
     bool SpaceIndex::search(std::string adcode, struct SpaceNode* &node)
     {
-        node = (SpaceNode*) this->entrance.rootNode;
+        node = (SpaceNode*) this->_entrance.rootNode;
 
-        if(this->entrance.rootNode == NULL)
+        if(this->_entrance.rootNode == NULL)
         {
             // 此时根节点作为插入点
             return false;
@@ -151,7 +148,7 @@ namespace SDS {
     bool SpaceIndex::search(SearchTerm &term, ResultSet &result)
     {
         // 检索结果
-        struct SpaceNode* node = NULL;
+        SpaceNode* node = NULL;
 
         // 空间索引检索采用行政编码作为检索词
         std::string adcode;
@@ -197,14 +194,14 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
     {
       
         // 空间索引为空， 直接插入
-        if(this->entrance.rootNode == NULL)
+        if(this->_entrance.rootNode == NULL)
         {
             // step1: 初始化节点
             node->SpaceID = 1;                              // 初始化空间ID
             node->me->SpaceID = node->SpaceID; 
 
             // step2: 连接索引节点指针
-            this->entrance.rootNode = node;
+            this->_entrance.rootNode = node;
             return true;
         }
 

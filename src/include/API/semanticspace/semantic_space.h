@@ -9,11 +9,13 @@
 #include <string>
 #include <map>
 #include "manager/cnt_meta.h"
+#include "manager/space_index.h"
 
 
 namespace SDS
 {
 
+    // space stutus enum
     enum SpaceStatus {
         create,
         read,
@@ -22,15 +24,26 @@ namespace SDS
     };
 
     struct SemanticSpace {
-        uint16_t spaceID;           // 语义空间ID
+        size_t spaceID;           // 语义空间ID
         std::string SSName;         // 语义空间名称
-        std::string PSID;           // 父语义空间ID
-        uint16_t childrenNum;       // 子语义空间数量    
+        std::string PSSID;           // 父语义空间ID
+        size_t childrenNum;       // 子语义空间数量    
         time_t createT;             // 创建时间
 
-        struct ContentID cntID;     // 内容ID描述符
-        ContentMeta cntMeta;        // 内容描述符
+        ContentID cntID;     // 内容ID描述符
+        ContentDesc &cntDesc;        // 内容描述符
         SpaceStatus status;         // 语义空间的状态
+
+        SemanticSpace(ContentDesc &cntDesc, SpaceNode *sNode, std::string SSName): cntDesc(cntDesc) {
+            cntID.spaceID = sNode->SpaceID;
+            spaceID = sNode->SpaceID;
+            SSName = SSName;
+            PSSID = sNode->PSSID;
+            childrenNum = sNode->CSNode.size();
+            createT = std::time(nullptr);
+            status = SpaceStatus::create;
+        }
+
     };
 
    
@@ -40,13 +53,21 @@ namespace SDS
         SemanticSpaceManager(); 
         ~SemanticSpaceManager();
 
-        int createSemanticSpace(std::string SSName, std::string GeoName);       // 创建语义空间
-        int load(int spaceID);                                    // 加载语义空间
-        void showInfo();                                            // 展示空间描述信息
+        // create the semantic space whose level number depends on the number of geoNames
+        size_t createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
+        
+
+        SpaceIndex* getSpaceIndex();
+        SemanticSpace* getSpaceByName(std::string spaceName);
+        SemanticSpace* getSpaceByID(std::string spaceID);
+
     
     private:
-        Metadata* metaManager;
-        std::map<std::string, SemanticSpace> spaceMap;
+        ContentMeta* _metaManager;
+        SpaceIndex* _spaceIndex;
+        std::map<std::string, SemanticSpace*> _spaceNameMap;
+        std::map<std::string, SemanticSpace*> _spaceIDMap;
+
 
     };
 

@@ -15,6 +15,7 @@
 #include "API/semanticspace/semantic_space.h"
 #include "API/storagespace/storage_space.h"
 
+
 namespace SDS
 {
 
@@ -37,11 +38,7 @@ namespace SDS
         DataManager();
         ~DataManager();
 
-
-        bool loadSSByID(std::string spaceID);
-        bool loadSSByName(std::string geoName);
-
-        bool importData(std::string spaceID, std::vector<std::string> filePathList, bool justMeta);
+        bool importData(ContentID &cntID, std::vector<std::string> filePathList, bool justMeta = true);
 
         bool loadData(ContentID &cntID);
         DataBox* getRecentDataBox();
@@ -63,7 +60,12 @@ namespace SDS
         std::deque<DataRequest>  requestQueue;
         std::deque<DataResponse> replyQueue;
         std::deque<DataResponse> penddingQueue;
+
+
         bool internalLoadData();
+        bool internallFillData(DataRequest &request, DataResponse &reponse, size_t start);
+        bool fillDataWithOneDB(SemanticSpace* space, ContentID &CntID, DataResponse &reponse, size_t start);
+        bool fillDataWithMultiDB(SemanticSpace* space, ContentID &CntID, DataResponse &reponse, size_t start);
 
         DataBox* createDataBox(ContentDesc &cntDesc);
 

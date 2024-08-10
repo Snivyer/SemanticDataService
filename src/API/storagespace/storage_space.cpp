@@ -116,7 +116,17 @@ namespace SDS
 
 
     // fill databox with the given data which described by parameter contentDesc
-    bool StorageSpaceManager::fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db) {
+    bool StorageSpaceManager::fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count) {
+
+        // first step: build space index of databox
+        // todo: 这里我不知道怎么填
+        SerialElementIndex spaceIndex;
+        spaceIndex.lastUpadatePosition = start;
+        spaceIndex.count = count;
+        db->metaSet.SpaceIndices.insert(spaceIndex);
+
+
+
 
         // first step: get the storage adaptor and fill data into the data region of the databox
         StoreMeta stoMeta;

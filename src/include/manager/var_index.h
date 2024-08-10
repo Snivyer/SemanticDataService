@@ -38,7 +38,7 @@ namespace SDS
     class VarIndex : BaseIndex
     {
     public:
-        VarIndex(struct IndexEntrance &entrance);
+        VarIndex();
         ~VarIndex();
 
         std::unordered_map<std::string, std::vector<std::string>> globalVarMap;

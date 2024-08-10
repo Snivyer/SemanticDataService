@@ -41,7 +41,7 @@ namespace SDS
     class TimeIndex : BaseIndex
     {
     public:
-        TimeIndex(struct IndexEntrance &entrance);
+        TimeIndex();
         ~TimeIndex();
 
         std::unordered_map<std::string, std::vector<std::string>> globalVarMap;

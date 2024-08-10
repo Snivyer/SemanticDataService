@@ -104,27 +104,31 @@ namespace SDS
         ContentMeta();
         ~ContentMeta();
 
-        ContentDesc* desc;
-
-
         /*------提取元数据------*/
         // 根据省、市、县提取空间描述符
-        void extractSSDesc(std::string province, std::string city = "0", std::string district = "0");   
-        void putSSDesc(MetaStore* &ms);
+        void extractSSDesc(ContentDesc &cntDesc, std::string province, std::string city = "0", std::string district = "0");   
+        
+        // extract the space desciption according to arbitrary number of geoNames
+        void extractSSDesc(ContentDesc &cntDesc, std::vector<std::string> &geoNames);
+        
+        
+        void putSSDesc(ContentDesc &cntDesc, MetaStore* &ms);
 
 
-        void extractTSDesc(std::string startTime, std::string endTime,  // 根据文件名信息，提取时间段描述符
+        void extractTSDesc(ContentDesc &cntDesc, std::vector<std::string> filePathList);
+
+        void extractTSDesc(ContentDesc &cntDesc, std::string startTime, std::string endTime,  // 根据文件名信息，提取时间段描述符
                         time_t inteval, std::string reportTimeString);
 
-        void extractTSDesc(std::string dirpath);  // 根据目录路径信息，提取时间段描述符;
+        void extractTSDesc(ContentDesc &cntDesc, std::string dirpath);  // 根据目录路径信息，提取时间段描述符;
 
-        void extractVLDesc(std::string filePath);      // 从NC文件中提取变量列表
+        void extractVLDesc(ContentDesc &cntDesc, std::string filePath);      // 从NC文件中提取变量列表
 
         /*------获取元数据------*/
         ContentDesc getCntMeta(ContentID &cntID);
 
 
-        void printSSDesc();
+        void printSSDesc(ContentDesc &cntDesc);
 
         
         void putMetaWithJson(std::string path, MetaStore* &ms) override;

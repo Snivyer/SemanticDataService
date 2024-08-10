@@ -3,7 +3,6 @@ add_library(
   OBJECT
   cnt_meta.cpp
   space_index.cpp
-  index.cpp
   sto_meta.cpp
   time_index.cpp
   var_index.cpp

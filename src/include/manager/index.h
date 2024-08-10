@@ -39,15 +39,7 @@ namespace SDS
     class BaseIndex
     {
     public:
-        struct IndexEntrance entrance;      // 索引入口
-
-        BaseIndex(struct IndexEntrance &entrance) 
-        {
-            this->entrance = entrance;
-        };
-
-        ~BaseIndex() {};
-        
+        IndexEntrance _entrance;      // 索引入口
         virtual bool search(SearchTerm &term, ResultSet &result) = 0;       // 查询节点
         virtual bool insert(SearchTerm &term, ResultSet &result) = 0;      // 插入节点
         virtual bool remove(SearchTerm &term, ResultSet &result) = 0;      // 移除节点

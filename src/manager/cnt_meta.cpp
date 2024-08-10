@@ -8,38 +8,49 @@ namespace SDS {
 
 ContentMeta::ContentMeta() {
 
-    this->desc = new ContentDesc();
+ 
 }
 
 ContentMeta::~ContentMeta() {
 
+}
 
-    if(this->desc != nullptr) {
-        delete this->desc;
+
+void ContentMeta::extractSSDesc(ContentDesc &cntDesc, std::vector<std::string> &geoNames) {
+
+    // todo: 由于现在只有三级的GIS文件，所有只能做到三级的查询，一旦拥有更多的GIS文件，可拓展该接口
+    if(geoNames.size() == 3) {
+        extractSSDesc(cntDesc, geoNames[0], geoNames[1], geoNames[2]);
+    } else if(geoNames.size() == 2) {
+        extractSSDesc(cntDesc, geoNames[0], geoNames[1]);
+    } else if (geoNames.size() == 1) {
+        extractSSDesc(cntDesc, geoNames[0]);
+    } else {
+
     }
 
 }
 
 
-void ContentMeta::extractSSDesc(std::string province, std::string city, std::string district) {
-    getJsonInfo(this->desc->ssDesc, province, city, district);
+void ContentMeta::extractSSDesc(ContentDesc &cntDesc, std::string province, std::string city, std::string district) {
+    getJsonInfo(cntDesc.ssDesc, province, city, district);
 }
 
-void ContentMeta::putSSDesc(MetaStore* &ms) {
+void ContentMeta::putSSDesc(ContentDesc &desc, MetaStore* &ms) {
 
     std::stringstream fmt;
-    fmt << "INSERT INTO SSDESC VALUES ('"   << desc->ssDesc.geoName << "','" 
-                                            << desc->ssDesc.adCode << "', ["
-                                            << desc->ssDesc.geoCentral.logitude << ","
-                                            << desc->ssDesc.geoCentral.latitude << "], [[" 
-                                            << desc->ssDesc.geoPerimeter[0].logitude << ","
-                                            << desc->ssDesc.geoPerimeter[0].latitude << "],["
-                                            << desc->ssDesc.geoPerimeter[1].logitude << ","
-                                            << desc->ssDesc.geoPerimeter[1].latitude << "],["
-                                            << desc->ssDesc.geoPerimeter[2].logitude << ","
-                                            << desc->ssDesc.geoPerimeter[2].latitude << "],["
-                                            << desc->ssDesc.geoPerimeter[3].logitude << ","
-                                            << desc->ssDesc.geoPerimeter[3].latitude << "]])";
+    fmt << "INSERT INTO SSDESC VALUES ('"   << desc.ssDesc.geoName << "','" 
+                                            << desc.ssDesc.adCode << "', ["
+                                            << desc.ssDesc.geoCentral.logitude << ","
+                                            << desc.ssDesc.geoCentral.latitude << "], [[" 
+                                            << desc.ssDesc.geoPerimeter[0].logitude << ","
+                                            << desc.ssDesc.geoPerimeter[0].latitude << "],["
+                                            << desc.ssDesc.geoPerimeter[1].logitude << ","
+                                            << desc.ssDesc.geoPerimeter[1].latitude << "],["
+                                            << desc.ssDesc.geoPerimeter[2].logitude << ","
+                                            << desc.ssDesc.geoPerimeter[2].latitude << "],["
+                                            << desc.ssDesc.geoPerimeter[3].logitude << ","
+                                            << desc.ssDesc.geoPerimeter[3].latitude << "]])";
     
     ms->excuteNonQuery(fmt.str());
 }
@@ -75,19 +86,20 @@ bool ContentMeta::string_to_tm(std::string timeStr, tm &time) {
     }
 
 // 提取时间段元素据
-void ContentMeta::extractTSDesc(std::string startTimeStr, std::string endTimeStr, 
+void ContentMeta::extractTSDesc(ContentDesc &cntDesc, std::string startTimeStr, std::string endTimeStr, 
                             time_t inteval, std::string reportTimeStr) {
 
 }
 
-void ContentMeta::extractTSDesc(std::string dirpath) {
 
+void ConentMeta::extractTSDesc(ContentDesc &cntDesc, std::vector<std::string> filePathList ) {
 
 }
 
 
+
 // 提取变量描述符
-void ContentMeta::extractVLDesc(std::string pathName) {
+void ContentMeta::extractVLDesc(ContentDesc &cntDesc, std::string pathName) {
       
 }
 
@@ -102,17 +114,17 @@ void ContentMeta::putMeta(Key key, std::string value) {
 }    
 
 
-void ContentMeta::printSSDesc() {
+void ContentMeta::printSSDesc(ContentDesc &desc) {
     
-    std::cout << "  地理空间名字： " << desc->ssDesc.geoName << std::endl;
-    std::cout << "  行政编码： " << desc->ssDesc.adCode << std::endl;
-    std::cout << "  中心经纬度： " <<  desc->ssDesc.geoCentral.logitude <<" , "
-                                  << desc->ssDesc.geoCentral.latitude << std::endl;
+    std::cout << "  地理空间名字： " << desc.ssDesc.geoName << std::endl;
+    std::cout << "  行政编码： " << desc.ssDesc.adCode << std::endl;
+    std::cout << "  中心经纬度： " <<  desc.ssDesc.geoCentral.logitude <<" , "
+                                  << desc.ssDesc.geoCentral.latitude << std::endl;
 
     std::cout << "  地理周界: "<< std::endl;
-    for(int i = 0; i < desc->ssDesc.geoPerimeter.size(); i++){
-            std::cout << "      " << desc->ssDesc.geoPerimeter[i].logitude
-            <<" , "<< desc->ssDesc.geoPerimeter[i].latitude << std::endl; 
+    for(int i = 0; i < desc.ssDesc.geoPerimeter.size(); i++){
+            std::cout << "      " << desc.ssDesc.geoPerimeter[i].logitude
+            <<" , "<< desc.ssDesc.geoPerimeter[i].latitude << std::endl; 
         }
 
 }

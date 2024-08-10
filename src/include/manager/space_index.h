@@ -20,7 +20,7 @@ namespace SDS
     struct SpaceDescList
     {
         size_t SpaceID;
-        struct SSDesc desc;
+        SSDesc desc;
     };
 
     // 空间节点
@@ -39,25 +39,23 @@ namespace SDS
   class SpaceIndex : public BaseIndex
     {
     public:
-        SpaceIndex(struct IndexEntrance &entrance);
-
+        SpaceIndex();
         ~SpaceIndex();
         
-        bool search(SearchTerm &term, ResultSet &result);       // 查询节点
-        bool insert(SearchTerm &term, ResultSet &result);       // 插入节点
-        bool remove(SearchTerm &term, ResultSet &result);       // 移除节点
+        bool search(SearchTerm &term, ResultSet &result) override;       // 查询节点
+        bool insert(SearchTerm &term, ResultSet &result) override;       // 插入节点
+        bool remove(SearchTerm &term, ResultSet &result) override;       // 移除节点
         bool update(SearchTerm &oldTerm, SearchTerm 
-                            &newTerm, ResultSet &result);       // 更新节点
-        bool persist(std::string fileName); 
+                            &newTerm, ResultSet &result) override;       // 更新节点
+        bool persist(std::string fileName) override; 
+        bool getResult(ResultSet &result, struct SpaceNode *node);          // 解析检索结果
     
     private:
         bool getTerm(SearchTerm &term, std::string &adcode);                // 解析检索关键字
-        bool getResult(ResultSet &result, struct SpaceNode *node);          // 解析检索结果
+
         bool getResult(ResultSet &result, int &spaceID, std::string &PSSID);  // 解析检索结果 
 
         bool createNode(int SpaceID);
-
-        
 
         bool search(std::string adcode, struct SpaceNode* &node); 
         bool insert(std::string adcode, struct SpaceNode *node);

@@ -32,7 +32,7 @@ namespace SDS
     struct SerialElementIndex
     {
         std::vector<char> buffer;      // 索引区缓存大小，默认200bytes
-        uint16_t count;                // 元素个数
+        size_t count;                // 元素个数
         const uint32_t  memberID;      // 唯一ID
         size_t lastUpadatePosition;    // 上次更新元素的地址
         bool valid;                    // 当前元素是否合法
@@ -147,7 +147,7 @@ namespace SDS
         STLBuffer meta;
 
         // 元数据索引
-        struct MetadataSet metaSet;
+        MetadataSet metaSet;
 
         // 是否是行存
         bool isRowMajor = true;

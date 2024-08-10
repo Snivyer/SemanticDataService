@@ -39,7 +39,7 @@ namespace SDS
         void load(size_t storeID);
         void showInfo();
         
-        bool fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db);
+        bool fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count );
 
 
         void addAdaptor(size_t stoID, Adaptor* adaptor);

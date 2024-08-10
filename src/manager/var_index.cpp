@@ -4,7 +4,7 @@ namespace SDS
 {
 
     // 初始化空间索引
-    VarIndex::VarIndex(struct IndexEntrance &entrance):BaseIndex(entrance)
+    VarIndex::VarIndex()
     {
 
     }
