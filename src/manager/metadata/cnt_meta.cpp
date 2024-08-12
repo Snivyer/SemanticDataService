@@ -1,12 +1,12 @@
-
-
 #include "manager/cnt_meta.h"
-#include "abstract/GIS/geo_read.h"
+
 
 
 namespace SDS {
 
 ContentMeta::ContentMeta() {
+
+    
 
  
 }
@@ -26,6 +26,7 @@ void ContentMeta::extractSSDesc(ContentDesc &cntDesc, std::vector<std::string> &
     } else if (geoNames.size() == 1) {
         extractSSDesc(cntDesc, geoNames[0]);
     } else {
+        int a = 0;
 
     }
 
@@ -33,10 +34,32 @@ void ContentMeta::extractSSDesc(ContentDesc &cntDesc, std::vector<std::string> &
 
 
 void ContentMeta::extractSSDesc(ContentDesc &cntDesc, std::string province, std::string city, std::string district) {
-    getJsonInfo(cntDesc.ssDesc, province, city, district);
+    try {
+        getJsonInfo(cntDesc.ssDesc, province, city, district);
+    } catch(Exception e) {
+        std::cout << e.what() << std::endl;
+    }
 }
 
-void ContentMeta::putSSDesc(ContentDesc &desc, MetaStore* &ms) {
+
+bool ContentMeta::setSSDescFormat() {
+    
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    }
+
+    std::string sql = "CREATE TABLE SSDESC (geoName VARCHAR, adCode VARCHAR, geoCentral DOUBLE[2], geoPerimeter DOUBLE[2][4])";
+    return ms->excuteNonQuery(sql);
+
+}
+
+bool ContentMeta::putSSDesc(ContentDesc &desc) {
+
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    }
 
     std::stringstream fmt;
     fmt << "INSERT INTO SSDESC VALUES ('"   << desc.ssDesc.geoName << "','" 
@@ -52,7 +75,44 @@ void ContentMeta::putSSDesc(ContentDesc &desc, MetaStore* &ms) {
                                             << desc.ssDesc.geoPerimeter[3].logitude << ","
                                             << desc.ssDesc.geoPerimeter[3].latitude << "]])";
     
-    ms->excuteNonQuery(fmt.str());
+    return ms->excuteNonQuery(fmt.str());
+}
+
+bool ContentMeta::loadSSDescWithFile(std::string fileName) {
+
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
+
+    std::string sql = "COPY SSDESC FROM '" + fileName + "'";
+    return ms->excuteNonQuery(sql);
+}
+
+
+bool ContentMeta::parseSSDesc(std::vector<ContentDesc> &cntDescSet, 
+                                duckdb::MaterializedQueryResult *result) {
+    duckdb::idx_t row_count = result->RowCount();
+    for (idx_t row = 0; row < row_count; row++) {
+        ContentDesc cntDesc;
+        cntDesc.ssDesc.geoName = result->GetValue(0, row).GetValue<std::string>();
+        cntDesc.ssDesc.adCode  =  result->GetValue(1, row).GetValue<std::string>();
+
+        auto gcList = ListValue::GetChildren(result->GetValue(2, row));
+        cntDesc.ssDesc.geoCentral.logitude = gcList[0].GetValue<double>();
+        cntDesc.ssDesc.geoCentral.latitude = gcList[1].GetValue<double>();
+        
+        auto gpList = ListValue::GetChildren(result->GetValue(3, row));
+        for(auto item : gpList) {
+            GeoCoordinate geoCoor;
+            auto childList = ListValue::GetChildren(item);
+            geoCoor.logitude = childList[0].GetValue<double>();
+            geoCoor.latitude = childList[1].GetValue<double>();
+            cntDesc.ssDesc.geoPerimeter.push_back(geoCoor);
+        }
+        cntDescSet.push_back(cntDesc);
+    }
+    return true;
 }
 
 bool ContentMeta::string_to_tm(std::string timeStr, tm &time) {
@@ -92,7 +152,7 @@ void ContentMeta::extractTSDesc(ContentDesc &cntDesc, std::string startTimeStr, 
 }
 
 
-void ConentMeta::extractTSDesc(ContentDesc &cntDesc, std::vector<std::string> filePathList ) {
+void ContentMeta::extractTSDesc(ContentDesc &cntDesc, std::vector<std::string> filePathList ) {
 
 }
 
@@ -131,7 +191,12 @@ void ContentMeta::printSSDesc(ContentDesc &desc) {
 
 
 
-void ContentMeta::putMetaWithJson(std::string path, MetaStore* &ms) {
+bool ContentMeta::putMetaWithJson(std::string path) {
+
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
 
     std::time_t now = std::time(nullptr);
     struct std::tm* ptm = std::localtime(&now);
@@ -140,11 +205,16 @@ void ContentMeta::putMetaWithJson(std::string path, MetaStore* &ms) {
 
     std::string fileName = path + std::string(buffer) + ".json'";
     std::string sql = "COPY SSDESC TO '" + fileName;
-    ms->excuteNonQuery(sql);
+    return ms->excuteNonQuery(sql);
 
 }
 
-void ContentMeta::putMetaWithCSV(std::string path, MetaStore* &ms) {
+bool ContentMeta::putMetaWithCSV(std::string path) {
+
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
 
     std::time_t now = std::time(nullptr);
     struct std::tm* ptm = std::localtime(&now);
@@ -153,12 +223,16 @@ void ContentMeta::putMetaWithCSV(std::string path, MetaStore* &ms) {
 
     std::string fileName = path + std::string(buffer) + ".csv";
     std::string sql = "COPY SSDESC TO '" + fileName + "' WITH (HEADER true)";
-    ms->excuteNonQuery(sql);
+    return ms->excuteNonQuery(sql);
 
 }
 
-void ContentMeta::putMetaWithParquet(std::string path, MetaStore* &ms) {
+bool ContentMeta::putMetaWithParquet(std::string path) {
 
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
     
     std::time_t now = std::time(nullptr);
     struct std::tm* ptm = std::localtime(&now);
@@ -167,7 +241,7 @@ void ContentMeta::putMetaWithParquet(std::string path, MetaStore* &ms) {
 
     std::string fileName = path + std::string(buffer) + ".parquet";
     std::string sql = "COPY SSDESC TO '" + fileName + "' (FORMAT 'parquet')";
-    ms->excuteNonQuery(sql);
+    return ms->excuteNonQuery(sql);
 
 } 
 

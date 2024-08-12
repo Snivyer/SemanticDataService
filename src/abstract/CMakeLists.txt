@@ -1,14 +1,14 @@
+add_subdirectory(utils)
 add_subdirectory(GIS)
 add_subdirectory(meta)
 add_subdirectory(buffer)
 add_subdirectory(adaptor)
 
 
-
 add_library(abstract STATIC ${ALL_OBJECT_FILES})
 
-
 set(ABSTRACT_LIBS
+        utils
         GIS
         meta
         buffer

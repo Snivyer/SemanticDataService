@@ -155,7 +155,7 @@ namespace SDS
         DataBox();
         ~DataBox();
 
-        void Init(ContentDesc &cntDesc);
+        void init(ContentDesc &cntDesc);
 
 
         ResizeResult resizeBuffer(const size_t dataIn);
@@ -167,9 +167,11 @@ namespace SDS
 
         size_t debugGetDataBufferSize() const;
 
+        void addSpaceIndex(size_t start, size_t count);
+
     private:
-        void PutFooter(FootRegion &footer);
-        void PutContentMeta(ContentDesc &cntDesc);
+        void putFooter(FootRegion &footer);
+        void putContentMeta(ContentDesc &cntDesc);
 
     };
 

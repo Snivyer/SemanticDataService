@@ -13,17 +13,17 @@ namespace SDS
     }
 
 
-    void DataBox::Init(ContentDesc &cntDesc) {
+    void DataBox::init(ContentDesc &cntDesc) {
 
         // todo 首先将元数据描述符存储到元数据存储区
-        PutContentMeta(cntDesc);
+        putContentMeta(cntDesc);
 
         // todo 开辟一定大小的数据空间
     }
 
   
 
-    void DataBox::PutContentMeta(ContentDesc &cntDesc) {
+    void DataBox::putContentMeta(ContentDesc &cntDesc) {
 
         auto buffer = meta.buffer;
         auto position = meta.position;
@@ -92,11 +92,15 @@ namespace SDS
         }
     }
 
+    void addSpaceIndex(size_t start, size_t count) {
+
+    }
+
 
 
 
     // 在元数据区填充数据箱子的尾注，尾注中包含数据箱子的版本和索引的起始地址
-    void DataBox::PutFooter(FootRegion &footer) {
+    void DataBox::putFooter(FootRegion &footer) {
 
         auto buffer = meta.buffer;
         auto position = meta.position;

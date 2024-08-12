@@ -7010,7 +7010,7 @@ struct ConsecutiveChildListInfo {
 };
 
 //!  Vector of values of a specified PhysicalType.
-class Vector {
+class  Vector {
 	friend struct ConstantVector;
 	friend struct DictionaryVector;
 	friend struct FlatVector;

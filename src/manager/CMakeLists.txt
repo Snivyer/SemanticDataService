@@ -1,13 +1,22 @@
-add_library(
-  manager
-  OBJECT
-  cnt_meta.cpp
-  space_index.cpp
-  sto_meta.cpp
-  time_index.cpp
-  var_index.cpp
-)
+add_subdirectory(metadata)
+add_subdirectory(index)
 
 
-set(ALL_OBJECT_FILES
-  ${ALL_OBJECT_FILES} $<TARGET_OBJECTS:manager> PARENT_SCOPE)
+
+add_library(manager STATIC ${ALL_OBJECT_FILES})
+
+set(MANAGER_LIBS
+        metadata
+        index
+        ) 
+
+
+target_link_libraries(
+        manager
+        ${MANAGER_LIBS}
+        )
+
+
+target_include_directories(
+        manager PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)

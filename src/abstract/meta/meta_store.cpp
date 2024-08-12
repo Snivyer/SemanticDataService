@@ -35,6 +35,7 @@ bool MetaStore::excuteNonQuery(std::string sql) {
 
     _con->Query(sql)->Print();
     disconnect();
+    return true;
 }
 
 bool MetaStore::excuteQuery(std::string sql, duckdb::unique_ptr<duckdb::MaterializedQueryResult> &result) {

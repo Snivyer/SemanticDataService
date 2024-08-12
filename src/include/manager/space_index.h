@@ -27,6 +27,7 @@ namespace SDS
     struct SpaceNode
     {
         size_t SpaceID;                                     // 空间ID
+        std::string adCode;
         struct SpaceDescList* me;                           // 空间描述符
         std::string PSSID;                                  // 父空间ID
         struct SpaceDescList* parent;                       // 父空间描述符
@@ -34,6 +35,8 @@ namespace SDS
 
         std::vector<struct SpaceDescList>* children;         // 子空间描述符表
         std::vector<struct SpaceNode*> CSNode;              // 子空间节点
+
+
     };
 
   class SpaceIndex : public BaseIndex
@@ -58,7 +61,7 @@ namespace SDS
         bool createNode(int SpaceID);
 
         bool search(std::string adcode, struct SpaceNode* &node); 
-        bool insert(std::string adcode, struct SpaceNode *node);
+        bool insert(std::string adcode, struct SpaceNode* &node);
         bool insert(std::string adcode, SpaceDescList* &me, std::string PSSID = std::string(0));
 
     };

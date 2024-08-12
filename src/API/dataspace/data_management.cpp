@@ -57,7 +57,7 @@ DataBox* DataManager::getRecentDataBox() {
 DataBox* DataManager::createDataBox(ContentDesc &cntDesc)  {
 
     DataBox *db = new DataBox();
-    db->Init(cntDesc);
+    db->init(cntDesc);
     return db;
    
 }
@@ -78,7 +78,7 @@ bool DataManager::fillDataWithOneDB(SemanticSpace* space, ContentID &cntID, Data
     // 创建空间索引
     size_t space_count = cntDesc.vlDesc.groupLen * cntDesc.tsDesc.count;
     // todo: 添加索引的部分
-    db.addSpaceIndex(start, space_count);
+    reponse.db->addSpaceIndex(start, space_count);
         
     // 以子空间的方式，填充数据箱子
     if(storageSpaceManager->fillDataBox(cntDesc, stoID, reponse.db, start, space_count) == false) {
@@ -119,7 +119,7 @@ bool DataManager::fillDataWithMultiDB(SemanticSpace* space, ContentID &CntID, Da
         ContentID childCntID = CntID;
         childCntID.spaceID = childNode->SpaceID;  
         
-        SemanticSpace* childSpace = semanticSpaceManager->getSpaceByID(childCntID);
+        SemanticSpace* childSpace = semanticSpaceManager->getSpaceByID(childCntID.spaceID);
         if(childSpace == nullptr) {
             // can not load the relate semantic space
             return false;
@@ -149,13 +149,13 @@ bool DataManager::internallFillData(DataRequest &request, DataResponse &reponse,
     }
 
     if(space->childrenNum == 0) {
-        if(fillDataWithOneDB(space, request.cntID, reponse.db, start)) {
+        if(fillDataWithOneDB(space, request.cntID, reponse, start)) {
              // todo: 将回复消息添加到回复队列中，由回复队列将数据箱子返回给对应的客户端
             replyQueue.push_back(reponse);
             return true;
         }
     } else {
-        if(fillDataWithMultiDB(space, request.cntID, reponse.db, start)) {
+        if(fillDataWithMultiDB(space, request.cntID, reponse, start)) {
             
             // todo: 将回复消息添加到回复队列中，由回复队列将数据箱子返回给对应的客户端
             replyQueue.push_back(reponse);
@@ -190,7 +190,7 @@ bool DataManager::DataManager::internalLoadData() {
     reponse.requestID = request.requestID;
 
     // start to fill data into databox
-    return internallFillData(request, reponse);
+    return internallFillData(request, reponse, 0);
 }
 
 

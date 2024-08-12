@@ -4,8 +4,7 @@
 namespace SDS {
 
     // 初始化空间索引
-    SpaceIndex::SpaceIndex()
-    {
+    SpaceIndex::SpaceIndex() {
         // 声明索引类型为空间索引
         _entrance.type = IndexType::Space;
         _entrance.rootNode = NULL;
@@ -13,11 +12,9 @@ namespace SDS {
     }
 
     // 析构函数
-    SpaceIndex::~SpaceIndex()
-    {
+    SpaceIndex::~SpaceIndex() {
     
-        if(this->_entrance.rootNode != NULL)
-        {
+        if(this->_entrance.rootNode != NULL) {
             SpaceNode* node = (SpaceNode*) _entrance.rootNode;
 
             // 构建解析队列
@@ -25,8 +22,7 @@ namespace SDS {
             destructorList.push(node);
             
 
-            while(destructorList.empty() == false)
-            {
+            while(destructorList.empty() == false) {
                 node = destructorList.front();
                 destructorList.pop();
 
@@ -34,8 +30,7 @@ namespace SDS {
                 std::vector<SpaceNode*>::iterator itEnd = node->CSNode.end();
 
                 // 依次将子节点加入到析构队列中，完成空间释放
-                while(itBegin != itEnd)
-                {
+                while(itBegin != itEnd) {
                     destructorList.push(*itBegin);
                     itBegin++;
                 }
@@ -48,11 +43,9 @@ namespace SDS {
     }
 
     // 解析检索词
-    bool SpaceIndex::getTerm(SearchTerm &term, std::string &adcode)
-    {
+    bool SpaceIndex::getTerm(SearchTerm &term, std::string &adcode) {
        
-        if(term.size() == 1)
-        {
+        if(term.size() == 1) {
             // 使用行政编码作为检索词
             adcode = term[0];
             return true;
@@ -62,10 +55,8 @@ namespace SDS {
     }
 
     // 解析检索结果
-    bool SpaceIndex::getResult(ResultSet &result, struct SpaceNode* snode)
-    {
-        if(result.size() == 1)
-        {
+    bool SpaceIndex::getResult(ResultSet &result, struct SpaceNode* snode) {
+        if(result.size() == 1) {
             snode = (SpaceNode*) result[0];
             return true;
         }
@@ -73,10 +64,8 @@ namespace SDS {
     }
 
     // 解析检索结果
-    bool SpaceIndex::getResult(ResultSet &result, int &spaceID, std::string &PSSID)
-    {
-        if(result.size() == 1)
-        {
+    bool SpaceIndex::getResult(ResultSet &result, int &spaceID, std::string &PSSID) {
+        if(result.size() == 1) {
             struct SpaceNode* snode = (SpaceNode*) result[0];
             spaceID = snode->SpaceID;
             PSSID = snode->PSSID;
@@ -90,13 +79,10 @@ namespace SDS {
      * @param 行政编码
      * @param 检索成功返回成功节点，检索失败返回可插入节点
     */
-    bool SpaceIndex::search(std::string adcode, struct SpaceNode* &node)
-    {
+    bool SpaceIndex::search(std::string adcode, struct SpaceNode* &node) {
+        
         node = (SpaceNode*) this->_entrance.rootNode;
-
-        if(this->_entrance.rootNode == NULL)
-        {
-            // 此时根节点作为插入点
+        if(this->_entrance.rootNode == NULL) {
             return false;
         }
 
@@ -107,23 +93,19 @@ namespace SDS {
         int totalSteLen = adcode.length();
         int subStrLen = 2;              
 
-        while(searchList.empty() == false)
-        {
+        while(searchList.empty() == false) {
 
             node = searchList.front();
             searchList.pop();
             std::string code = adcode.substr(0, subStrLen);
 
-            if(code.compare(node->me->desc.adCode) == true)
-            {
-            
+            if(code.compare(node->adCode) == 0) {
                 // 找到了，意味着后续的不需要找，直接清空列表
                 std::queue<struct SpaceNode*> empty;
                 std::swap(searchList, empty);
 
                 // 如果全部找完了，且长度相同
-                if(subStrLen == totalSteLen)
-                {
+                if(subStrLen == totalSteLen) {
                     return true;
                 }
 
@@ -132,8 +114,7 @@ namespace SDS {
                 std::vector<SpaceNode*>::iterator itEnd = node->CSNode.end();
 
                 // 依次将子节点加入到检索队列中
-                while(itBegin != itEnd)
-                {
+                while(itBegin != itEnd) {
                     searchList.push(*itBegin);
                     itBegin++;
                 }
@@ -145,26 +126,22 @@ namespace SDS {
 
     }
 
-    bool SpaceIndex::search(SearchTerm &term, ResultSet &result)
-    {
+    bool SpaceIndex::search(SearchTerm &term, ResultSet &result) {
         // 检索结果
         SpaceNode* node = NULL;
 
         // 空间索引检索采用行政编码作为检索词
         std::string adcode;
-        if(this->getTerm(term, adcode) == false)
-        {
+        if(this->getTerm(term, adcode) == false) {
             result.push_back(node);
             return false;
         }
 
-        if(this->search(adcode, node) == true)
-        {
+        if(this->search(adcode, node) == true) {
             result.push_back(node);
             return true;
         }
-        else
-        {
+        else {
             result.push_back(node);
             return false;
         }
@@ -190,15 +167,14 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
      * @param 行政编码
      * @param 返回插入成功的空间索引节点
     */
-    bool SpaceIndex::insert(std::string adcode, struct SpaceNode *node)
-    {
-      
+    bool SpaceIndex::insert(std::string adcode, struct SpaceNode* &node) {
         // 空间索引为空， 直接插入
-        if(this->_entrance.rootNode == NULL)
-        {
+        if(this->_entrance.rootNode == NULL) {
+            node = new SpaceNode();
+
             // step1: 初始化节点
             node->SpaceID = 1;                              // 初始化空间ID
-            node->me->SpaceID = node->SpaceID; 
+            node->adCode = adcode;
 
             // step2: 连接索引节点指针
             this->_entrance.rootNode = node;
@@ -209,10 +185,9 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
         struct SpaceNode *inserted = NULL; 
 
         // 检索对应的行政编码的节点是否存在，不存在的话，会获得插入点
-        if(this->search(adcode, inserted) == false)
-        {
+        if(this->search(adcode, inserted) == false) {
             // step1: 初始化节点
-            node->me->desc.adCode = adcode;                 // 初始化行政编码
+            node->adCode = adcode;                 // 初始化行政编码
             node->SpaceID = inserted->CSNode.size() + 1;    // 初始化空间ID
             node->PSSID = inserted->SpaceID;                // 初始化父空间ID
           
@@ -223,11 +198,10 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
 
             // step3: 填充内容描述符
 
-            std::cout << "插入行政编码为：" << node->me->desc.adCode << "的节点，其空间ID为："
+            std::cout << "插入行政编码为：" << node->adCode << "的节点，其空间ID为："
             << node->PSSID << ", 其父空间ID为:" << node->PSSID << std::endl; 
         }
-        else
-        {
+        else {
             delete(node);
             node = NULL;
             return false;
@@ -235,15 +209,13 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
         
     }
 
-    bool SpaceIndex::insert(SearchTerm &term, ResultSet &result)
-    {
+    bool SpaceIndex::insert(SearchTerm &term, ResultSet &result)  {
         // 创建要插入的索引节点
         struct SpaceNode *node = NULL;
 
         // 获取行政编码
         std::string adcode;
-        if(this->getTerm(term, adcode) == false)
-        {
+        if(this->getTerm(term, adcode) == false)  {
             result.push_back(node);
             return false;
         }
@@ -252,16 +224,12 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
         int totalSteLen = adcode.length();
         int subStrLen = 2;  
 
-        while(subStrLen < totalSteLen)
-        {
+        while(subStrLen < totalSteLen) {
             std::string code = adcode.substr(0, subStrLen);
-
-            if(this->insert(code, node) == true)
-            {
+            if(this->insert(code, node) == true) {
                 subStrLen += 2;
             }
-            else
-            {
+            else {
                 result.push_back(node);
                 return false;          
             }
@@ -271,18 +239,15 @@ bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSI
         return true;
     }
 
-    bool SpaceIndex::remove(SearchTerm &term, ResultSet &result)
-    {
+    bool SpaceIndex::remove(SearchTerm &term, ResultSet &result)  {
 
     }
     
-    bool SpaceIndex::update(SearchTerm &oldTerm, SearchTerm &newTerm, ResultSet &result)
-    {
+    bool SpaceIndex::update(SearchTerm &oldTerm, SearchTerm &newTerm, ResultSet &result) {
 
     }     
     
-    bool SpaceIndex::persist(std::string fileName)
-    {
+    bool SpaceIndex::persist(std::string fileName) {
 
     }
     

@@ -44,7 +44,7 @@ void getJsonInfo(struct SSDesc &desc, json J, int index) {
     getMinboundingRectangle(subj, desc.geoPerimeter);
 }
 
-bool getJsonInfo(struct SSDesc &desc, const std::string &provice, const std::string &city, const std::string &district) {
+bool getJsonInfo(struct SSDesc &desc, std::string &provice, std::string &city, std::string &district) {
     
     std::ifstream ifs("./mapjson/100000.json", std::ios::in) ; 
     std::ifstream ifsp, ifsc;

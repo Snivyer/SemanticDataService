@@ -12,8 +12,8 @@
 #include <fstream>
 #include "manager/cnt_meta.h"
 #include "abstract/meta/meta_store.h"
-#include "utils/string_operation.h"
-#include "utils/json.hpp"
+#include "abstract/utils/string_operation.h"
+#include "abstract/utils/json.hpp"
 
 
 using json = nlohmann::json;  
@@ -31,13 +31,14 @@ namespace SDS   {
     json openJson(std::ifstream&ifs, const std::string& citycode);
 
     //获取最小边界矩形
-    bool getMinboundingRectangle(json J, std::vector<GeoCoordinate> &geoPerimeter);
+    bool getMinboundingRectangle(json J, std::vector<struct GeoCoordinate> &geoPerimeter);
 
      // 根据省市县名获取地理空间描述富等信息，并将其存入空间结构体中
-    bool getJsonInfo(struct SSDesc &desc, const std::string &provice, const std::string &city, const std::string &district);
+    bool getJsonInfo(struct SSDesc &desc, std::string &provice, std::string &city, std::string &district);
 
     void getJsonInfo(struct SSDesc &desc, json J, int index);
 
+    // load data from GIS system to MetaStore
     void loadTable(MetaStore* &ms);
 
     void getTableInfo(struct SSDesc &desc, const std::string &spaceName);

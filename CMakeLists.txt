@@ -5,7 +5,7 @@ project(SDS VERSION 1.0 )
 
 
 set(CMAKE_BUILD_TYPE "Debug")  # 定义编译类型
-set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb") # 定义Debug编译参数
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb") # 定义Debug编译参数
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall") # 定义Release编译参数
 
 add_compile_options(-std=c++11)
@@ -35,13 +35,25 @@ link_directories( ${PROJECT_SOURCE_DIR}/third_party_lib/duckdb/lib)
 link_directories(${PROJECT_SOURCE_DIR}/third_party_lib/netcdf/lib)
 
 
-# duckdb test
-add_executable(SDS_duckdb_test duckdb_test.cpp)
-target_link_libraries(SDS_duckdb_test SDS_lib)
-target_link_libraries(SDS_duckdb_test duckdb)
 
-# databox test 
-add_executable(SDS_databox_test databox_test.cpp)
-target_link_libraries(SDS_databox_test SDS_lib)
-target_link_libraries(SDS_databox_test netcdf)
+# # databox test 
+# add_executable(SDS_databox_test databox_test.cpp)
+# target_link_libraries(SDS_databox_test manager)
+# target_link_libraries(SDS_databox_test abstract)
+# target_link_libraries(SDS_databox_test netcdf)
 
+# # duckdb test
+# add_executable(SDS_duckdb_test duckdb_test.cpp)
+# target_link_libraries(SDS_duckdb_test manager)
+# target_link_libraries(SDS_duckdb_test abstract)
+# target_link_libraries(SDS_duckdb_test duckdb)
+
+
+
+# dataManager test 
+add_executable(SDS_dataManager_test dataManager_test.cpp)
+target_link_libraries(SDS_dataManager_test API)
+target_link_libraries(SDS_dataManager_test manager)
+target_link_libraries(SDS_dataManager_test abstract)
+target_link_libraries(SDS_dataManager_test netcdf)
+target_link_libraries(SDS_dataManager_test duckdb)

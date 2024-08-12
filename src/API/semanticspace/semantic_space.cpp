@@ -25,6 +25,7 @@ namespace SDS
     // create a semantic space
     size_t SemanticSpaceManager::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames)
     {
+    
         ContentDesc cntDesc;
         _metaManager->extractSSDesc(cntDesc, geoNames);
 
@@ -32,30 +33,19 @@ namespace SDS
         SearchTerm term;
         ResultSet result;
         term.push_back(cntDesc.ssDesc.adCode);
-
-
+        
         SpaceNode* node;
-        // search space index
-        if(_spaceIndex->search(term, result)) {
+        /// insert into space index
+        if(_spaceIndex->insert(term, result)) {
             if(_spaceIndex->getResult(result, node)) {
+                 // create a semantic space
+                SemanticSpace* space = new SemanticSpace(cntDesc, node, SSName);
+                _spaceNameMap.insert({SSName, space});
+                _spaceIDMap.insert({std::to_string(node->SpaceID), space});
                 return node->SpaceID;
-            }
-            
-        } else {
-            if(_spaceIndex->getResult(result, node)) {
-                // insert into space index and crate the new semantic space
-                if(_spaceIndex->insert(term, result)) {
-                    if(_spaceIndex->getResult(result, node)) {
-
-                        // create a semantic space
-                        SemanticSpace* space = new SemanticSpace(cntDesc, node, SSName);
-                        _spaceNameMap.insert({SSName, space});
-                        _spaceIDMap.insert({node->SpaceID, space});
-                        return node->SpaceID;
-                    }
-                }
-            }
-        }
+            } 
+        } 
+      
     }
      
 
@@ -73,8 +63,8 @@ namespace SDS
     }
     
     SemanticSpace* SemanticSpaceManager::getSpaceByID(std::string spaceID) {
-        auto ret = _spaceIDMap.find(spaceName);
-        if(ret != _spaceIDMap..end()) {
+        auto ret = _spaceIDMap.find(spaceID);
+        if(ret != _spaceIDMap.end()) {
             return ret->second;
         }
         return nullptr;

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "manager/cnt_meta.h"
-#include "manager/sto_meta.h"
+#include "abstract/meta/sto_meta_template.h"
+#include "abstract/meta/cnt_meta_template.h"
 #include "abstract/buffer/malloc/STL_buffer.h"
 
 namespace SDS

@@ -7,12 +7,10 @@
 #pragma once
 
 #include "adaptor.h"
-#include "netcdf.h"
-#include "abstract/buffer/malloc/STL_buffer.h"
-#include "utils/string_operation.h"
+#include "third_party_lib/netcdf/include/netcdf.h"
+#include "abstract/utils/string_operation.h"
 #include "abstract/buffer/memory/memory.h"
 #include <dirent.h>
-
 
 
 namespace SDS

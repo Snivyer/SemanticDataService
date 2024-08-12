@@ -21,9 +21,26 @@ namespace SDS
     public:
         virtual std::string getMeta(Key key) {};
         virtual void putMeta(Key key, std::string value) {};
-        virtual void putMetaWithJson(std::string path, MetaStore* &ms) {};
-        virtual void putMetaWithCSV(std::string path, MetaStore* &ms)  {};
-        virtual void putMetaWithParquet(std::string path, MetaStore* &ms) {};
+        virtual bool putMetaWithJson(std::string path) {};
+        virtual bool putMetaWithCSV(std::string path )  {};
+        virtual bool putMetaWithParquet(std::string path) {};
+
+        void setMetaStore(MetaStore* &ms) {
+            _store = ms;
+        }
+        
+        MetaStore* getMetaStore() {
+            return _store;
+        }
+
+
+
+
+    private:
+        MetaStore* _store;
+
+
+
     };
 
 

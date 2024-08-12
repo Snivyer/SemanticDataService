@@ -10,61 +10,87 @@ using namespace SDS;
 using namespace duckdb;
 
 
+// 测试一：duckdb如何用于持久化元数据
+// ContentMeta: 元数据操作类
+// MetaStore: 元数据持久化类，其目前采用duckDB进行元数据持久化
+void MetaPeristTest() {
+
+    MetaStore* metaStore = new MetaStore();
+    ContentMeta cntMetaManager;
+    ContentDesc cntDesc[3];
+    std::vector<std::string> geoNames;
+
+    geoNames.push_back(std::string("江西省"));
+    cntMetaManager.extractSSDesc(cntDesc[0], geoNames);
+    geoNames.push_back(std::string("赣州市"));
+    cntMetaManager.extractSSDesc(cntDesc[1], geoNames);
+    geoNames.push_back(std::string("兴国县"));
+    cntMetaManager.extractSSDesc(cntDesc[2], geoNames);
+
+    // 打印内容元数据
+    for(int i = 0; i < 3; i++) {
+        cntMetaManager.printSSDesc(cntDesc[i]);
+    }
+
+    cntMetaManager.setMetaStore(metaStore);
+    cntMetaManager.setSSDescFormat();
+
+    // 元数据持久化
+    for(int i = 0; i < 3; i++) {
+        cntMetaManager.putSSDesc(cntDesc[i]);
+    }
+
+    // 元数据输出成不同文件
+    std::string path("./metadata/SSDesc/");
+
+    cntMetaManager.putMetaWithJson(path);
+    cntMetaManager.putMetaWithCSV(path);
+    cntMetaManager.putMetaWithParquet(path);
+}
+
+
+// 测试二：duckdb如何用于加载元数据
+// ContentMeta: 元数据操作类
+// MetaStore: 元数据持久化类，其目前采用duckDB进行元数据持久化
+void MetaLoadTest() {
+
+    MetaStore* ms = new MetaStore();
+    ContentMeta cntMetaManager;
+    duckdb::unique_ptr<duckdb::MaterializedQueryResult> result;
+    std::vector<ContentDesc> cntDescSet; 
+
+
+    std::string fileName = "./metadata/SSDesc/2024-08-10-14-49-56.json";
+
+    // 从文件中加载数据
+    cntMetaManager.setMetaStore(ms);
+    cntMetaManager.setSSDescFormat();
+    cntMetaManager.loadSSDescWithFile(fileName);
+    
+    std::string sql = "SELECT * FROM SSDESC";
+    ms->excuteQuery(sql, result);
+    cntMetaManager.parseSSDesc(cntDescSet, result.get());
+
+    for(auto cntDesc : cntDescSet) {
+        cntMetaManager.printSSDesc(cntDesc);
+    }
+
+}
+
 
 
 int main()
 {
-    MetaStore* meta = new MetaStore();
-    //工作一： 调整代码，论证duckdb如何用于持久化元数据
-    std::string sql = "CREATE TABLE SSDESC (geoName VARCHAR, adCode VARCHAR, geoCentral DOUBLE[2], geoPerimeter DOUBLE[2][4])";
-    meta->excuteNonQuery(sql);
-
-    ContentMeta cnt[3];
-
-    cnt[0].extractSSDesc(std::string("江西省"));
-    cnt[1].extractSSDesc(std::string("江西省"), std::string("赣州市"));
-    cnt[2].extractSSDesc(std::string("江西省"), std::string("赣州市"), std::string("兴国县"));
-
-    cnt[0].printSSDesc();
-    cnt[1].printSSDesc();
-    cnt[2].printSSDesc();
-
-    cnt[0].putSSDesc(meta);
-    cnt[1].putSSDesc(meta);
-    cnt[2].putSSDesc(meta);
-
-    std::string path("./metadata/SSDesc/");
-    cnt[0].putMetaWithJson(path, meta);
-    cnt[0].putMetaWithCSV(path, meta);
-    cnt[0].putMetaWithParquet(path, meta);
-
-    meta->excuteNonQuery("SELECT * FROM './metadata/SSDesc/ssdesc.parquet'");
-
-
-    // 工作二： 论证如何通过duckdb从GIS Json中提取空间元数据，并存储到空间描述符中
-
-    // loadTable(meta);
+   // MetaPeristTest();
+   MetaLoadTest();
     
-    // duckdb::unique_ptr<duckdb::MaterializedQueryResult> result;
-    // std::vector<ContentMeta> desc_list;
+
+ 
 
 
-    // std::string sql = "SELECT * FROM SSDESC";
-    // meta->excuteQuery(sql, result);
 
-    // duckdb::idx_t row_count = result->RowCount();
 
-    // for (idx_t row = 0; row < row_count; row++) {
-    //     ContentMeta d;
-    //     d.desc->ssDesc.geoName = result->GetValue(0, row).GetValue<std::string>();
-    //     d.desc->ssDesc.adCode =  result->GetValue(1, row).GetValue<std::string>();
-    //     auto list1 =  result->GetValue(2, row).GetValue<std::string>();
-    //     auto list2 =  result->GetValue(3, row);
 
-    //     cout << list1 << std::endl;
-    //     cout << list2 << std::endl;
-    //     d.printSSDesc();
-    // }
 
 
     return 0;

@@ -120,10 +120,10 @@ namespace SDS
 
         // first step: build space index of databox
         // todo: 这里我不知道怎么填
-        SerialElementIndex spaceIndex;
-        spaceIndex.lastUpadatePosition = start;
-        spaceIndex.count = count;
-        db->metaSet.SpaceIndices.insert(spaceIndex);
+        // SerialElementIndex spaceIndex;
+        // spaceIndex.lastUpadatePosition = start;
+        // spaceIndex.count = count;
+        // db->metaSet.SpaceIndices.insert(spaceIndex);
 
 
 
