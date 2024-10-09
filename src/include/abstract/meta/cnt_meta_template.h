@@ -7,6 +7,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <iostream>
 
 namespace SDS {
 
@@ -87,6 +88,12 @@ namespace SDS {
                 return storeIDs[0];
             }
         }  
+
+        void print() {
+            std::cout << "space ID:" << spaceID.data() << std::endl;
+            std::cout << "Time ID:" << timeID.data() << std::endl;
+            std::cout << "Var ID:" << varID.data() << std::endl;
+        }
     };
 
     

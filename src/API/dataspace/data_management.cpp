@@ -117,9 +117,9 @@ bool DataManager::fillDataWithMultiDB(SemanticSpace* space, ContentID &CntID, Da
 
     for(auto childNode : childSpaceNodes) {
         ContentID childCntID = CntID;
-        childCntID.spaceID = childNode->SpaceID;  
+        childCntID.spaceID = childNode->spaceID;  
         
-        SemanticSpace* childSpace = semanticSpaceManager->getSpaceByID(childCntID.spaceID);
+        SemanticSpace* childSpace = semanticSpaceManager->getSpaceByID(childNode->getCompleteSpaceID());
         if(childSpace == nullptr) {
             // can not load the relate semantic space
             return false;

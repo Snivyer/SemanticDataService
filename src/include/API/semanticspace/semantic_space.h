@@ -31,17 +31,28 @@ namespace SDS
         time_t createT;             // 创建时间
 
         ContentID cntID;     // 内容ID描述符
-        ContentDesc &cntDesc;        // 内容描述符
+        ContentDesc cntDesc;        // 内容描述符
         SpaceStatus status;         // 语义空间的状态
+        SpaceNode* indexNode;
 
-        SemanticSpace(ContentDesc &cntDesc, SpaceNode *sNode, std::string SSName): cntDesc(cntDesc) {
-            cntID.spaceID = sNode->SpaceID;
-            spaceID = sNode->SpaceID;
-            SSName = SSName;
-            PSSID = sNode->PSSID;
-            childrenNum = sNode->CSNode.size();
-            createT = std::time(nullptr);
-            status = SpaceStatus::create;
+        SemanticSpace(std::string SSName) {
+            this->SSName = SSName;
+        }
+
+        void init(SpaceNode *sNode, SpaceStatus state = SpaceStatus::create) {
+            this->cntID.spaceID = std::to_string(sNode->spaceID);
+            this->spaceID = sNode->spaceID;
+
+            this->PSSID = sNode->PSSID;
+            this->childrenNum = sNode->CSNode.size();
+            this->createT = std::time(nullptr);
+            this->status = state;
+            this->indexNode = sNode;
+        }
+
+        std::string getCompleteSpaceID(int keyLength = 3) {
+            return PSSID + intToStringWithPadding(spaceID, keyLength);
+            
         }
 
     };
@@ -55,16 +66,19 @@ namespace SDS
 
         // create the semantic space whose level number depends on the number of geoNames
         size_t createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
-        
+        void printSpaceDesc(SemanticSpace *space);
 
         SpaceIndex* getSpaceIndex();
         SemanticSpace* getSpaceByName(std::string spaceName);
         SemanticSpace* getSpaceByID(std::string spaceID);
 
+
+
     
     private:
         ContentMeta* _metaManager;
         SpaceIndex* _spaceIndex;
+        MetaStore* _metaStore;
         std::map<std::string, SemanticSpace*> _spaceNameMap;
         std::map<std::string, SemanticSpace*> _spaceIDMap;
 

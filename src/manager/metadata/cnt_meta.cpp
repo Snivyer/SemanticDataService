@@ -49,20 +49,23 @@ bool ContentMeta::setSSDescFormat() {
         return false;
     }
 
-    std::string sql = "CREATE TABLE SSDESC (geoName VARCHAR, adCode VARCHAR, geoCentral DOUBLE[2], geoPerimeter DOUBLE[2][4])";
+    std::string sql = "CREATE TABLE SSDESC (spaceID VARCHAR, spaceName VARCHAR, geoName VARCHAR, adCode VARCHAR, geoCentral DOUBLE[2], geoPerimeter DOUBLE[2][4])";
     return ms->excuteNonQuery(sql);
 
 }
 
-bool ContentMeta::putSSDesc(ContentDesc &desc) {
 
+bool ContentMeta::putSSDesc(struct ContentDesc &desc, std::string spaceName = "", std::string spaceID = "") {
+    
     MetaStore* ms = getMetaStore();
     if(!ms) {
         return false;
     }
 
     std::stringstream fmt;
-    fmt << "INSERT INTO SSDESC VALUES ('"   << desc.ssDesc.geoName << "','" 
+    fmt << "INSERT INTO SSDESC VALUES ('"   << spaceID << "','" 
+                                            << spaceName << "','" 
+                                            << desc.ssDesc.geoName << "','" 
                                             << desc.ssDesc.adCode << "', ["
                                             << desc.ssDesc.geoCentral.logitude << ","
                                             << desc.ssDesc.geoCentral.latitude << "], [[" 
@@ -114,6 +117,7 @@ bool ContentMeta::parseSSDesc(std::vector<ContentDesc> &cntDescSet,
     }
     return true;
 }
+
 
 bool ContentMeta::string_to_tm(std::string timeStr, tm &time) {
         int year = 0, month = 0, day = 0, hour = 0, minute = 0, sec =0;

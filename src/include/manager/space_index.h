@@ -16,26 +16,32 @@
 
 namespace SDS
 {
-    // 空间描述符表
-    struct SpaceDescList
-    {
-        size_t SpaceID;
-        SSDesc desc;
-    };
 
     // 空间节点
     struct SpaceNode
     {
-        size_t SpaceID;                                     // 空间ID
+        size_t spaceID;                                     // 空间ID
         std::string adCode;
-        struct SpaceDescList* me;                           // 空间描述符
         std::string PSSID;                                  // 父空间ID
-        struct SpaceDescList* parent;                       // 父空间描述符
         struct SpaceNode* PSNode;                           // 父空间节点
 
-        std::vector<struct SpaceDescList>* children;         // 子空间描述符表
         std::vector<struct SpaceNode*> CSNode;              // 子空间节点
 
+        std::string getCompleteSpaceID(int keyLength = 3) {
+            return PSSID + intToStringWithPadding(spaceID, keyLength);
+        }
+
+        SpaceNode* moveUp() {
+            return this->PSNode;
+        }
+
+        SpaceNode* moveDown(size_t spaceID) {
+            for(auto node: this->CSNode) {
+                if(node->spaceID == spaceID) {
+                    return node;
+                }
+            }
+        }
 
     };
 
@@ -51,18 +57,20 @@ namespace SDS
         bool update(SearchTerm &oldTerm, SearchTerm 
                             &newTerm, ResultSet &result) override;       // 更新节点
         bool persist(std::string fileName) override; 
-        bool getResult(ResultSet &result, struct SpaceNode *node);          // 解析检索结果
+        bool getResult(ResultSet &result, SpaceNode* &node);          // 解析检索结果
+
+
     
     private:
         bool getTerm(SearchTerm &term, std::string &adcode);                // 解析检索关键字
 
         bool getResult(ResultSet &result, int &spaceID, std::string &PSSID);  // 解析检索结果 
 
-        bool createNode(int SpaceID);
+        bool createNode(size_t spaceID);
 
         bool search(std::string adcode, struct SpaceNode* &node); 
         bool insert(std::string adcode, struct SpaceNode* &node);
-        bool insert(std::string adcode, SpaceDescList* &me, std::string PSSID = std::string(0));
+
 
     };
 

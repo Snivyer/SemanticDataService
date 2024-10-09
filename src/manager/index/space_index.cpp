@@ -6,8 +6,10 @@ namespace SDS {
     // 初始化空间索引
     SpaceIndex::SpaceIndex() {
         // 声明索引类型为空间索引
+        SpaceNode *node = new SpaceNode;
+        node->spaceID = 0;
         _entrance.type = IndexType::Space;
-        _entrance.rootNode = NULL;
+        _entrance.rootNode = node;
         _entrance.nodeNum = 0;
     }
 
@@ -35,7 +37,7 @@ namespace SDS {
                     itBegin++;
                 }
 
-                std::cout << "析构行政编码为:" << node->me->desc.adCode  << "节点！" << std::endl; 
+                // std::cout << "析构节点的行政编码为:" << node->adCode  << "节点！" << std::endl; 
                 delete node;
                   
             }
@@ -55,7 +57,7 @@ namespace SDS {
     }
 
     // 解析检索结果
-    bool SpaceIndex::getResult(ResultSet &result, struct SpaceNode* snode) {
+    bool SpaceIndex::getResult(ResultSet &result, SpaceNode* &snode) {
         if(result.size() == 1) {
             snode = (SpaceNode*) result[0];
             return true;
@@ -67,53 +69,49 @@ namespace SDS {
     bool SpaceIndex::getResult(ResultSet &result, int &spaceID, std::string &PSSID) {
         if(result.size() == 1) {
             struct SpaceNode* snode = (SpaceNode*) result[0];
-            spaceID = snode->SpaceID;
+            spaceID = snode->spaceID;
             PSSID = snode->PSSID;
             return true;
         }
         return false;
     }
 
-    /**
-     * 根据空间的行政编码，检索对应的空间索引节点
-     * @param 行政编码
-     * @param 检索成功返回成功节点，检索失败返回可插入节点
-    */
-    bool SpaceIndex::search(std::string adcode, struct SpaceNode* &node) {
+   
+    // search the object node according to the adcode, if find it will return the object node, else it will
+    // return the insertable node
+    bool SpaceIndex::search(std::string adcode, SpaceNode* &node) {
         
-        node = (SpaceNode*) this->_entrance.rootNode;
-        if(this->_entrance.rootNode == NULL) {
+        SpaceNode* rootNode = (SpaceNode*) (this->_entrance.rootNode);
+        if(rootNode->CSNode.size() == 0) {
+            node = rootNode;
             return false;
         }
 
-        // 构建检索队列
-        std::queue<struct SpaceNode*> searchList;       
-        searchList.push(node);
-        
+        SpaceNode* backNode = rootNode;
+        std::queue<struct SpaceNode*> searchList; 
+        for(auto spaceNode : rootNode->CSNode) {
+            searchList.push(spaceNode);
+        }
+
         int totalSteLen = adcode.length();
-        int subStrLen = 2;              
-
+        int subStrLen = 2;             
         while(searchList.empty() == false) {
-
             node = searchList.front();
             searchList.pop();
-            std::string code = adcode.substr(0, subStrLen);
 
+            std::string code = adcode.substr(0, subStrLen);
             if(code.compare(node->adCode) == 0) {
-                // 找到了，意味着后续的不需要找，直接清空列表
                 std::queue<struct SpaceNode*> empty;
                 std::swap(searchList, empty);
-
-                // 如果全部找完了，且长度相同
+                
+                backNode = node;
                 if(subStrLen == totalSteLen) {
+                    node = backNode;
                     return true;
                 }
 
-                // 否则开始下一轮的匹配
                 std::vector<SpaceNode*>::iterator itBegin = node->CSNode.begin();
                 std::vector<SpaceNode*>::iterator itEnd = node->CSNode.end();
-
-                // 依次将子节点加入到检索队列中
                 while(itBegin != itEnd) {
                     searchList.push(*itBegin);
                     itBegin++;
@@ -121,16 +119,16 @@ namespace SDS {
                 subStrLen += 2;
             } 
         }
-
+        node = backNode;
         return false;
 
     }
 
+    // search the object node according to the adcode, if find it will return the object node, else it will
+    // return the insertable node
     bool SpaceIndex::search(SearchTerm &term, ResultSet &result) {
-        // 检索结果
-        SpaceNode* node = NULL;
 
-        // 空间索引检索采用行政编码作为检索词
+        SpaceNode* node = nullptr;
         std::string adcode;
         if(this->getTerm(term, adcode) == false) {
             result.push_back(node);
@@ -148,95 +146,78 @@ namespace SDS {
     }
 
 
+    // insert the node into space index 
+    bool SpaceIndex::insert(std::string adcode, SpaceNode* &node) {
 
-bool SpaceIndex::insert(std::string adcode, SpaceDescList* &me, std::string PSSID) {
-
-    SpaceNode *node = new SpaceNode;
-    node->me = me;
-    node->PSSID = PSSID;
-    node->parent = nullptr;
-    node->PSNode = nullptr;
-    node->children = nullptr;
-    node->CSNode.clear();
-
-    return insert(adcode, node);
-}
-
-    /**
-     * 在空间索引中插入行政编码相对应的节点
-     * @param 行政编码
-     * @param 返回插入成功的空间索引节点
-    */
-    bool SpaceIndex::insert(std::string adcode, struct SpaceNode* &node) {
-        // 空间索引为空， 直接插入
-        if(this->_entrance.rootNode == NULL) {
-            node = new SpaceNode();
-
-            // step1: 初始化节点
-            node->SpaceID = 1;                              // 初始化空间ID
+        node = new SpaceNode();
+        SpaceNode *rootNode = (SpaceNode*) (this->_entrance.rootNode);
+       
+        // there are just the root node 
+        if(rootNode->CSNode.size() == 0) {
+        
+            node->spaceID = 1;                          
             node->adCode = adcode;
+            rootNode->CSNode.push_back(node);
+            node->PSNode = rootNode;
+            this->_entrance.nodeNum ++;
 
-            // step2: 连接索引节点指针
-            this->_entrance.rootNode = node;
+            std::cout << "创建空间索引根节点,SpaceID为:" << node->spaceID 
+            << ",行政编码为:" << node->adCode << std::endl;
             return true;
         }
 
-        // 待插入节点
-        struct SpaceNode *inserted = NULL; 
-
-        // 检索对应的行政编码的节点是否存在，不存在的话，会获得插入点
+        SpaceNode *inserted = nullptr; 
         if(this->search(adcode, inserted) == false) {
-            // step1: 初始化节点
-            node->adCode = adcode;                 // 初始化行政编码
-            node->SpaceID = inserted->CSNode.size() + 1;    // 初始化空间ID
-            node->PSSID = inserted->SpaceID;                // 初始化父空间ID
-          
-            // step2: 连接索引节点指针
+
+            node->spaceID = inserted->CSNode.size() + 1;    
+            node->adCode = adcode;                 
             inserted->CSNode.push_back(node);
             node->PSNode = inserted;
-            node->CSNode.clear();
+            this->_entrance.nodeNum ++;
 
-            // step3: 填充内容描述符
+            if(inserted != this->_entrance.rootNode) {
+                node->PSSID = inserted->getCompleteSpaceID();  
+            }
 
-            std::cout << "插入行政编码为：" << node->adCode << "的节点，其空间ID为："
-            << node->PSSID << ", 其父空间ID为:" << node->PSSID << std::endl; 
-        }
-        else {
+            std::cout << "创建空间索引根节点,SpaceID为:" << node->spaceID << ",行政编码为:" 
+            << node->adCode << ", 其父空间ID为:" << node->PSSID.data() << std::endl; 
+            return true;
+        } else {
             delete(node);
-            node = NULL;
+            node = inserted;
             return false;
         }
         
     }
 
+    // insert the node into space index and the search term is adcode 
     bool SpaceIndex::insert(SearchTerm &term, ResultSet &result)  {
-        // 创建要插入的索引节点
-        struct SpaceNode *node = NULL;
-
-        // 获取行政编码
+   
+        SpaceNode *node = nullptr;
         std::string adcode;
+
         if(this->getTerm(term, adcode) == false)  {
             result.push_back(node);
             return false;
         }
 
-        // 这里需要循环创建节点，如360802会创建36节点，3608节点，360802节点
+        // insert mulptile node accoring the relationship of adcode
         int totalSteLen = adcode.length();
         int subStrLen = 2;  
-
-        while(subStrLen < totalSteLen) {
+        while(subStrLen <= totalSteLen) {
             std::string code = adcode.substr(0, subStrLen);
-            if(this->insert(code, node) == true) {
-                subStrLen += 2;
-            }
-            else {
-                result.push_back(node);
-                return false;          
-            }
+            if(this->insert(code, node) == false) {
+                if(subStrLen == totalSteLen) {
+                    result.push_back(node);
+                    return false;
+                }
+            } 
+            subStrLen += 2;
         }
 
         result.push_back(node);
         return true;
+
     }
 
     bool SpaceIndex::remove(SearchTerm &term, ResultSet &result)  {

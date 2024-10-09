@@ -29,6 +29,21 @@ std::string combinePath(const std::string &base_path, const std::string &sub_pat
     }
 }
 
+std::string intToStringWithPadding(int value, int width) {
+    std::stringstream ss;
+    ss << std::internal << std::setfill('0') << std::setw(width) << value;
+    return ss.str();
+}
 
+std::string removeTrailingZeros(const std::string input) {
+    std::string::const_iterator end = input.end();
+    std::string::const_iterator start = input.begin();
+ 
+    while (end != input.begin() && *(end - 1) == '0') {
+        --end;
+    }
+ 
+    return std::string(start, end);
+}
 
 }

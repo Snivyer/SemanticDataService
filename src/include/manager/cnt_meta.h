@@ -10,6 +10,7 @@
 
 #include "meta.h"
 #include "abstract/GIS/geo_read.h"
+#include "abstract/utils/string_operation.h"
 #include "abstract/meta/cnt_meta_template.h"
 #include <string>
 #include <vector>
@@ -38,7 +39,7 @@ namespace SDS
         bool setSSDescFormat();
 
         // put the semantic space description
-        bool putSSDesc(struct ContentDesc &cntDesc);
+        bool putSSDesc(struct ContentDesc &cntDesc, std::string spaceName, std::string spaceID);
 
         // load the content space description from CSV/Json/Parquet
         bool loadSSDescWithFile(std::string filePath);
@@ -62,12 +63,6 @@ namespace SDS
 
         /*------获取元数据------*/
         ContentDesc getCntMeta(struct ContentID &cntID);
-
-        
-
- 
-
-        
         bool putMetaWithJson(std::string path) override;
         bool putMetaWithCSV(std::string path) override;
         bool putMetaWithParquet(std::string path) override;   
