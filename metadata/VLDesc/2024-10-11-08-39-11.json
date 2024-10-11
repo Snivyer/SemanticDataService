@@ -1,0 +1,27 @@
+{"VLID":"0","VLName":"","VarID":0,"VarName":"time","varLen":8,"resRation":5e-324,"varType":"NC_DOUBLE","shape":"1 ","ncVarID":0,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":1,"VarName":"U2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":1,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":2,"VarName":"V2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":2,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":3,"VarName":"T2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":3,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":4,"VarName":"Q2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":4,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":5,"VarName":"PSFC","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":5,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":6,"VarName":"SWDOWN","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":6,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":7,"VarName":"LWDOWN","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":7,"ncGroupID":-1}
+{"VLID":"0","VLName":"","VarID":8,"VarName":"RAINRATE","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":8,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":0,"VarName":"time","varLen":8,"resRation":5e-324,"varType":"NC_DOUBLE","shape":"1 ","ncVarID":0,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":1,"VarName":"U2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":1,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":2,"VarName":"V2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":2,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":3,"VarName":"T2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":3,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":4,"VarName":"Q2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":4,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":5,"VarName":"PSFC","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":5,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":6,"VarName":"SWDOWN","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":6,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":7,"VarName":"LWDOWN","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":7,"ncGroupID":-1}
+{"VLID":"1","VLName":"","VarID":8,"VarName":"RAINRATE","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":8,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":0,"VarName":"time","varLen":8,"resRation":5e-324,"varType":"NC_DOUBLE","shape":"1 ","ncVarID":0,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":1,"VarName":"U2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":1,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":2,"VarName":"V2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":2,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":3,"VarName":"T2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":3,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":4,"VarName":"Q2D","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":4,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":5,"VarName":"PSFC","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":5,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":6,"VarName":"SWDOWN","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":6,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":7,"VarName":"LWDOWN","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":7,"ncGroupID":-1}
+{"VLID":"2","VLName":"","VarID":8,"VarName":"RAINRATE","varLen":446224,"resRation":5e-324,"varType":"NC_FLOAT","shape":"1 334 334 ","ncVarID":8,"ncGroupID":-1}

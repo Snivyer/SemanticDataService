@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 namespace SDS {
 
@@ -52,14 +53,22 @@ namespace SDS {
         
         int ncVarID;                    // 变量对应的nc文件ID
         int ncGroupID;                  // 变量对应的nc文件组ID
+
+        std::string shapeTostr() {
+            std::string shapeStr;
+            for(int i = 0; i < shape.size(); i++) {
+                shapeStr += std::to_string(shape[i]);
+                shapeStr += " ";  
+            }
+            return shapeStr;
+        }
     };
 
 
     // 变量列表描述符
     struct VLDesc
     {
-        std::string  varListName;            // 变量组名
-        std::vector<int> varID;             // 变量ID列表
+        std::unordered_map<std::string, int> varID; // 变量ID列表
         std::vector<VarDesc> desc;        // 变量描述符列表 
         int groupLen;                     // 变量组长度          
     };  
@@ -81,7 +90,6 @@ namespace SDS {
         std::vector<size_t> storeIDs;  // 存储空间ID，支持多个存储位置，方便寻址    
 
         size_t getBestStoID() {
-
             if(storeIDs.empty()) {
                 return 0;
             } else {

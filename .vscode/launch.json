@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/SDS_dataManager_test",  
+            "program": "${workspaceFolder}/build/SDS_duckdb_test",  
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
             "environment": [],

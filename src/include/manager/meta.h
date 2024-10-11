@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "abstract/meta/meta_store.h"
+#include "abstract/adaptor/adaptor.h"
 
 
 namespace SDS
@@ -33,15 +34,16 @@ namespace SDS
             return _store;
         }
 
+        void setAdaptor(Adaptor* &adatpor) {
+            _adaptor = adatpor;
+        }
 
-
+        Adaptor* getAdaptor() {
+            return _adaptor;
+        }
 
     private:
         MetaStore* _store;
-
-
-
+        Adaptor*   _adaptor;
     };
-
-
 }

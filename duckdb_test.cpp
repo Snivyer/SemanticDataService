@@ -4,7 +4,6 @@
 #include "third_party_lib/duckdb/include/duckdb.hpp"
 #include <iostream>
 #include <vector>
-#include <io.h>
 using namespace std;
 using namespace SDS;
 using namespace duckdb;
@@ -16,10 +15,16 @@ using namespace duckdb;
 void MetaPeristTest() {
 
     MetaStore* metaStore = new MetaStore();
+    ConnectConfig config;
+    config.rootPath = "./data/ldasin/fcst/";
+    Adaptor* adaptor = new LocalAdaptor(config);
     ContentMeta cntMetaManager;
     ContentDesc cntDesc[3];
-    std::vector<std::string> geoNames;
 
+    cntMetaManager.setAdaptor(adaptor);
+
+    // 填充空间描述信息
+    std::vector<std::string> geoNames;
     geoNames.push_back(std::string("江西省"));
     cntMetaManager.extractSSDesc(cntDesc[0], geoNames);
     geoNames.push_back(std::string("赣州市"));
@@ -27,21 +32,48 @@ void MetaPeristTest() {
     geoNames.push_back(std::string("兴国县"));
     cntMetaManager.extractSSDesc(cntDesc[2], geoNames);
 
-    // 打印内容元数据
+    // 打印空间元数据
     for(int i = 0; i < 3; i++) {
         cntMetaManager.printSSDesc(cntDesc[i]);
     }
 
+    // 填充时间段描述信息
+    cntMetaManager.extractTSDesc(cntDesc[0], "./data/ldasin/fcst/33-20220620T000000/");
+    cntMetaManager.extractTSDesc(cntDesc[1], "./data/ldasin/fcst/33-20220803T000000/");
+    cntMetaManager.extractTSDesc(cntDesc[2], "./data/ldasin/fcst/44-20221208T000000/");
+
+    // 打印时间元数据
+    for(int i = 0; i < 3; i++) {
+        cntMetaManager.printTSDesc(cntDesc[i]);
+    }
+
+    // 填充变量列表描述信息
+    cntMetaManager.extractVLDesc(cntDesc[0], "./data/ldasin/fcst/33-20220620T000000/");
+    cntMetaManager.extractVLDesc(cntDesc[1], "./data/ldasin/fcst/33-20220803T000000/");
+    cntMetaManager.extractVLDesc(cntDesc[2], "./data/ldasin/fcst/44-20221208T000000/");
+
+     // 打印变量元数据
+    for(int i = 0; i < 3; i++) {
+        cntMetaManager.printVLDesc(cntDesc[i]);
+    }
+
+
+    //  配置元数据存储schema
     cntMetaManager.setMetaStore(metaStore);
     cntMetaManager.setSSDescFormat();
+    cntMetaManager.setTSDescFormat();
+    cntMetaManager.setVLDescFormat();
+
 
     // 元数据持久化
     for(int i = 0; i < 3; i++) {
         cntMetaManager.putSSDesc(cntDesc[i]);
+        cntMetaManager.putTSDesc(cntDesc[i]);
+        cntMetaManager.putVLDesc(cntDesc[i], std::to_string(i));
     }
 
     // 元数据输出成不同文件
-    std::string path("./metadata/SSDesc/");
+    std::string path("./metadata/");
 
     cntMetaManager.putMetaWithJson(path);
     cntMetaManager.putMetaWithCSV(path);
@@ -81,15 +113,9 @@ void MetaLoadTest() {
 
 int main()
 {
-   // MetaPeristTest();
-   MetaLoadTest();
+    MetaPeristTest();
+   // MetaLoadTest();
     
-
- 
-
-
-
-
 
 
 

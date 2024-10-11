@@ -24,7 +24,7 @@ bool DataManager::importData(ContentID &cntID, std::vector<std::string> filePath
     
     ContentMeta metaManager;
     ContentDesc cntDesc;
-    metaManager.extractTSDesc(cntDesc, filePathList);
+   // metaManager.extractTSDesc(cntDesc, filePathList);
 
 
 }

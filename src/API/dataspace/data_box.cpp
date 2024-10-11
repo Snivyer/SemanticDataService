@@ -43,7 +43,7 @@ namespace SDS
         descTotalSize += sizeof(time_t) * 4 + sizeof(tsDesc.count);
 
         VLDesc vlDesc = cntDesc.vlDesc;
-        descTotalSize += vlDesc.varListName.size() + sizeof(vlDesc.groupLen) + vlDesc.desc.size();
+        descTotalSize += sizeof(vlDesc.groupLen) + vlDesc.desc.size();
         size_t varNum = vlDesc.desc.size();
         for(auto varDesc: vlDesc.desc) {
             descTotalSize += varDesc.varType.size() + varDesc.varName.size() 
@@ -78,7 +78,6 @@ namespace SDS
         // 填充变量组描述符
         copyToBuffer<int>(buffer, position, &(vlDesc.groupLen), sizeof(vlDesc.groupLen));
         copyToBuffer<size_t>(buffer, position, &varNum, 1);
-        copyToBuffer<char>(buffer, position, vlDesc.varListName.data(), vlDesc.varListName.size());
         for(auto varDesc: vlDesc.desc) {
             copyToBuffer<char>(buffer, position, varDesc.varName.data(), varDesc.varName.size());
             copyToBuffer<char>(buffer, position, varDesc.varType.data(), varDesc.varType.size());

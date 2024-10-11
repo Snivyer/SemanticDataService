@@ -2,20 +2,14 @@
 
 namespace SDS {
 
-template <class T>
-void copyToBuffer(std::vector<char> &buffer, size_t &position, const T *source,
-                  const size_t elements = 1) noexcept;
-
 
 LocalAdaptor::LocalAdaptor(struct ConnectConfig &connConfig):Adaptor(connConfig) {
     connConfig = connConfig;
 }
 
 bool LocalAdaptor::connect() {
-    std::string root_path = connConfig.rootPath;
-    DIR* dir = opendir(root_path.c_str());
-    if(dir != nullptr) {
-        closedir(dir);
+    std::string rootPath = connConfig.rootPath;
+    if(fs::exists(rootPath) && fs::is_directory(rootPath)) {
         return true;
     }
     return false;
@@ -175,17 +169,26 @@ bool LocalAdaptor::getVarDescInGroup(int ncid, int gid, int groupNums, std::vect
 
 
 
+bool LocalAdaptor::getFilePath(FilePathList &pathList, std::string dirPath) {
+
+    pathList.dirPath = dirPath;
+    if(fs::exists(dirPath) && fs::is_directory(dirPath)) {
+        for(auto& entry : fs::directory_iterator(dirPath)) {
+            if(fs::is_regular_file(entry.status())){
+                pathList.fileNames.push_back(entry.path().filename());
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 
 // fix: 如果列表中存在多种NC文件格式，那怎么办？
 bool LocalAdaptor::getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame) {
 
     descList.clear();
     std::string dirPath = combinePath(connConfig.rootPath, pathList.dirPath);
-
-    DIR *dir = opendir(dirPath.c_str()); 
-    if(dir == nullptr) {
-        return false;
-    }
 
     for(std::string filepath : pathList.fileNames) {
    
@@ -224,11 +227,6 @@ bool LocalAdaptor::getVarDescList(FilePathList pathList, std::vector<VarDesc> &d
 bool LocalAdaptor::readVar(FilePathList &pathList, std::vector<VarDesc> &descList, STLBuffer &stlBuff) {
 
     std::string dirPath = combinePath(connConfig.rootPath, pathList.dirPath);
-    DIR *dir = opendir(dirPath.c_str()); 
-    if(dir == nullptr) {
-        return false;
-    }
-
     for(std::string filepath : pathList.fileNames) {
         std::string path = combinePath(dirPath, filepath);
         readVarList(path, descList, stlBuff);

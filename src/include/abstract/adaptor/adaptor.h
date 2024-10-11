@@ -25,6 +25,9 @@ namespace SDS
         virtual size_t getCapacity() {};
         virtual std::string AllocateSpace(int spaceSize) {};
 
+        // get file path
+        virtual bool getFilePath(FilePathList &pathList, std::string dirPath) {};
+
         // 从NC文件中读取变量信息
         virtual bool getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame = true) {};
 

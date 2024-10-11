@@ -7,14 +7,16 @@
 #pragma once
 
 #include "adaptor.h"
-#include "third_party_lib/netcdf/include/netcdf.h"
+#include <netcdf.h>
 #include "abstract/utils/string_operation.h"
 #include "abstract/buffer/memory/memory.h"
-#include <dirent.h>
+#include <experimental/filesystem>
+
 
 
 namespace SDS
 {
+    namespace fs = std::experimental::filesystem;
     class LocalAdaptor : public Adaptor
     {
     public:
@@ -27,6 +29,9 @@ namespace SDS
         size_t getCapacity();
 
         std::string AllocateSpace(int spaceSize);
+
+        // get file path
+        bool getFilePath(FilePathList &pathList, std::string dirPath);
 
         // 从NC文件中读取变量信息
         bool getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame = true);
