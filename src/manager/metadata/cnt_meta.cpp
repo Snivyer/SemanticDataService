@@ -123,13 +123,9 @@ bool ContentMeta::putTSDesc(struct ContentDesc &desc, std::string timeID) {
                                             << endT << "',"
                                             << desc.tsDesc.interval << ","
                                             << desc.tsDesc.count << ")";
-    
     return ms->excuteNonQuery(fmt.str());
 
 }
-
-
-
 
 bool ContentMeta::putVLDesc(struct ContentDesc &desc, std::string VLID, std::string VLName) {
 
@@ -159,7 +155,6 @@ bool ContentMeta::putVLDesc(struct ContentDesc &desc, std::string VLID, std::str
 
 
 bool ContentMeta::loadSSDescWithFile(std::string fileName) {
-
     MetaStore* ms = getMetaStore();
     if(!ms) {
         return false;
@@ -169,11 +164,25 @@ bool ContentMeta::loadSSDescWithFile(std::string fileName) {
     return ms->excuteNonQuery(sql);
 }
 
-bool ContentMeta::loadTSDescWithFile(std::string filePath) {
+bool ContentMeta::loadTSDescWithFile(std::string fileName) {
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
+
+    std::string sql = "COPY TSDESC FROM '" + fileName + "'";
+    return ms->excuteNonQuery(sql);
 
 }
 
-bool ContentMeta::loadVLDescWithFile(std::string filePath) {
+bool ContentMeta::loadVLDescWithFile(std::string fileName) {
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
+
+    std::string sql = "COPY VLDESC FROM '" + fileName + "'";
+    return ms->excuteNonQuery(sql);
 
 }
 
@@ -183,14 +192,14 @@ bool ContentMeta::parseSSDesc(std::vector<ContentDesc> &cntDescSet,
     duckdb::idx_t row_count = result->RowCount();
     for (idx_t row = 0; row < row_count; row++) {
         ContentDesc cntDesc;
-        cntDesc.ssDesc.geoName = result->GetValue(0, row).GetValue<std::string>();
-        cntDesc.ssDesc.adCode  =  result->GetValue(1, row).GetValue<std::string>();
+        cntDesc.ssDesc.geoName = result->GetValue(2, row).GetValue<std::string>();
+        cntDesc.ssDesc.adCode  =  result->GetValue(3, row).GetValue<std::string>();
 
-        auto gcList = ListValue::GetChildren(result->GetValue(2, row));
+        auto gcList = ListValue::GetChildren(result->GetValue(4, row));
         cntDesc.ssDesc.geoCentral.logitude = gcList[0].GetValue<double>();
         cntDesc.ssDesc.geoCentral.latitude = gcList[1].GetValue<double>();
         
-        auto gpList = ListValue::GetChildren(result->GetValue(3, row));
+        auto gpList = ListValue::GetChildren(result->GetValue(5, row));
         for(auto item : gpList) {
             GeoCoordinate geoCoor;
             auto childList = ListValue::GetChildren(item);
@@ -204,15 +213,66 @@ bool ContentMeta::parseSSDesc(std::vector<ContentDesc> &cntDescSet,
 }
 
 bool ContentMeta::parseTSDesc(std::vector<ContentDesc> &cntDescSet, duckdb::MaterializedQueryResult *result) {
-
+    duckdb::idx_t row_count = result->RowCount();
+    for (idx_t row = 0; row < row_count; row++) {
+        ContentDesc cntDesc;
+        std::string reportTstr = result->GetValue(1, row).GetValue<std::string>();
+        std::string startTstr = result->GetValue(2, row).GetValue<std::string>();
+        std::string endTstr = result->GetValue(3, row).GetValue<std::string>();
+        
+        strptime(reportTstr.c_str(), "%Y-%m-%d %H:%M:%S", &cntDesc.tsDesc.reportT);
+        strptime(startTstr.c_str(), "%Y-%m-%d %H:%M:%S", &cntDesc.tsDesc.startT);
+        strptime(endTstr.c_str(),   "%Y-%m-%d %H:%M:%S", &cntDesc.tsDesc.endT);
+        cntDesc.tsDesc.interval =  static_cast<time_t>(result->GetValue(4, row).GetValue<int>());
+        cntDesc.tsDesc.count    =  result->GetValue(5, row).GetValue<int>();
+        cntDescSet.push_back(cntDesc);
+    }
+    return true;
 }
 
-bool ContentMeta::parseVLDesc(std::vector<ContentDesc> &cntDescSet, duckdb::MaterializedQueryResult *result) {
-
-
+bool ContentMeta::parseVarDesc(ContentDesc &cntDesc, duckdb::MaterializedQueryResult *result) {
+    duckdb::idx_t row_count = result->RowCount();
+    for (idx_t row = 0; row < row_count; row++) {
+        int varID = result->GetValue(2, row).GetValue<int>();
+        VarDesc varDesc;
+        varDesc.varName = result->GetValue(3, row).GetValue<std::string>();
+        varDesc.varLen  =  result->GetValue(4, row).GetValue<int>();
+        varDesc.resRation = result->GetValue(5, row).GetValue<double>();
+        varDesc.varType = result->GetValue(6, row).GetValue<std::string>();
+        std::string shapeStr = result->GetValue(7, row).GetValue<std::string>();
+        varDesc.strToShape(shapeStr);
+        varDesc.ncVarID = result->GetValue(8, row).GetValue<int>();
+        varDesc.ncGroupID = result->GetValue(9, row).GetValue<int>();
+        cntDesc.vlDesc.desc.push_back(varDesc);
+        cntDesc.vlDesc.varID.insert({varDesc.varName, varID});
+    }
+    cntDesc.vlDesc.groupLen = (int)row_count;
+    return true;
 }
 
 
+bool ContentMeta::parseVLDesc(std::vector<ContentDesc> &cntDescSet) {
+
+    MetaStore* ms = getMetaStore();
+    if(!ms) {
+        return false;
+    } 
+
+    duckdb::unique_ptr<duckdb::MaterializedQueryResult> result;
+    std::string sql = "SELECT DISTINCT VLID FROM VLDESC";
+    ms->excuteQuery(sql, result);
+
+    duckdb::idx_t row_count = result->RowCount();
+    for (idx_t row = 0; row < row_count; row++) {
+        std::string VLID = result->GetValue(0, row).GetValue<std::string>();
+        sql = "SELECT * FROM VLDESC WHERE VLID = '" + VLID +"'";
+        ms->excuteQuery(sql, result);
+        ContentDesc cntDesc;
+        parseVarDesc(cntDesc, result.get());
+        cntDescSet.push_back(cntDesc);
+    }
+    return true;
+}
 
 
 

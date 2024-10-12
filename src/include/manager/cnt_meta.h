@@ -90,8 +90,10 @@ namespace SDS
         // parse the time slot description from query result of duckdb
         bool parseTSDesc(std::vector<ContentDesc> &cntDescSet,  duckdb::MaterializedQueryResult *result);
 
-        // parse the var list description from query result of duckdb
-        bool parseVLDesc(std::vector<ContentDesc> &cntDescSet,  duckdb::MaterializedQueryResult *result);       
+        // parse the var description from query result of duckdb
+        bool parseVarDesc(ContentDesc &cntDesc, duckdb::MaterializedQueryResult *result);      
+
+        bool parseVLDesc(std::vector<ContentDesc> &cntDescSet); 
 
         
         /*------打印元数据------*/

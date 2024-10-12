@@ -92,13 +92,20 @@ void MetaLoadTest() {
     std::vector<ContentDesc> cntDescSet; 
 
 
-    std::string fileName = "./metadata/SSDesc/2024-08-10-14-49-56.json";
+    std::string SSDescFileName = "./metadata/SSDesc/2024-10-12-03-56-29.json";
+    std::string TSDescFileName = "./metadata/TSDesc/2024-10-12-03-56-29.json";
+    std::string VLDescFileName = "./metadata/VLDesc/2024-10-12-03-56-29.json";
 
     // 从文件中加载数据
     cntMetaManager.setMetaStore(ms);
     cntMetaManager.setSSDescFormat();
-    cntMetaManager.loadSSDescWithFile(fileName);
-    
+    cntMetaManager.setTSDescFormat();
+    cntMetaManager.setVLDescFormat();
+
+    cntMetaManager.loadSSDescWithFile(SSDescFileName);
+    cntMetaManager.loadTSDescWithFile(TSDescFileName);
+    cntMetaManager.loadVLDescWithFile(VLDescFileName);
+
     std::string sql = "SELECT * FROM SSDESC";
     ms->excuteQuery(sql, result);
     cntMetaManager.parseSSDesc(cntDescSet, result.get());
@@ -107,14 +114,30 @@ void MetaLoadTest() {
         cntMetaManager.printSSDesc(cntDesc);
     }
 
+    cntDescSet.clear();
+
+    sql = "SELECT * FROM TSDESC";
+    ms->excuteQuery(sql, result);
+    cntMetaManager.parseTSDesc(cntDescSet, result.get());
+
+    for(auto cntDesc : cntDescSet) {
+        cntMetaManager.printTSDesc(cntDesc);
+    }
+    cntDescSet.clear();
+
+    cntMetaManager.parseVLDesc(cntDescSet);
+    for(auto cntDesc : cntDescSet) {
+        cntMetaManager.printVLDesc(cntDesc);
+    }
+
 }
 
 
 
 int main()
 {
-    MetaPeristTest();
-   // MetaLoadTest();
+    //MetaPeristTest();
+    MetaLoadTest();
     
 
 

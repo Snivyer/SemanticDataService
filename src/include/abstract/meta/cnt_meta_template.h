@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include "abstract/utils/string_operation.h"
 
 namespace SDS {
 
@@ -58,10 +59,20 @@ namespace SDS {
             std::string shapeStr;
             for(int i = 0; i < shape.size(); i++) {
                 shapeStr += std::to_string(shape[i]);
-                shapeStr += " ";  
+                shapeStr += "-";  
             }
             return shapeStr;
         }
+
+        void strToShape(std::string shapeStr) {
+            std::vector<std::string> shapeStrList = splitString(shapeStr, '-');
+
+            for(auto shapeStr : shapeStrList) {
+                shape.push_back(std::stoi(shapeStr));
+            }
+        }
+
+
     };
 
 
