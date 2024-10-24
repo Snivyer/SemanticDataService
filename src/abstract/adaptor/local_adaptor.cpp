@@ -52,23 +52,23 @@ bool LocalAdaptor::getVarDesc(int ncid, int varid, VarDesc &varDesc) {
     switch (varType) {
         case NC_BYTE:
             varDesc.varType = "NC_BYTE";
-            varDesc.varLen = total_size * sizeof(unsigned char);
+            varDesc.varLen = total_size;
             break;
         case NC_SHORT:
             varDesc.varType = "NC_SHORT";
-            varDesc.varLen = total_size * sizeof(short);
+            varDesc.varLen = total_size;
             break;
         case NC_INT:
             varDesc.varType = "NC_INT";
-            varDesc.varLen = total_size * sizeof(int);
+            varDesc.varLen = total_size;
             break;
         case NC_FLOAT:
             varDesc.varType = "NC_FLOAT";
-            varDesc.varLen = total_size * sizeof(float);
+            varDesc.varLen = total_size;
             break;
         case NC_DOUBLE:
             varDesc.varType = "NC_DOUBLE";
-            varDesc.varLen = total_size * sizeof(double);
+            varDesc.varLen = total_size;
             break;
         default:
             varDesc.varType = "NC_UNKNOWN";
@@ -137,7 +137,7 @@ bool LocalAdaptor::getVarDesc(int ncid, std::vector<VarDesc> &descList) {
         return false;
     }
 
-    for (int varid = 0; varid < varNums; varid++) {
+    for (int varid = 1; varid < varNums; varid++) {
         VarDesc varDesc;
         if(getVarDesc(ncid, varid, varDesc)) {
             descList.emplace_back(varDesc);
@@ -221,21 +221,20 @@ bool LocalAdaptor::getVarDescList(FilePathList pathList, std::vector<VarDesc> &d
 }
 
 
-
-
-
-bool LocalAdaptor::readVar(FilePathList &pathList, std::vector<VarDesc> &descList, STLBuffer &stlBuff) {
+bool LocalAdaptor::readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {
 
     std::string dirPath = combinePath(connConfig.rootPath, pathList.dirPath);
     for(std::string filepath : pathList.fileNames) {
         std::string path = combinePath(dirPath, filepath);
-        readVarList(path, descList, stlBuff);
+        arrow::ArrayVector dataArray;
+        readVarList(path, descList, dataArray);
+        arrayVector2.push_back(dataArray);
     }
     return true;
 }
 
 
- bool LocalAdaptor::readVarList(std::string filePath, std::vector<VarDesc> &descList, STLBuffer &stlBuff) {
+bool LocalAdaptor::readVarList(std::string filePath, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray) {
 
     int ncid;
     int gid;
@@ -243,17 +242,8 @@ bool LocalAdaptor::readVar(FilePathList &pathList, std::vector<VarDesc> &descLis
         return false;
     }
 
-    int varListLen = 0;
+    arrow::MemoryPool* pool = arrow::default_memory_pool();
 
-    for(auto varDesc: descList) {
-        varListLen += varDesc.varLen;
-    }
-
-    auto &buffer = stlBuff.buffer;
-    auto &position = stlBuff.position;
-    auto &absolutePosition = stlBuff.absolutedPosition;
-
-    stlBuff.resize(position + varListLen);
     for(auto varDesc: descList) {
         if(varDesc.ncGroupID != -1) {
             // group方式
@@ -262,33 +252,70 @@ bool LocalAdaptor::readVar(FilePathList &pathList, std::vector<VarDesc> &descLis
             if(varDesc.varType == "NC_BYTE") {
                 unsigned char* data = new unsigned char(varDesc.varLen);
                 nc_get_var_ubyte(ncid, varDesc.ncVarID, data);
-                copyToBuffer<unsigned char>(buffer, position, data, size_t(varDesc.varLen));
+
+                std::shared_ptr<arrow::Array> valueArray;
+                arrow::UInt8Builder builder(pool);
+                for(int i =0; i < varDesc.varLen; i++) {
+                    builder.Append(*(data + i));
+                }
+                builder.Finish(&valueArray);
+                dataArray.push_back(valueArray);
                 delete data;
             } else if (varDesc.varType == "NC_SHORT") {
                 short* data = new short(varDesc.varLen);
                 nc_get_var_short(ncid, varDesc.ncVarID, data);
-                copyToBuffer<short>(buffer, position, data, varDesc.varLen);
+
+                std::shared_ptr<arrow::Array> valueArray;
+                arrow::Int16Builder builder(pool);
+                for(int i =0; i < varDesc.varLen; i++) {
+                    builder.Append(*(data + i));
+                }
+                builder.Finish(&valueArray);
+                dataArray.push_back(valueArray);
                 delete data;
             } else if (varDesc.varType == "NC_INT") {
                 int* data = new int(varDesc.varLen);
                 nc_get_var_int(ncid, varDesc.ncVarID, data);
-                copyToBuffer<int>(buffer, position, data, varDesc.varLen);
+
+                std::shared_ptr<arrow::Array> valueArray;
+                arrow::Int32Builder builder(pool);
+                for(int i =0; i < varDesc.varLen; i++) {
+                    builder.Append(*(data + i));
+                }
+                builder.Finish(&valueArray);
+                dataArray.push_back(valueArray);
                 delete data;
+                
             } else if (varDesc.varType == "NC_FLOAT") {
-                float* data = new float(varDesc.varLen);
-                nc_get_var_float(ncid, varDesc.ncVarID, data);
-                copyToBuffer<float>(buffer, position, data, varDesc.varLen);
-                delete data;
+                std::vector<float> data(varDesc.varLen);
+                nc_get_var_float(ncid, varDesc.ncVarID, data.data());
+
+                std::shared_ptr<arrow::Array> valueArray;
+                arrow::FloatBuilder builder(pool);
+                for(int i =0; i < varDesc.varLen; i++) {
+                    builder.Append(data[i]);
+                }
+                builder.Finish(&valueArray);
+                dataArray.push_back(valueArray);
             } else if (varDesc.varType == "NC_DOUBLE") {
                 double* data = new double(varDesc.varLen);
                 nc_get_var_double(ncid, varDesc.ncVarID, data);
-                copyToBuffer<double>(buffer, position, data, varDesc.varLen);
+
+                std::shared_ptr<arrow::Array> valueArray;
+                arrow::FloatBuilder builder(pool);
+                for(int i =0; i < varDesc.varLen; i++) {
+                    builder.Append(*(data + i));
+                }
+                builder.Finish(&valueArray);
+                dataArray.push_back(valueArray);
                 delete data;
             } else {
+                nc_close(ncid);
                 return false;
             }
         }
     }
+    nc_close(ncid);
     return true;
  }
 

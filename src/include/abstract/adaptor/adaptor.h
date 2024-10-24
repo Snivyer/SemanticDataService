@@ -8,10 +8,13 @@
 
 #include "abstract/meta/sto_meta_template.h"
 #include "abstract/meta/cnt_meta_template.h"
-#include "abstract/buffer/malloc/STL_buffer.h"
+#include <arrow/api.h>
 
 namespace SDS
 {
+
+    using namespace arrow;
+
     class Adaptor
     {
     public:
@@ -31,9 +34,9 @@ namespace SDS
         // 从NC文件中读取变量信息
         virtual bool getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame = true) {};
 
-        virtual bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, STLBuffer &stlBuff) {};
+        virtual bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {};
 
-        virtual bool readVarList(std::string pathList, std::vector<VarDesc> &descList, STLBuffer &stlBuff) {};
+        virtual bool readVarList(std::string pathList, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray) {};
 
 
         // 以数据箱子的方式将数据写入到存储系统中

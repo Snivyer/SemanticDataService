@@ -1,5 +1,6 @@
 add_subdirectory(metadata)
 add_subdirectory(index)
+add_subdirectory(databox)
 
 
 
@@ -8,6 +9,7 @@ add_library(manager STATIC ${ALL_OBJECT_FILES})
 set(MANAGER_LIBS
         metadata
         index
+        databox
         ) 
 
 

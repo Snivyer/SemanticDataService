@@ -1,4 +1,4 @@
-#include "manager/space_index.h"
+#include "manager/index/space_index.h"
 #include <iostream>
 
 namespace SDS {

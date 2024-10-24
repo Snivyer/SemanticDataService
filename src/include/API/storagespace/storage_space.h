@@ -8,10 +8,10 @@
 
 #include <string>
 #include "API/semanticspace/semantic_space.h"
-#include "API/dataspace/data_box.h"
-#include "manager/sto_meta.h"
-#include "manager/cnt_meta.h"
+#include "manager/metadata/sto_meta.h"
+#include "manager/metadata/cnt_meta.h"
 #include "abstract/adaptor/adaptor.h"
+#include "API/dataspace/data_box.h"
 #include "abstract/adaptor/ceph_adaptor.h"
 #include "abstract/adaptor/lustre_adaptor.h"
 #include "abstract/adaptor/local_adaptor.h"

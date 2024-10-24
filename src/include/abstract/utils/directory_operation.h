@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
-#include "manager/sto_meta.h"
+#include "manager/metadata/sto_meta.h"
 
 namespace SDS {
 

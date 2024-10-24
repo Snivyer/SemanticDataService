@@ -92,28 +92,7 @@ namespace SDS {
         VLDesc vlDesc;       // 变量列表描述符
     };
  
-     // 内容ID描述符
-    struct ContentID
-    {
-        std::string spaceID;            // 空间ID
-        std::string timeID;             // 时间ID
-        std::string varID;              // 变量ID
-        std::vector<size_t> storeIDs;  // 存储空间ID，支持多个存储位置，方便寻址    
-
-        size_t getBestStoID() {
-            if(storeIDs.empty()) {
-                return 0;
-            } else {
-                return storeIDs[0];
-            }
-        }  
-
-        void print() {
-            std::cout << "space ID:" << spaceID.data() << std::endl;
-            std::cout << "Time ID:" << timeID.data() << std::endl;
-            std::cout << "Var ID:" << varID.data() << std::endl;
-        }
-    };
+  
 
     
 

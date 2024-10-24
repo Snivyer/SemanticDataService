@@ -1,5 +1,6 @@
 #include "abstract/utils/directory_operation.h"
 #include "abstract/adaptor/local_adaptor.h"
+#include "manager/databox/databox_object.h" 
 #include <vector>
 #include <iostream>
 using namespace std;
@@ -10,24 +11,18 @@ using namespace SDS;
 
 int main() {
     std::vector<FilePathList> list;
-    std::string dataPath = "./data/ldasin/ana";
+    std::string dataPath = "./data/ldasin/fcst/44-20230111T000000";
     getFilePathList(dataPath, list);
     ConnectConfig connConfig;
     connConfig.rootPath = "";
-    LocalAdaptor adaptor(connConfig);
 
-    STLBuffer buffer;
+    std::shared_ptr<Adaptor> adatpor(new LocalAdaptor(connConfig));
+    DataboxObject dbObject;
+
     for(auto pathList: list) {
-        std::vector<SDS::VarDesc> descList;
-        adaptor.getVarDescList(pathList, descList);
-        adaptor.readVar(pathList, descList, buffer);
-
-
-        // for(auto varDesc: descList) {
-        //     cout << varDesc.ncVarID << "\t" << varDesc.varName << "\n";
-        //     buffer.resize(buffer.position + varDesc.varLen);
-        //     adaptor.readVar(pathList, varDesc, buffer);
-        // }
+        dbObject.setDataPath(pathList);
+        dbObject.fillData(adatpor);
+        dbObject.print();
     }
     return 0;
 }

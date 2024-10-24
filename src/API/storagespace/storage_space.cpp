@@ -138,7 +138,7 @@ namespace SDS
             addAdaptor(stoID, adaptor);
         }
         
-        adaptor->readVar(stoDesc.sysDesc.fileList, cntDesc.vlDesc.desc, db->data);
+        // adaptor->readVar(stoDesc.sysDesc.fileList, cntDesc.vlDesc.desc, db->data);
         
         // second step: generate the data index and fill it into the metaset region of the databox
 

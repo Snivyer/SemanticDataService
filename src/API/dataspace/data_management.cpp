@@ -117,8 +117,7 @@ bool DataManager::fillDataWithMultiDB(SemanticSpace* space, ContentID &CntID, Da
 
     for(auto childNode : childSpaceNodes) {
         ContentID childCntID = CntID;
-        childCntID.spaceID = childNode->spaceID;  
-        
+        childCntID.setSpaceID(std::to_string(childNode->spaceID));
         SemanticSpace* childSpace = semanticSpaceManager->getSpaceByID(childNode->getCompleteSpaceID());
         if(childSpace == nullptr) {
             // can not load the relate semantic space
@@ -142,7 +141,7 @@ bool DataManager::fillDataWithMultiDB(SemanticSpace* space, ContentID &CntID, Da
 // fill data to databox
 bool DataManager::internallFillData(DataRequest &request, DataResponse &reponse, size_t start) {
 
-    SemanticSpace* space = semanticSpaceManager->getSpaceByID(request.cntID.spaceID);
+    SemanticSpace* space = semanticSpaceManager->getSpaceByID(request.cntID.getSpaceID());
     if(space == nullptr) {
         // can not load the relate semantic space
         return false;

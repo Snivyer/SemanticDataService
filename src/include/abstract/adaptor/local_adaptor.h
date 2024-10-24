@@ -9,8 +9,8 @@
 #include "adaptor.h"
 #include <netcdf.h>
 #include "abstract/utils/string_operation.h"
-#include "abstract/buffer/memory/memory.h"
 #include <experimental/filesystem>
+
 
 
 
@@ -36,9 +36,9 @@ namespace SDS
         // 从NC文件中读取变量信息
         bool getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame = true);
 
-        bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, STLBuffer &stlBuff);
+        bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList,  std::vector<arrow::ArrayVector> &arrayVector2);
 
-        bool readVarList(std::string pathList, std::vector<VarDesc> &descList, STLBuffer &stlBuff);
+        bool readVarList(std::string pathList, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray);
 
 
         // 以数据箱子的方式将数据写入到存储系统中

@@ -1,0 +1,13 @@
+add_library(
+    ae
+    OBJECT
+    ae.c
+)
+
+
+set(ALL_OBJECT_FILES ${ALL_OBJECT_FILES} $<TARGET_OBJECTS:ae> PARENT_SCOPE)
+
+
+target_include_directories(
+        ae PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)

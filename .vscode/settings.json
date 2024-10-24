@@ -67,7 +67,9 @@
         "shared_mutex": "cpp",
         "variant": "cpp",
         "bit": "cpp",
-        "charconv": "cpp"
+        "charconv": "cpp",
+        "queue": "cpp",
+        "complex": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

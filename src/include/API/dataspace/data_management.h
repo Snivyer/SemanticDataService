@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 #include <deque>
-#include "manager/cnt_meta.h"
-#include "manager/sto_meta.h"
+#include "manager/metadata/cnt_meta.h"
+#include "manager/metadata/sto_meta.h"
 #include "API/dataspace/data_box.h"
 #include "API/semanticspace/semantic_space.h"
 #include "API/storagespace/storage_space.h"

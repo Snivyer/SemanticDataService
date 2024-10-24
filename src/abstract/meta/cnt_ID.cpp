@@ -1,0 +1,63 @@
+#include "abstract/meta/cnt_ID.h"
+
+namespace SDS {
+
+
+    size_t ContentID::getBestStoID() {
+        if(storeIDs.empty()) {
+            return 0;
+        } else {
+            return storeIDs[0];
+        }
+    }  
+
+    ContentID::ContentID(const std::string cntID, 
+                        const std::string TimeID,
+                        const std::string varID) {
+        setSpaceID(cntID);
+        setTimeID(timeID);
+        setVarID(varID);
+    }
+
+    std::string ContentID::getSpaceID() const  {
+        return spaceID;
+    }
+
+    void ContentID::setSpaceID(const std::string ID)  {
+        this->spaceID = spaceID;
+        
+    }
+
+    std::string ContentID::getTimeID() const {
+        return timeID;
+    }
+
+    void ContentID::setTimeID(const std::string ID) {
+        timeID = ID;
+    }
+
+    std::string ContentID::getVarID() const {
+        return varID;
+    }
+
+    void ContentID::setVarID(const std::string ID) {
+        varID = ID;
+    }
+
+
+
+    bool ContentID::operator==(const ContentID &cntID) const {
+
+        return this->spaceID == cntID.spaceID && this->timeID == cntID.timeID && this->varID == cntID.varID;
+    }
+
+
+    void ContentID::print() {
+        std::cout << "space ID:" << spaceID.data() << std::endl;
+        std::cout << "Time ID:" << timeID.data() << std::endl;
+        std::cout << "Var ID:" << varID.data() << std::endl;
+    }
+
+
+
+}

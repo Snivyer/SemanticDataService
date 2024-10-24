@@ -8,8 +8,8 @@
 
 #include <string>
 #include <map>
-#include "manager/cnt_meta.h"
-#include "manager/space_index.h"
+#include "manager/metadata/cnt_meta.h"
+#include "manager/index/space_index.h"
 
 
 namespace SDS
@@ -40,7 +40,7 @@ namespace SDS
         }
 
         void init(SpaceNode *sNode, SpaceStatus state = SpaceStatus::create) {
-            this->cntID.spaceID = std::to_string(sNode->spaceID);
+            this->cntID.setSpaceID( std::to_string(sNode->spaceID));
             this->spaceID = sNode->spaceID;
 
             this->PSSID = sNode->PSSID;
