@@ -27,9 +27,17 @@ namespace SDS {
 
         // Ceph
         std::string poolName;
-
         // Luster
         std::string rootPath;
+
+      
+
+        void setConfig(ConnectConfig &config) {
+            userName = config.userName;
+            confFile = config.confFile;
+            poolName = config.poolName;
+            rootPath = config.rootPath;
+        }
     };
 
     // 文件路径列表

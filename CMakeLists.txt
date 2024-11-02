@@ -23,6 +23,7 @@ set(SDS_SRC_INCLUDE_DIR
     )
 
 set(SDS_THIRD_PARTY_INCLUDE_DIR
+        ${PROJECT_SOURCE_DIR}/third_party/ae/
 )
 
 set(SDS_THIRD_PARTY_LIB_INCLUDE_DIR
@@ -61,13 +62,24 @@ target_link_libraries(SDS_databox_test stdc++fs)
 # target_link_libraries(ARROW_test PRIVATE Arrow::arrow_shared)
 
 ## DB Store test
-# add_executable(SDS_db_store DB_store.cpp)
-# target_link_libraries(SDS_db_store manager)
-# target_link_libraries(SDS_db_store abstract)
-# target_link_libraries(SDS_db_store Arrow::arrow_shared)
-# target_link_libraries(SDS_db_store netcdf)
-# target_link_libraries(SDS_db_store duckdb)
-# target_link_libraries(SDS_db_store stdc++fs)
+add_executable(SDS_db_store_test DB_store.cpp)
+target_link_libraries(SDS_db_store_test manager)
+target_link_libraries(SDS_db_store_test abstract)
+target_link_libraries(SDS_db_store_test Arrow::arrow_shared)
+target_link_libraries(SDS_db_store_test netcdf)
+target_link_libraries(SDS_db_store_test duckdb)
+target_link_libraries(SDS_db_store_test stdc++fs)
+target_link_libraries(SDS_db_store_test ArrowFlight::arrow_flight_shared)
+
+## DB store client test
+add_executable(SDS_db_store_client_test DB_store_client.cpp)
+target_link_libraries(SDS_db_store_client_test manager)
+target_link_libraries(SDS_db_store_client_test abstract)
+target_link_libraries(SDS_db_store_client_test Arrow::arrow_shared)
+target_link_libraries(SDS_db_store_client_test netcdf)
+target_link_libraries(SDS_db_store_client_test duckdb)
+target_link_libraries(SDS_db_store_client_test stdc++fs)
+target_link_libraries(SDS_db_store_client_test ArrowFlight::arrow_flight_shared)
 
 
 

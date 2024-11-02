@@ -1,9 +1,11 @@
 add_subdirectory(data_rpc)
+add_subdirectory(metadata_rpc)
 
 add_library(rpc STATIC ${ALL_OBJECT_FILES})
 
 set(RPC_LIBS
     data_rpc
+    metadata_rpc
 )
 
 target_link_libraries(rpc ${RPC_LIBS} )

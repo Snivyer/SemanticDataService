@@ -9,8 +9,11 @@
 #include "abstract/event/events.h"
 #include "abstract/IO/io.h"
 #include "abstract/adaptor/adaptor.h"
+#include "abstract/utils/directory_operation.h"
 #include "manager/databox/databox_manager.h"
 #include "manager/databox/databox_object.h"
+#include "manager/rpc/metadata_rpc/protocol.h"
+#include "manager/rpc/data_rpc/server.h"
 
 
 
@@ -26,7 +29,7 @@ namespace SDS
         // The databox ID involved in this request.
         std::vector<ContentID> databoxIDs;
         // The object information for the objects in this request. This is used in the reply.
-        std::unordered_map<ContentID, DataboxObject, ContentIDHasher> databoxs;
+        std::unordered_map<ContentID, DataboxObject*, ContentIDHasher> databoxs;
 
         GetRequest(Client *client, const std::vector<ContentID> &ids) {
             this->client = client;
@@ -46,11 +49,12 @@ namespace SDS
             ~DataBoxStore();
 
             static std::shared_ptr<DataBoxStore> createStore(std::shared_ptr<EventLoop> loop,
-                                                             int64_t systemMemory);
+                                                             int64_t systemMemory,
+                                                             Adaptor* adaptor);
 
             // create a databox object and add it into the dbentry
             bool createDB(const ContentID& cntID, FilePathList &filePath,
-                            std::shared_ptr<Client> client, std::shared_ptr<DataboxObject>);
+                            Client* client, DataboxObject* &dbObject);
 
             
             // delete db objects that have been created
@@ -58,8 +62,11 @@ namespace SDS
             
 
             // get db object
-            bool getDB(std::shared_ptr<Client> client, const std::vector<ContentID> &ids,
+            bool getDB( Client* client, const std::vector<ContentID> &ids,
                      int64_t timeout_ms);
+
+            // return db object with arrow flight
+            bool returnDBwithFlight(GetRequest* getReq);
  
             // seal an databox, this databox is now immutable and can be accessed with get.
             bool sealDB(const ContentID &cntID);
@@ -68,7 +75,7 @@ namespace SDS
             bool containDB(const ContentID &cntID);
 
             // release a client that is no longer using an object
-            bool releaseDB(const ContentID &cntID, std::shared_ptr<Client> client);
+            bool releaseDB(const ContentID &cntID, Client* client);
 
             // connect a new client to the databox Store
             void connectClient(int listenerSock); 
@@ -79,6 +86,8 @@ namespace SDS
             // the main message process 
             arrow::Status processMessage(Client* client);
 
+        
+
 
 
     
@@ -86,12 +95,9 @@ namespace SDS
             class Impl;
             std::shared_ptr<Impl> impl_;
             explicit DataBoxStore(std::shared_ptr<Impl> impl);
-            bool addClientToEntry(DataBoxTableEntry* entry, std::shared_ptr<Client> client);
-            bool removeClientFromEntry(DataBoxTableEntry* entry, std::shared_ptr<Client> client);
+            bool addClientToEntry(DataBoxTableEntry* entry, Client* client);
+            bool removeClientFromEntry(DataBoxTableEntry* entry, Client*  client);
             
-            
-            
-            DataBoxTableEntry* getDBObjectEntry(const ContentID &cntID);
                 
                 
 

@@ -1,0 +1,35 @@
+table  ClientConnectRequest {
+    fd:int;
+}
+
+table ClientConnectReply {
+    capacity:int;
+}
+
+table DBCreateRequest {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+    path:string;
+}
+
+table DBCreateReply {
+    step_count:ulong;
+    var_count:ulong;
+    var_len:ulong;
+    var_name:[string];
+}
+
+table DBgetRequest {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+    timeout:long;
+}
+
+table DBgetReply {
+    ip:string;
+    port:int;
+}
+
+

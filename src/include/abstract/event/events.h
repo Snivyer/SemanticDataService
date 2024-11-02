@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 extern "C" {
-#include "third_party/ae/ae.h"
+#include "abstract/ae/ae.h"
 }
 
 namespace SDS {

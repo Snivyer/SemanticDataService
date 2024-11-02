@@ -11,6 +11,21 @@
 
 namespace SDS
 {
+     #define HANDLE_SIGPIPE(s, fd_)                                                      \
+     do {                                                                                \
+          Status _s = (s);                                                               \
+          if (!_s.ok()) {                                                                \
+               if (errno == EPIPE || errno == EBADF || errno == ECONNRESET) {            \
+                    ARROW_LOG(WARNING)                                                   \
+                         << "Received SIGPIPE, BAD FILE DESCRIPTOR, or ECONNRESET when " \
+                         "sending a message to client on fd "                            \
+                         << fd_ << ". "                                                  \
+                         "The client on the other end may have hung up.";                \
+               } else {                                                                  \
+                    return _s;                                                           \
+               }                                                                         \
+          }                                                                              \
+     } while (0);
 
      typedef enum {
           // databox was created but not sealed in the store
@@ -29,9 +44,11 @@ namespace SDS
      // communicate with databox client
      struct Client {
         int fd;
+
         Client(int fd) {
-          fd = fd;
+          this->fd = fd;
         }
+
      };
 
      typedef struct {
@@ -46,16 +63,16 @@ namespace SDS
 
      typedef struct {
         ContentID cntID;
-        std::unordered_set<std::shared_ptr<Client>> clients;
+        std::unordered_set<Client*> clients;
         DataBoxState state;
-        std::shared_ptr<DataboxObject> ptr;
+        DataboxObject* ptr;
      } DataBoxTableEntry;
 
 
      struct DataBoxStoreInfo {
 
           // DataBox that are in the DataBox Store
-          std::unordered_map<ContentID, std::unique_ptr<DataBoxTableEntry>, ContentIDHasher> databoxs;
+          std::unordered_map<ContentID, DataBoxTableEntry*, ContentIDHasher> databoxs;
 
           // The amount of memory that we allow to be allocated in the store.
           int64_t memoryCapacity;

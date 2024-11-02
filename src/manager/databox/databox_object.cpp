@@ -3,7 +3,7 @@
 namespace SDS {
 
     DataboxObject::DataboxObject() {
-        filled = false;
+        meta_.filled = false;
     }
 
     DataboxObject::~DataboxObject() {
@@ -44,7 +44,7 @@ namespace SDS {
 
 
 
-    arrow::Status DataboxObject::fillData(std::shared_ptr<Adaptor> adaptor) {
+    arrow::Status DataboxObject::fillData(Adaptor* adaptor) {
 
         if(!adaptor) {
              return arrow::Status::OK();
@@ -57,14 +57,19 @@ namespace SDS {
             return arrow::Status::UnknownError("test");
         }
 
+        std::shared_ptr<arrow::Schema> schema;
+
         for(std::string filepath : dataPath_.fileNames) {
             std::string path = combinePath(dataPath_.dirPath, filepath);
             std::shared_ptr<arrow::RecordBatch> batch;
             arrow::ArrayVector arrayData;
-            std::shared_ptr<arrow::Schema> schema;
+
+            if(schema.get() == nullptr) {
+                schema = makeSchema(meta_.varList);
+            }
             adaptor->readVarList(path, meta_.varList, arrayData);
-            schema = makeSchema(meta_.varList);
-            batch = arrow::RecordBatch::Make(schema, arrayData.size(), arrayData);
+
+            batch = arrow::RecordBatch::Make(schema, meta_.varList[0].varLen, arrayData);
             batchs_.push_back(batch);
         }
 
@@ -73,20 +78,35 @@ namespace SDS {
         meta_.varCount = meta_.varList.size();
         meta_.varLen = meta_.varList[0].varLen;
 
-        filled = true;
+        meta_.filled = true;
+        schema_ = makeSchema(meta_.varList);
         return arrow::Status::OK();
+    }
+
+    DBMeta&  DataboxObject::getDBMeta() {
+        return this->meta_;
     }
 
     arrow::Status DataboxObject::removeData() {
 
     }
 
+    std::shared_ptr<arrow::Schema> DataboxObject::getSchema() {
+        return schema_;
+    }
+
+    std::shared_ptr<arrow::RecordBatch> DataboxObject::getData(int step) {
+        return batchs_[step];
+    }
+
+     int DataboxObject::getBatchNum() {
+        return this->meta_.stepCount;
+     }
+
     void  DataboxObject::print() {
 
         // print metadata firstly
-        std::cout << "Step count:" << meta_.stepCount << std::endl;
-        std::cout << "Var count:" << meta_.varCount << std::endl;
-        std::cout << "Var grid size:" << meta_.varLen << std::endl;
+        meta_.print();
 
         // print recordbatch
         for(auto item : batchs_) {

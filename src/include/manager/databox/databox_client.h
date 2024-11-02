@@ -1,43 +1,53 @@
 #pragma once
 
-#include <memory>
-#include <vector>
 
-#include "abstract/meta/cnt_meta_template.h"
-#include "abstract/event/events.h"
+#include <unordered_map>
+#include "arrow/api.h"
+#include "arrow/util/logging.h"
+#include "abstract/IO/io.h"
 #include "manager/databox/databox_manager.h"
+#include "manager/databox/databox_object.h"
+#include "manager/rpc/metadata_rpc/protocol.h"
+
+using arrow::Status;
 
 
 namespace SDS
 {
 
-    struct GetRequest {
+    struct DataboxInUseEntry {
+        int count;
+        DataboxObject *object;
+        bool isSeal;
+    };
 
-        
-
-
-
-
-    }
-
-
-
-
-    class DataBoxStore {
+    class DataBoxClient {
         public:
-        ~DataBoxStore();
+        ~DataBoxClient();
+        static std::shared_ptr<DataBoxClient> createClient();
+        arrow::Status connect(const std::string& storeSocketName, 
+                                const std::string& managerSocketName);
 
+        arrow::Status disconnect();
         
-        
+        arrow::Status createDB(ContentID &cntID, std::string dataPath);
+
+        arrow::Status getDB(ContentID &cntID, int64_t timeout, DataboxObject *object);
+
+
+
+
 
         private:
             class Impl;
             std::shared_ptr<Impl> impl_;
-            explicit DataBoxStore(std::shared_ptr<_Impl> impl);
+            explicit DataBoxClient(std::shared_ptr<Impl> impl);
 
-    }
+    };
 
+  
    
+    
 
 
 }

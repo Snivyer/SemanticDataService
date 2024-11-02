@@ -2,6 +2,7 @@
 #include <iostream>
 #include <signal.h>
 #include "manager/databox/databox_store.h"
+#include "abstract/adaptor/local_adaptor.h"
 using namespace std;
 using namespace SDS;
 
@@ -20,9 +21,14 @@ using namespace SDS;
         // to a client that has already died, the store could die.
         signal(SIGPIPE, SIG_IGN);
 
+        ConnectConfig connConfig;
+        connConfig.rootPath = "/";
+        Adaptor *adatpor = new LocalAdaptor(connConfig);
+
         // Create the event loop.
         std::shared_ptr<EventLoop> loop(new EventLoop);
-        std::shared_ptr<DataBoxStore> store =  DataBoxStore::createStore(loop, systemMemory);
+        std::shared_ptr<DataBoxStore> store =  DataBoxStore::createStore(loop, systemMemory, adatpor);
+
     
         int socket = bind_ipc_sock(socketName, true);
         assert(socket >= 0);

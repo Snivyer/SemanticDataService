@@ -8,16 +8,30 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/SDS_databox_test",  
+            // "program": "${workspaceFolder}/build/SDS_db_store_client_test",  
+            "program": "${workspaceFolder}/build/SDS_db_store_test",  
+            "args": [
+                "-m", "1000", "-s", "/tmp/store"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
-            //"preLaunchTask": "Build",      
+            //"preLaunchTask": "Build",   
+            
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true,
+                },
+                {
+                    "description": "vgdb",
+                    "text": "target remote | /usr/bin/vgdb ",
+                    "ignoreFailures": true
+                }
+            ],
         }
-
-
     ]
 }

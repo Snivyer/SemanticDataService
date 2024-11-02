@@ -1,8 +1,10 @@
+#pragma once
+
 #include <arrow/api.h>
 #include <arrow/flight/api.h>
 #include <arrow/filesystem/api.h>
+#include "manager/rpc/data_rpc/reader.h"
 
-#pragma once
 
 namespace flight = arrow::flight;
 using arrow::Status;
@@ -13,6 +15,8 @@ namespace SDS {
     {
     public:
         ~BasicDataServer();
+
+        static std::shared_ptr<BasicDataServer> Create(DataboxObject *dbObject);
 
         Status ListFlights(const flight::ServerCallContext &, 
                             const flight::Criteria*,
@@ -47,7 +51,8 @@ namespace SDS {
 
         Status DoAction(const flight::ServerCallContext &context,
                         const flight::Action &action,
-                        std::unique_ptr<flight::ResultStream> *result) override;    
+                        std::unique_ptr<flight::ResultStream> *result) override; 
+
 
 
     private:

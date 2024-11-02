@@ -4,7 +4,7 @@ namespace SDS {
 
 
 LocalAdaptor::LocalAdaptor(struct ConnectConfig &connConfig):Adaptor(connConfig) {
-    connConfig = connConfig;
+    this->connConfig.setConfig(connConfig);
 }
 
 bool LocalAdaptor::connect() {
@@ -185,7 +185,7 @@ bool LocalAdaptor::getFilePath(FilePathList &pathList, std::string dirPath) {
 
 
 // fix: 如果列表中存在多种NC文件格式，那怎么办？
-bool LocalAdaptor::getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame) {
+bool LocalAdaptor::getVarDescList(FilePathList &pathList, std::vector<VarDesc> &descList, bool isSame) {
 
     descList.clear();
     std::string dirPath = combinePath(connConfig.rootPath, pathList.dirPath);

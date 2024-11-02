@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "abstract/utils/string_operation.h"
+#include "arrow/util/logging.h"
 
 
 namespace SDS {
@@ -13,7 +14,7 @@ namespace SDS {
     public: 
 
         std::vector<size_t> storeIDs;  // 存储空间ID，支持多个存储位置，方便寻址
-        ContentID(const std::string cntID ="", const std::string TimeID ="", const std::string varID ="");
+        ContentID(const std::string spaceID ="", const std::string TimeID ="", const std::string varID ="");
 
         size_t getBestStoID();
         bool operator==(const ContentID &cntID) const;

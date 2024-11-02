@@ -22,26 +22,44 @@ namespace SDS
         size_t varCount;
         size_t varLen;
         std::vector<VarDesc> varList;
+        bool filled;
+
+
+
+        void print() {
+            std::cout << "Step count:" << stepCount << std::endl;
+            std::cout << "Var count:" << varCount << std::endl;
+            std::cout << "Var grid size:" << varLen << std::endl;
+
+            for(auto var : varList) {
+                std::cout << var.varName << std::endl;
+            }
+        }
+
+
     } DBMeta; 
 
     class  DataboxObject {
         public:
-            bool filled;
-
+          
             DataboxObject();
             ~DataboxObject();
 
    
-
+            DBMeta& getDBMeta();
             void setDataPath(FilePathList &dataPath);
-            arrow::Status fillData(std::shared_ptr<Adaptor> adaptor);
+            arrow::Status fillData(Adaptor *adaptor);
             arrow::Status removeData();
             void print();
+            std::shared_ptr<arrow::Schema> getSchema();
+            std::shared_ptr<arrow::RecordBatch> getData(int step);
+            int getBatchNum();
 
         private:
             std::vector<std::shared_ptr<arrow::RecordBatch>> batchs_;
             DBMeta meta_;
-            struct FilePathList dataPath_;
+            FilePathList dataPath_;
+            std::shared_ptr<arrow::Schema> schema_;
             std::shared_ptr<arrow::Schema> makeSchema(std::vector<VarDesc> &descList);
  
     };

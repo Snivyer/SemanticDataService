@@ -32,7 +32,7 @@ namespace SDS
         virtual bool getFilePath(FilePathList &pathList, std::string dirPath) {};
 
         // 从NC文件中读取变量信息
-        virtual bool getVarDescList(FilePathList pathList, std::vector<VarDesc> &descList, bool isSame = true) {};
+        virtual bool getVarDescList(FilePathList &pathList, std::vector<VarDesc> &descList, bool isSame = true) {};
 
         virtual bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {};
 

@@ -2,9 +2,9 @@ add_subdirectory(utils)
 add_subdirectory(GIS)
 add_subdirectory(meta)
 add_subdirectory(adaptor)
-add_subdirectory(rpc)
 add_subdirectory(event)
 add_subdirectory(IO)
+add_subdirectory(ae)
 
 
 add_library(abstract STATIC ${ALL_OBJECT_FILES})

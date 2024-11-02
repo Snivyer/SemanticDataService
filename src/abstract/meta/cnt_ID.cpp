@@ -11,10 +11,10 @@ namespace SDS {
         }
     }  
 
-    ContentID::ContentID(const std::string cntID, 
-                        const std::string TimeID,
+    ContentID::ContentID(const std::string spaceID, 
+                        const std::string timeID,
                         const std::string varID) {
-        setSpaceID(cntID);
+        setSpaceID(spaceID);
         setTimeID(timeID);
         setVarID(varID);
     }
@@ -24,7 +24,7 @@ namespace SDS {
     }
 
     void ContentID::setSpaceID(const std::string ID)  {
-        this->spaceID = spaceID;
+        this->spaceID = ID;
         
     }
 
@@ -33,7 +33,7 @@ namespace SDS {
     }
 
     void ContentID::setTimeID(const std::string ID) {
-        timeID = ID;
+        this->timeID = ID;
     }
 
     std::string ContentID::getVarID() const {
@@ -41,7 +41,7 @@ namespace SDS {
     }
 
     void ContentID::setVarID(const std::string ID) {
-        varID = ID;
+         this->varID = ID;
     }
 
 

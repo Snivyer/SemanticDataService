@@ -3,6 +3,7 @@ add_library(
     OBJECT
     databox_object.cpp
     databox_store.cpp
+    databox_client.cpp
 )
 
 

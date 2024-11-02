@@ -16,7 +16,7 @@ int main() {
     ConnectConfig connConfig;
     connConfig.rootPath = "";
 
-    std::shared_ptr<Adaptor> adatpor(new LocalAdaptor(connConfig));
+    Adaptor *adatpor(new LocalAdaptor(connConfig));
     DataboxObject dbObject;
 
     for(auto pathList: list) {
