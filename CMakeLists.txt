@@ -14,6 +14,7 @@ add_compile_options(-std=c++17)
 
 find_package(Arrow REQUIRED)
 find_package(ArrowFlight REQUIRED)
+find_package(Threads REQUIRED)
 
 
 set(SDS_SRC_INCLUDE_DIR 
@@ -70,6 +71,7 @@ target_link_libraries(SDS_db_store_test netcdf)
 target_link_libraries(SDS_db_store_test duckdb)
 target_link_libraries(SDS_db_store_test stdc++fs)
 target_link_libraries(SDS_db_store_test ArrowFlight::arrow_flight_shared)
+target_link_libraries(SDS_db_store_test ${CMAKE_THREAD_LIBS_INIT})
 
 ## DB store client test
 add_executable(SDS_db_store_client_test DB_store_client.cpp)
@@ -80,6 +82,7 @@ target_link_libraries(SDS_db_store_client_test netcdf)
 target_link_libraries(SDS_db_store_client_test duckdb)
 target_link_libraries(SDS_db_store_client_test stdc++fs)
 target_link_libraries(SDS_db_store_client_test ArrowFlight::arrow_flight_shared)
+target_link_libraries(SDS_db_store_client_test ${CMAKE_THREAD_LIBS_INIT})
 
 
 

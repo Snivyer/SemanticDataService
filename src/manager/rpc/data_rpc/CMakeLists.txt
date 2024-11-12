@@ -3,6 +3,7 @@ add_library(
     OBJECT
     server.cpp
     reader.cpp
+    meta_server.cpp
 )
 
 set(ALL_OBJECT_FILES ${ALL_OBJECT_FILES} $<TARGET_OBJECTS:data_rpc> PARENT_SCOPE)

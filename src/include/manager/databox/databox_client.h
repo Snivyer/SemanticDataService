@@ -34,6 +34,13 @@ namespace SDS
 
         arrow::Status getDB(ContentID &cntID, int64_t timeout, DataboxObject *object);
 
+        arrow::Status containDB(ContentID &cntID, bool &is_contain);
+
+        arrow::Status releaseDB(ContentID &cntID, bool &is_release);
+
+        arrow::Status deleteDB(ContentID &cntID, bool &is_delete);
+
+
 
 
 

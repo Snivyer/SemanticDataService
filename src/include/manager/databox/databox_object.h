@@ -18,13 +18,11 @@ namespace SDS
 {
 
     typedef struct {
-        size_t stepCount;
-        size_t varCount;
-        size_t varLen;
+        int stepCount;
+        int varCount;
+        int varLen;
         std::vector<VarDesc> varList;
         bool filled;
-
-
 
         void print() {
             std::cout << "Step count:" << stepCount << std::endl;

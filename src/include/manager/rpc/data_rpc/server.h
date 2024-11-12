@@ -2,7 +2,6 @@
 
 #include <arrow/api.h>
 #include <arrow/flight/api.h>
-#include <arrow/filesystem/api.h>
 #include "manager/rpc/data_rpc/reader.h"
 
 
@@ -14,9 +13,11 @@ namespace SDS {
     class BasicDataServer : public flight::FlightServerBase 
     {
     public:
+        const flight::ActionType kActionSpaceRemove{"space_remove", "Space remove!"};
+        const flight::ActionType kActionSpaceFilter{"space_filter", "Space Filter."};
         ~BasicDataServer();
 
-        static std::shared_ptr<BasicDataServer> Create(DataboxObject *dbObject);
+        static std::shared_ptr<BasicDataServer> Create(std::string ip);
 
         Status ListFlights(const flight::ServerCallContext &, 
                             const flight::Criteria*,
@@ -26,14 +27,6 @@ namespace SDS {
                                 const flight::FlightDescriptor &descriptor,
                                 std::unique_ptr<flight::FlightInfo> *info) override;
 
-        Status PollFlightInfo(const flight::ServerCallContext& context,
-                                const flight::FlightDescriptor& request,
-                                std::unique_ptr<flight::PollInfo>* info) override;
-
-        Status GetSchema(const flight::ServerCallContext& context,
-                           const flight::FlightDescriptor& request,
-                           std::unique_ptr<flight::SchemaResult>* schema) override;
-
         Status DoPut(const flight::ServerCallContext &,
 						std::unique_ptr<flight::FlightMessageReader> reader,
 						std::unique_ptr<flight::FlightMetadataWriter>) override;
@@ -42,16 +35,24 @@ namespace SDS {
                         const flight::Ticket &request,
                         std::unique_ptr<flight::FlightDataStream> *stream) override; 
 
-        Status DoExchange(const flight::ServerCallContext& context,
-                            std::unique_ptr<flight::FlightMessageReader> reader,
-                            std::unique_ptr<flight::FlightMessageWriter> writer) override;
 
-        Status ListActions(const flight::ServerCallContext &context,
-                            std::vector<flight::ActionType> *actions) override;
+        arrow::Result<flight::FlightInfo> MakeFlightInfo(const ContentID &cntID, int ticket);
 
-        Status DoAction(const flight::ServerCallContext &context,
-                        const flight::Action &action,
-                        std::unique_ptr<flight::ResultStream> *result) override; 
+        Status Connect(std::string ip, int64_t port);
+        
+        Status RegisterWithSpaceFilterModel(std::string spaceID);
+        Status WithdrawWithSpaceRemoveModel(std::string spaceID);
+
+        Status PrepareSend(const ContentID &cntID, DataboxObject* dbObject);
+        Status WithdrawSend(const ContentID &cntID);
+
+
+        bool DeleteDB(const ContentID &cntID);
+        bool BeLive();
+
+        int getRunPort();
+        std::string getRunIp();
+        std::unique_ptr<flight::FlightListing> listFlights();
 
 
 

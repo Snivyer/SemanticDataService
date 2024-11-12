@@ -32,4 +32,36 @@ table DBgetReply {
     port:int;
 }
 
+table DBcontainRequest {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+}
+
+table DBcontainReply {
+    is_contain:bool;
+}
+
+table DBReleaseRequest {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+}
+
+table DBReleaseReply {
+    is_release: bool;
+}
+
+table DBDeleteRequest {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+}
+
+table DBDeleteReply {
+    is_delete:bool;
+}
+
+
+
 

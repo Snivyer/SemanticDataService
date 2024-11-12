@@ -88,7 +88,8 @@ namespace SDS {
     }
 
     arrow::Status DataboxObject::removeData() {
-
+        batchs_.clear();
+        return Status::NotImplemented("Sorry, I don't to release the memory of arrow recordbatch.");
     }
 
     std::shared_ptr<arrow::Schema> DataboxObject::getSchema() {

@@ -17,32 +17,18 @@ namespace SDS {
                                 ContentIDHasher> databoxGetRequest;
             
             Adaptor* adaptor_;
-            std::shared_ptr<BasicDataServer> dataServer_;
+            std::shared_ptr<BasicMetaServer> rpcServer_;
+            std::deque<std::shared_ptr<BasicDataServer>> sendPool_;
 
             
 
         public:
-            Impl(std::shared_ptr<EventLoop> loop, int64_t systemMemory, Adaptor *adaptor) {
+            Impl(std::shared_ptr<EventLoop> loop, int64_t systemMemory, 
+                                Adaptor *adaptor,  std::shared_ptr<BasicMetaServer> rpcServer) {
                 loop_ = std::move(loop);
                 storeInfo.memoryCapacity = systemMemory;
                 adaptor_ = adaptor;
-            }
-
-            arrow::Status runDataFlight(std::string ip, int port, DataboxObject* dbObject) {
-
-                dataServer_ = BasicDataServer::Create(dbObject);
-                
-                arrow::flight::Location bind_location;
-                ARROW_RETURN_NOT_OK(
-                    arrow::flight::Location::ForGrpcTcp(ip, port).Value(&bind_location)
-                );
-                arrow::flight::FlightServerOptions options(bind_location);
-                
-                ARROW_RETURN_NOT_OK(dataServer_->Init(options));
-                ARROW_RETURN_NOT_OK(dataServer_ ->SetShutdownOnSignals({SIGTERM}));
-                ARROW_LOG(INFO) << "Server is running at " << bind_location.ToString();
-                ARROW_RETURN_NOT_OK(dataServer_->Serve());
-                return arrow::Status::OK();
+                rpcServer_ = rpcServer;
             }
 
 
@@ -67,6 +53,15 @@ namespace SDS {
                 return this->loop_;
             }
 
+            void setRpcServer(std::shared_ptr<BasicMetaServer> rpcServer) {
+                rpcServer_ = rpcServer;
+            }
+
+            std::shared_ptr<BasicMetaServer> getRpcServer() {
+                return rpcServer_;
+            }
+
+
             std::vector<uint8_t> & getInputBuffer() {
                 return this->inputBuffer;
             }
@@ -84,18 +79,34 @@ namespace SDS {
                 }
                 return nullptr;
             }
-            
+
+            std::shared_ptr<BasicDataServer> rentSender() {
+
+                if( sendPool_.size() > 0) {
+                    std::shared_ptr<BasicDataServer> client = sendPool_.front();
+                    sendPool_.pop_front();
+                    return client;
+                } else {
+                    std::shared_ptr<BasicDataServer> client(nullptr);
+                    return client;
+                }
+            }
+
+            void returnSender(std::shared_ptr<BasicDataServer> server) {
+                sendPool_.push_back(server);
+            }
+
             ~Impl() {}
     };
 
-    DataBoxStore::DataBoxStore(std::shared_ptr<Impl> impl):impl_(std::move(impl)) {}
+    DataBoxStore::DataBoxStore(std::shared_ptr<Impl> impl):impl_(std::move(impl)) {
+      
+    }
 
 
-    std::shared_ptr<DataBoxStore> DataBoxStore::createStore(std::shared_ptr<EventLoop> loop,
-                                                             int64_t systemMemory, 
-                                                             Adaptor *adaptor) {
+    std::shared_ptr<DataBoxStore> DataBoxStore::createStore(std::shared_ptr<EventLoop> loop, int64_t systemMemory, Adaptor *adaptor, std::shared_ptr<BasicMetaServer> rpcServer) {
     
-        std::shared_ptr<Impl> impl = std::make_shared<Impl>(loop, systemMemory, adaptor);
+        std::shared_ptr<Impl> impl = std::make_shared<Impl>(loop, systemMemory, adaptor, rpcServer);
         std::shared_ptr<DataBoxStore> dbStore(new DataBoxStore(impl)); 
         return dbStore;
     }
@@ -104,7 +115,7 @@ namespace SDS {
 
 
     
-    bool DataBoxStore::createDB(const ContentID &cntID, FilePathList &filePath, Client* client, DataboxObject* &result) {
+    bool DataBoxStore::createDB(const ContentID &cntID, FilePathList &filePath, Client* client) {
 
         // There is already an object with the same ID in the databox store
         if(impl_->getStoreInfo().databoxs.count(cntID) != 0) {
@@ -115,12 +126,16 @@ namespace SDS {
         // create the databox entry
         DataBoxTableEntry* entry = new DataBoxTableEntry;
         entry->cntID = cntID;
-        entry->state = DATABOX_SEALED;
+        entry->state = DATABOX_CREATED;
+        entry->ptr = nullptr;
+    
 
         // create the actual databox 
-        result->setDataPath(filePath);
-        result->fillData(impl_->getAdptor());
-        entry->ptr= result;
+        DataboxObject *dbObject = new DataboxObject; 
+        dbObject->setDataPath(filePath);
+        dbObject->fillData(impl_->getAdptor());
+        entry->ptr= dbObject;
+        entry->state = DATABOX_FILLED;
 
         // insert entry into store info
         impl_->insertDBObjectEntry(cntID, entry);
@@ -128,6 +143,36 @@ namespace SDS {
         // record the client who have access this databox object
         addClientToEntry(entry, client);
         return true;
+    }
+
+    bool DataBoxStore::prepareTransffer(const ContentID &cntID, DataboxObject* dbObject, SendEndpoint &ep) {
+
+        if(dbObject == nullptr) {
+            return false;
+        }
+
+        // if there are a rpc server that is rensposible to send the databox with the same spaceID, going on
+        auto rpcClient = impl_->getRpcServer()->RentOne(cntID.getSpaceID());
+        if(rpcClient.get() == nullptr) {
+
+            // there is no sender can be used to send this type data box
+            rpcClient = impl_->rentSender();
+            if(rpcClient.get() == nullptr) {
+                ep.ip = "X.X.X.X";
+                ep.port = 0;
+                ARROW_LOG(INFO) << "There are no more idle rpc client to transffer data, wait please!";
+                return false;
+            }
+
+            // notify the rpc metadata server to rent this rpc client
+            impl_->getRpcServer()->CreateRent(cntID.getSpaceID(), rpcClient);
+        }
+
+        rpcClient->PrepareSend(cntID, dbObject);
+        ep.port = rpcClient->getRunPort();
+        ep.ip = rpcClient->getRunIp();
+        return  true;
+        
     }
 
 
@@ -152,6 +197,7 @@ namespace SDS {
 
 
 
+
     bool DataBoxStore::deleteDB(const std::vector<ContentID> &ids) {
 
         for(const auto &cntID : ids) {
@@ -160,17 +206,35 @@ namespace SDS {
                 continue;
             }
 
-            // to delete an databox it must have been sealed
-            if(entry->state != DATABOX_SEALED) {
+            // delete an databox it must have been filled
+            if(entry->state == DATABOX_CREATED) {
                 continue;
             }
 
-            // to delete an databox, there must be no clients currently using it
+            // delete an databox, there must be no clients currently using it
             if(entry->clients.size() > 0) {
                 continue;
             }
 
+            // release the realted to databox
             entry->ptr->removeData();
+            if(entry->ptr) {
+                delete entry->ptr;
+            }
+            entry->ptr = nullptr;
+
+            // release the related to rpc client
+            auto rpcClient = impl_->getRpcServer()->RentOne(cntID.getSpaceID());
+            if(rpcClient->DeleteDB(cntID) == true) {
+
+                if(rpcClient->BeLive() == false) {
+                    auto ret = rpcClient->WithdrawSend(cntID.getSpaceID());
+                    if(ret.ok()) {
+                        impl_->returnSender(rpcClient);
+                    }
+                }
+            }
+
             impl_->getStoreInfo().databoxs.erase(cntID);
             delete entry;
         }
@@ -187,7 +251,7 @@ namespace SDS {
         for(auto cntID : ids) {
             auto entry = impl_->getDBObjectEntry(cntID);
 
-            if(entry && entry->state == DATABOX_SEALED) {
+            if(entry && entry->state == DATABOX_FILLED) {
                 auto databoxObject = entry->ptr;
                 getReq->databoxs[cntID] = databoxObject;
                 addClientToEntry(entry, client);
@@ -201,35 +265,42 @@ namespace SDS {
             }
         }
 
+     
         if(timeout == 0) {
-            returnDBwithFlight(getReq);
-        } else if(timeout == -1) {
+            return returnDBwithFlight(getReq);
+        } else if(timeout != -1) {
             getReq->timer = impl_->getLoop()->add_timer(timeout, [this, getReq](int64_t timerID) {
                 returnDBwithFlight(getReq);
                 return kEventLoopTimerDone;
             });
-
         }
+
         return true;
     }
 
     bool DataBoxStore::returnDBwithFlight(GetRequest* getReq) {
 
-        std::string ip = "0.0.0.0";
-        int port = 4444;
-        SendGetReply(getReq->client->fd, ip, port);
-        ARROW_LOG(INFO) << "Return databox with arrow flight, prepare your arrow flight client, please";
-        
         for(auto cntID : getReq->databoxIDs) {
+            SendEndpoint ep;
             auto dbObject = getReq->databoxs[cntID];
-            impl_->runDataFlight(ip, port, dbObject);
+       
+            if(prepareTransffer(cntID, dbObject, ep) == true) {
+                ARROW_LOG(INFO) << "Return databox with arrow flight, prepare your arrow flight client, please";
+                unsendDB(cntID);
+            }
+            SendGetReply(getReq->client->fd, ep.ip, ep.port), getReq->client->fd;
+           
         }
 
+        if(getReq->timer != -1) {
+            ARROW_CHECK(impl_->getLoop()->remove_timer(getReq->timer) == AE_OK);
+        }
+        delete getReq;
         return true;
     }
  
     // seal an databox, this databox is now immutable and can be accessed with get.
-    bool DataBoxStore::sealDB(const ContentID &cntID) {
+    bool DataBoxStore::unsendDB(const ContentID &cntID) {
 
         auto entry = impl_->getDBObjectEntry(cntID);
 
@@ -237,17 +308,14 @@ namespace SDS {
             return false;
         }
 
-        if(entry->state == DATABOX_SEALED) {
-            return false;
-        }
-
-        entry->state = DATABOX_SEALED;
+        entry->state = DATABOX_UNSEND;
+        return true;
     }
 
     // check if the databox store contains an databox
     bool DataBoxStore::containDB(const ContentID &cntID) {
         auto entry = impl_->getDBObjectEntry(cntID);
-        return entry && (entry->state == DATABOX_SEALED) ? OBJECT_FOUND : OBJECT_NOT_FOUND;
+        return entry && (entry->state != DATABOX_CREATED) ? OBJECT_FOUND : OBJECT_NOT_FOUND;
     }
 
     // release a client that is no longer using an object
@@ -291,7 +359,9 @@ namespace SDS {
 
         uint8_t* input = impl_->getInputBuffer().data();
         ContentID cntID;
-        DataboxObject *dbObject = new DataboxObject; 
+        std::string spaceID;
+        std::string timeID;
+        std::string varID;
 
         // Process the different types of requests.
         switch (type) {
@@ -304,9 +374,6 @@ namespace SDS {
                 disconnectClient(client);
                 break;
             case MessageTypeCreateRequest: {
-                std::string spaceID;
-                std::string timeID;
-                std::string varID;
                 std::string dataPath;
                 RETURN_NOT_OK(ReadCreateRequest(input, spaceID, timeID, varID, dataPath));
                 cntID.setSpaceID(spaceID);
@@ -317,19 +384,15 @@ namespace SDS {
                 getFilePathList(dataPath, pathListVector);
 
                 if(pathListVector.size() > 0) {
-                    dbObject->setDataPath(pathListVector[0]);
-                    createDB(cntID, pathListVector[0], client, dbObject);
+                    createDB(cntID, pathListVector[0], client);
                     {
-                        HANDLE_SIGPIPE(SendCreateReply(client->fd, dbObject->getDBMeta()), client->fd);
+                        auto dbMeta = impl_->getDBObjectEntry(cntID)->ptr->getDBMeta();
+                        HANDLE_SIGPIPE(SendCreateReply(client->fd, dbMeta), client->fd);
                     }
                 }
             } break;
             case MessageTypeGetRequest: {
-                std::string spaceID;
-                std::string timeID;
-                std::string varID;
                 int64_t timeout;
-            
                 RETURN_NOT_OK(ReadGetRequest(input, spaceID, timeID, varID, timeout));
                 cntID.setSpaceID(spaceID);
                 cntID.setTimeID(timeID);
@@ -337,8 +400,42 @@ namespace SDS {
 
                 std::vector<ContentID> ids;
                 ids.push_back(cntID);
-                bool ret = getDB(client, ids, timeout);
+                getDB(client, ids, timeout);
+            } break;
+            case MessageTypeContaineRequest: {
+                RETURN_NOT_OK(ReadContainRequest(input, spaceID, timeID, varID));
+                cntID.setSpaceID(spaceID);
+                cntID.setTimeID(timeID);
+                cntID.setVarID(varID);
 
+                bool ret = containDB(cntID);
+                {
+                    HANDLE_SIGPIPE(SendContainReply(client->fd, ret), client->fd);
+                }
+            } break;
+            case MessageTypeReleaseRequest: {
+                RETURN_NOT_OK(ReadReleaseRequest(input, spaceID, timeID, varID));
+                cntID.setSpaceID(spaceID);
+                cntID.setTimeID(timeID);
+                cntID.setVarID(varID);
+
+                bool ret = releaseDB(cntID, client);
+                {
+                    HANDLE_SIGPIPE(SendReleaseReply(client->fd, ret), client->fd);
+                }
+            } break;
+            case MessageTypeDeleteRequest: {
+                RETURN_NOT_OK(ReadDeleteRequest(input, spaceID, timeID, varID));
+                cntID.setSpaceID(spaceID);
+                cntID.setTimeID(timeID);
+                cntID.setVarID(varID);
+
+                std::vector<ContentID> ids;
+                ids.push_back(cntID);
+                bool ret = deleteDB(ids);
+                {
+                    HANDLE_SIGPIPE(SendDeleteReply(client->fd, ret), client->fd);
+                }
             } break;
       
             default:
@@ -346,6 +443,10 @@ namespace SDS {
         }
         return Status::OK();
         
+    }
+
+    void  DataBoxStore::addDataServer(std::shared_ptr<BasicDataServer> server) {
+        impl_->returnSender(server);
     }
 
 

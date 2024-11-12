@@ -15,6 +15,8 @@ namespace SDS {
 
         std::vector<size_t> storeIDs;  // 存储空间ID，支持多个存储位置，方便寻址
         ContentID(const std::string spaceID ="", const std::string TimeID ="", const std::string varID ="");
+        ContentID(std::vector<std::string> identify);
+
 
         size_t getBestStoID();
         bool operator==(const ContentID &cntID) const;

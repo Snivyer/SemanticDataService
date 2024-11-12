@@ -31,6 +31,24 @@ struct DBgetRequestBuilder;
 struct DBgetReply;
 struct DBgetReplyBuilder;
 
+struct DBcontainRequest;
+struct DBcontainRequestBuilder;
+
+struct DBcontainReply;
+struct DBcontainReplyBuilder;
+
+struct DBReleaseRequest;
+struct DBReleaseRequestBuilder;
+
+struct DBReleaseReply;
+struct DBReleaseReplyBuilder;
+
+struct DBDeleteRequest;
+struct DBDeleteRequestBuilder;
+
+struct DBDeleteReply;
+struct DBDeleteReplyBuilder;
+
 struct ClientConnectRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ClientConnectRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -446,6 +464,366 @@ inline ::flatbuffers::Offset<DBgetReply> CreateDBgetReplyDirect(
       _fbb,
       ip__,
       port);
+}
+
+struct DBcontainRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DBcontainRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_ID = 4,
+    VT_TIME_ID = 6,
+    VT_VAR_ID = 8
+  };
+  const ::flatbuffers::String *space_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
+  }
+  const ::flatbuffers::String *time_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TIME_ID);
+  }
+  const ::flatbuffers::String *var_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VAR_ID);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_ID) &&
+           verifier.VerifyString(space_id()) &&
+           VerifyOffset(verifier, VT_TIME_ID) &&
+           verifier.VerifyString(time_id()) &&
+           VerifyOffset(verifier, VT_VAR_ID) &&
+           verifier.VerifyString(var_id()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DBcontainRequestBuilder {
+  typedef DBcontainRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
+    fbb_.AddOffset(DBcontainRequest::VT_SPACE_ID, space_id);
+  }
+  void add_time_id(::flatbuffers::Offset<::flatbuffers::String> time_id) {
+    fbb_.AddOffset(DBcontainRequest::VT_TIME_ID, time_id);
+  }
+  void add_var_id(::flatbuffers::Offset<::flatbuffers::String> var_id) {
+    fbb_.AddOffset(DBcontainRequest::VT_VAR_ID, var_id);
+  }
+  explicit DBcontainRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DBcontainRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DBcontainRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DBcontainRequest> CreateDBcontainRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> time_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> var_id = 0) {
+  DBcontainRequestBuilder builder_(_fbb);
+  builder_.add_var_id(var_id);
+  builder_.add_time_id(time_id);
+  builder_.add_space_id(space_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DBcontainRequest> CreateDBcontainRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_id = nullptr,
+    const char *time_id = nullptr,
+    const char *var_id = nullptr) {
+  auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
+  auto time_id__ = time_id ? _fbb.CreateString(time_id) : 0;
+  auto var_id__ = var_id ? _fbb.CreateString(var_id) : 0;
+  return CreateDBcontainRequest(
+      _fbb,
+      space_id__,
+      time_id__,
+      var_id__);
+}
+
+struct DBcontainReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DBcontainReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_IS_CONTAIN = 4
+  };
+  bool is_contain() const {
+    return GetField<uint8_t>(VT_IS_CONTAIN, 0) != 0;
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_IS_CONTAIN, 1) &&
+           verifier.EndTable();
+  }
+};
+
+struct DBcontainReplyBuilder {
+  typedef DBcontainReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_is_contain(bool is_contain) {
+    fbb_.AddElement<uint8_t>(DBcontainReply::VT_IS_CONTAIN, static_cast<uint8_t>(is_contain), 0);
+  }
+  explicit DBcontainReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DBcontainReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DBcontainReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DBcontainReply> CreateDBcontainReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    bool is_contain = false) {
+  DBcontainReplyBuilder builder_(_fbb);
+  builder_.add_is_contain(is_contain);
+  return builder_.Finish();
+}
+
+struct DBReleaseRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DBReleaseRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_ID = 4,
+    VT_TIME_ID = 6,
+    VT_VAR_ID = 8
+  };
+  const ::flatbuffers::String *space_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
+  }
+  const ::flatbuffers::String *time_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TIME_ID);
+  }
+  const ::flatbuffers::String *var_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VAR_ID);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_ID) &&
+           verifier.VerifyString(space_id()) &&
+           VerifyOffset(verifier, VT_TIME_ID) &&
+           verifier.VerifyString(time_id()) &&
+           VerifyOffset(verifier, VT_VAR_ID) &&
+           verifier.VerifyString(var_id()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DBReleaseRequestBuilder {
+  typedef DBReleaseRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
+    fbb_.AddOffset(DBReleaseRequest::VT_SPACE_ID, space_id);
+  }
+  void add_time_id(::flatbuffers::Offset<::flatbuffers::String> time_id) {
+    fbb_.AddOffset(DBReleaseRequest::VT_TIME_ID, time_id);
+  }
+  void add_var_id(::flatbuffers::Offset<::flatbuffers::String> var_id) {
+    fbb_.AddOffset(DBReleaseRequest::VT_VAR_ID, var_id);
+  }
+  explicit DBReleaseRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DBReleaseRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DBReleaseRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DBReleaseRequest> CreateDBReleaseRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> time_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> var_id = 0) {
+  DBReleaseRequestBuilder builder_(_fbb);
+  builder_.add_var_id(var_id);
+  builder_.add_time_id(time_id);
+  builder_.add_space_id(space_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DBReleaseRequest> CreateDBReleaseRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_id = nullptr,
+    const char *time_id = nullptr,
+    const char *var_id = nullptr) {
+  auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
+  auto time_id__ = time_id ? _fbb.CreateString(time_id) : 0;
+  auto var_id__ = var_id ? _fbb.CreateString(var_id) : 0;
+  return CreateDBReleaseRequest(
+      _fbb,
+      space_id__,
+      time_id__,
+      var_id__);
+}
+
+struct DBReleaseReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DBReleaseReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_IS_RELEASE = 4
+  };
+  bool is_release() const {
+    return GetField<uint8_t>(VT_IS_RELEASE, 0) != 0;
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_IS_RELEASE, 1) &&
+           verifier.EndTable();
+  }
+};
+
+struct DBReleaseReplyBuilder {
+  typedef DBReleaseReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_is_release(bool is_release) {
+    fbb_.AddElement<uint8_t>(DBReleaseReply::VT_IS_RELEASE, static_cast<uint8_t>(is_release), 0);
+  }
+  explicit DBReleaseReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DBReleaseReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DBReleaseReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DBReleaseReply> CreateDBReleaseReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    bool is_release = false) {
+  DBReleaseReplyBuilder builder_(_fbb);
+  builder_.add_is_release(is_release);
+  return builder_.Finish();
+}
+
+struct DBDeleteRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DBDeleteRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_ID = 4,
+    VT_TIME_ID = 6,
+    VT_VAR_ID = 8
+  };
+  const ::flatbuffers::String *space_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
+  }
+  const ::flatbuffers::String *time_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TIME_ID);
+  }
+  const ::flatbuffers::String *var_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VAR_ID);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_ID) &&
+           verifier.VerifyString(space_id()) &&
+           VerifyOffset(verifier, VT_TIME_ID) &&
+           verifier.VerifyString(time_id()) &&
+           VerifyOffset(verifier, VT_VAR_ID) &&
+           verifier.VerifyString(var_id()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DBDeleteRequestBuilder {
+  typedef DBDeleteRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
+    fbb_.AddOffset(DBDeleteRequest::VT_SPACE_ID, space_id);
+  }
+  void add_time_id(::flatbuffers::Offset<::flatbuffers::String> time_id) {
+    fbb_.AddOffset(DBDeleteRequest::VT_TIME_ID, time_id);
+  }
+  void add_var_id(::flatbuffers::Offset<::flatbuffers::String> var_id) {
+    fbb_.AddOffset(DBDeleteRequest::VT_VAR_ID, var_id);
+  }
+  explicit DBDeleteRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DBDeleteRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DBDeleteRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DBDeleteRequest> CreateDBDeleteRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> time_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> var_id = 0) {
+  DBDeleteRequestBuilder builder_(_fbb);
+  builder_.add_var_id(var_id);
+  builder_.add_time_id(time_id);
+  builder_.add_space_id(space_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DBDeleteRequest> CreateDBDeleteRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_id = nullptr,
+    const char *time_id = nullptr,
+    const char *var_id = nullptr) {
+  auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
+  auto time_id__ = time_id ? _fbb.CreateString(time_id) : 0;
+  auto var_id__ = var_id ? _fbb.CreateString(var_id) : 0;
+  return CreateDBDeleteRequest(
+      _fbb,
+      space_id__,
+      time_id__,
+      var_id__);
+}
+
+struct DBDeleteReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DBDeleteReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_IS_DELETE = 4
+  };
+  bool is_delete() const {
+    return GetField<uint8_t>(VT_IS_DELETE, 0) != 0;
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_IS_DELETE, 1) &&
+           verifier.EndTable();
+  }
+};
+
+struct DBDeleteReplyBuilder {
+  typedef DBDeleteReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_is_delete(bool is_delete) {
+    fbb_.AddElement<uint8_t>(DBDeleteReply::VT_IS_DELETE, static_cast<uint8_t>(is_delete), 0);
+  }
+  explicit DBDeleteReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DBDeleteReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DBDeleteReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DBDeleteReply> CreateDBDeleteReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    bool is_delete = false) {
+  DBDeleteReplyBuilder builder_(_fbb);
+  builder_.add_is_delete(is_delete);
+  return builder_.Finish();
 }
 
 #endif  // FLATBUFFERS_GENERATED_META_H_

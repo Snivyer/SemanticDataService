@@ -3,11 +3,17 @@
 
 namespace SDS {
 
-    std::shared_ptr<DataBoxReader>  DataBoxReader::Create(
-                const std::shared_ptr<DataboxObject> dbObject) {
+    Status DataBoxReader::SetDataSource(DataboxObject* dbObject) {
 
-        std::shared_ptr<DataBoxReader> reader(new DataBoxReader(std::move(dbObject)));
-        return reader;
+        if(dbObject == nullptr) {
+            return Status::NotImplemented("DataBox Reader have no data source");
+        }
+
+        databox_ = dbObject;
+        step = 0;
+        stepCount = dbObject->getBatchNum();
+        return Status::OK();
+    
     }
 
     std::shared_ptr<Schema> DataBoxReader::schema() const {
@@ -24,21 +30,13 @@ namespace SDS {
             *out = databox_->getData(step);
             ARROW_RETURN_NOT_OK(out->get()->Validate());
             step += 1;
-        } else {
+        } else{
             *out = nullptr;
         }
         return Status::OK();
         
     }
-        
-  
-    DataBoxReader::DataBoxReader(std::shared_ptr<DataboxObject> dbObject) {
-        databox_ = std::move(dbObject);
-        stepCount = databox_->getBatchNum();
-        step = 0;
-    }
-
-
+         
 
 
 }

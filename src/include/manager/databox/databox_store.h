@@ -2,7 +2,8 @@
 
 #include <memory>
 #include <vector>
-
+#include <thread>
+#include <deque>
 #include "abstract/meta/cnt_meta_template.h"
 #include "abstract/meta/sto_meta_template.h"
 #include "abstract/meta/cnt_ID.h"
@@ -13,12 +14,18 @@
 #include "manager/databox/databox_manager.h"
 #include "manager/databox/databox_object.h"
 #include "manager/rpc/metadata_rpc/protocol.h"
+#include "manager/rpc/data_rpc/meta_server.h"
 #include "manager/rpc/data_rpc/server.h"
 
 
 
 namespace SDS
 {
+
+    struct SendEndpoint {
+        std::string ip;
+        int port;
+    };
 
 
     struct GetRequest {
@@ -42,19 +49,14 @@ namespace SDS
     };
 
 
-
-
     class DataBoxStore {
         public:
             ~DataBoxStore();
-
-            static std::shared_ptr<DataBoxStore> createStore(std::shared_ptr<EventLoop> loop,
-                                                             int64_t systemMemory,
-                                                             Adaptor* adaptor);
+            static std::shared_ptr<DataBoxStore> createStore(std::shared_ptr<EventLoop> loop, int64_t systemMemory, Adaptor* adaptor, std::shared_ptr<BasicMetaServer> rpcServer);
 
             // create a databox object and add it into the dbentry
             bool createDB(const ContentID& cntID, FilePathList &filePath,
-                            Client* client, DataboxObject* &dbObject);
+                            Client* client);
 
             
             // delete db objects that have been created
@@ -68,8 +70,8 @@ namespace SDS
             // return db object with arrow flight
             bool returnDBwithFlight(GetRequest* getReq);
  
-            // seal an databox, this databox is now immutable and can be accessed with get.
-            bool sealDB(const ContentID &cntID);
+            // undersend an databox, this databox is now immutable and can be accessed with flight.
+            bool unsendDB(const ContentID &cntID);
 
             // check if the databox store contains an databox
             bool containDB(const ContentID &cntID);
@@ -84,12 +86,12 @@ namespace SDS
             void disconnectClient(Client* client);
 
             // the main message process 
-            arrow::Status processMessage(Client* client);
+            Status processMessage(Client* client);
+
+
+            void addDataServer(std::shared_ptr<BasicDataServer> server);
 
         
-
-
-
     
         private:
             class Impl;
@@ -97,6 +99,7 @@ namespace SDS
             explicit DataBoxStore(std::shared_ptr<Impl> impl);
             bool addClientToEntry(DataBoxTableEntry* entry, Client* client);
             bool removeClientFromEntry(DataBoxTableEntry* entry, Client*  client);
+            bool prepareTransffer(const ContentID &cntID, DataboxObject* dbObject, SendEndpoint &ep);
             
                 
                 

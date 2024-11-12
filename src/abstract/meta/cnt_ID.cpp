@@ -19,6 +19,23 @@ namespace SDS {
         setVarID(varID);
     }
 
+
+    ContentID::ContentID(std::vector<std::string> identify) {
+
+        if(identify.size() > 0) {
+            setSpaceID(identify[0]);
+        }
+        
+        if(identify.size() > 1) {
+            setTimeID(identify[1]);
+        }
+
+        if(identify.size() > 2) {
+            setVarID(identify[2]);
+        }
+
+    }
+
     std::string ContentID::getSpaceID() const  {
         return spaceID;
     }

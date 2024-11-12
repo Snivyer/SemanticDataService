@@ -28,10 +28,13 @@ namespace SDS
      } while (0);
 
      typedef enum {
-          // databox was created but not sealed in the store
+          
+          // databox was created but is not filled with data by adaptor
           DATABOX_CREATED = 1,
-          // databox is sealed and stored in the store
-          DATABOX_SEALED,
+          // databox is both created and filled with data
+          DATABOX_FILLED = 2,
+          // databox is undersend,
+          DATABOX_UNSEND = 3,
      } DataBoxState;
 
      typedef enum {

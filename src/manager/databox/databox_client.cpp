@@ -134,11 +134,51 @@ namespace SDS {
         std::string ip;
         int port;
         RETURN_NOT_OK(ReadGetReply(buffer.data(), ip, port));
-            
+
+        if(port != 0) {
+            ARROW_LOG(INFO) << "I start to prepare the arrow flight client at:" << ip <<":" << std::to_string(port);
+            return Status::OK();
+        } else {
+            return Status::NotImplemented("There are not idel sender, try again!");
+        }
+    }
+
+    arrow::Status DataBoxClient::containDB(ContentID &cntID, bool &is_contain) {
+        int client = impl_->getStoreConn();
     
-        ARROW_LOG(INFO) << "I start to prepare the arrow flight client at:" << ip <<":" << std::to_string(port);
+        RETURN_NOT_OK(SendContainRequest(client, cntID.getSpaceID(),
+                                        cntID.getTimeID(), cntID.getVarID()));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeContaineReply, &buffer));
+
+        RETURN_NOT_OK(ReadContainReply(buffer.data(), is_contain));
+        return Status::OK();
+    }
+
+    arrow::Status DataBoxClient::releaseDB(ContentID &cntID, bool &is_release) {
+
+        int client = impl_->getStoreConn();
+        RETURN_NOT_OK(SendReleaseRequest(client, cntID.getSpaceID(),
+                                        cntID.getTimeID(), cntID.getVarID()));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeReleaseReply, &buffer));
+
+        RETURN_NOT_OK(ReadReleaseReply(buffer.data(), is_release));
+        return Status::OK();
+    }
+
+    arrow::Status DataBoxClient::deleteDB(ContentID &cntID, bool &is_delete) {
+
+        int client = impl_->getStoreConn();
+        RETURN_NOT_OK(SendDeleteRequest(client, cntID.getSpaceID(),
+                                        cntID.getTimeID(), cntID.getVarID()));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeDeleteReply, &buffer));
+
+        RETURN_NOT_OK(ReadDeleteReply(buffer.data(), is_delete));
         return Status::OK();
 
     }
+
 
 }
