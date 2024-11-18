@@ -2,6 +2,7 @@ add_subdirectory(metadata)
 add_subdirectory(index)
 add_subdirectory(databox)
 add_subdirectory(rpc)
+add_subdirectory(proto)
 
 
 
@@ -11,6 +12,7 @@ set(MANAGER_LIBS
         metadata
         index
         databox
+        index_pb
         ) 
 
 

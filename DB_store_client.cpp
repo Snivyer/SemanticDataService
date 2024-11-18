@@ -1,4 +1,5 @@
 #include "manager/databox/databox_client.h"
+#include "manager/rpc/metadata_rpc/index_reader.h"
 #include <thread>
 #include <iostream>
 #include <unistd.h>
@@ -48,6 +49,8 @@ void runClient(ContentID &cntID, std::string datapath) {
 }
 
 int main() {
+
+    IndexClient client(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
 
     ContentID cntID1("1", "2", "3");
     std::string datapath1 = "/home/snivyer/SemanticDataService/data/ldasin/fcst/44-20230111T000000";

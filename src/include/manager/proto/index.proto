@@ -1,0 +1,22 @@
+syntax = "proto3";
+package IndexRpc;
+
+
+message IndexSend {
+    string contentDesc = 1;
+
+}
+
+message IndexReply {
+    int32 spaceID = 1;
+    int32 TimeID = 2;
+    repeated int32 varID = 3;
+    repeated string varName = 4;
+    repeated string dirPath = 5;
+    repeated string filePath = 6;
+}
+
+
+service indexService {
+  rpc GetIndex(IndexSend) returns (IndexReply);
+}

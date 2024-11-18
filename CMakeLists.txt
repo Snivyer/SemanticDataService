@@ -15,7 +15,8 @@ add_compile_options(-std=c++17)
 find_package(Arrow REQUIRED)
 find_package(ArrowFlight REQUIRED)
 find_package(Threads REQUIRED)
-
+find_package(protobuf CONFIG REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
 
 set(SDS_SRC_INCLUDE_DIR 
         ${PROJECT_SOURCE_DIR}
@@ -72,6 +73,7 @@ target_link_libraries(SDS_db_store_test duckdb)
 target_link_libraries(SDS_db_store_test stdc++fs)
 target_link_libraries(SDS_db_store_test ArrowFlight::arrow_flight_shared)
 target_link_libraries(SDS_db_store_test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(SDS_db_store_test gRPC::grpc++)
 
 ## DB store client test
 add_executable(SDS_db_store_client_test DB_store_client.cpp)
@@ -83,7 +85,7 @@ target_link_libraries(SDS_db_store_client_test duckdb)
 target_link_libraries(SDS_db_store_client_test stdc++fs)
 target_link_libraries(SDS_db_store_client_test ArrowFlight::arrow_flight_shared)
 target_link_libraries(SDS_db_store_client_test ${CMAKE_THREAD_LIBS_INIT})
-
+target_link_libraries(SDS_db_store_client_test gRPC::grpc++)
 
 
 # dataManager test 
