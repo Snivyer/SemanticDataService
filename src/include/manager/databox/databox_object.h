@@ -4,7 +4,6 @@
 #include <vector>
 #include <arrow/api.h>
 #include "arrow/util/logging.h"
-
 #include "abstract/meta/cnt_meta_template.h"
 #include "abstract/meta/sto_meta_template.h"
 #include "abstract/meta/cnt_ID.h"

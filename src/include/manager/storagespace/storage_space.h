@@ -7,11 +7,10 @@
 #pragma once
 
 #include <string>
-#include "API/semanticspace/semantic_space.h"
+#include "manager/semanticspace/semantic_space.h"
 #include "manager/metadata/sto_meta.h"
 #include "manager/metadata/cnt_meta.h"
 #include "abstract/adaptor/adaptor.h"
-#include "API/dataspace/data_box.h"
 #include "abstract/adaptor/ceph_adaptor.h"
 #include "abstract/adaptor/lustre_adaptor.h"
 #include "abstract/adaptor/local_adaptor.h"
@@ -34,23 +33,21 @@ namespace SDS
         StorageSpaceManager();
         ~StorageSpaceManager();
 
-        
-        size_t createStorageSpace(struct ContentID &cntID, struct StoreTemplate &stoT);       // 创建存储空间
-        void load(size_t storeID);
-        void showInfo();
-        
-        bool fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count );
+        // create storage space
+        size_t createStorageSpace(StoreTemplate &stoT);      
+  
+        // bool fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count);
 
 
         void addAdaptor(size_t stoID, Adaptor* adaptor);
         Adaptor* getAdaptor(size_t stoID);
 
         void addSpace(size_t stoID, StorageSpace* space);
-        StorageSpace* getSpace(size_t stoID);
+        StorageSpace* getSpaceByID(size_t stoID);
+       // StorageSpace* getSpaceByName(std::string spaceName);
 
 
     private:
-
         StoreMeta *storeMeta;
         std::map<size_t, StorageSpace*> spaceMap;
         std::map<size_t, Adaptor*> adapatorMap;

@@ -1,11 +1,11 @@
-#include "manager/databox/databox_store.h"
+#include "API/dataspace/databox_store.h"
 
 namespace SDS {
 
     class DataBoxStore::Impl {
         private:
             // Event loop of the databox store
-           std::shared_ptr<EventLoop> loop_;
+            std::shared_ptr<EventLoop> loop_;
            
             // databox store information, including the databox table
             DataBoxStoreInfo storeInfo;
@@ -60,7 +60,6 @@ namespace SDS {
             std::shared_ptr<BasicMetaServer> getRpcServer() {
                 return rpcServer_;
             }
-
 
             std::vector<uint8_t> & getInputBuffer() {
                 return this->inputBuffer;
@@ -194,9 +193,6 @@ namespace SDS {
         }
         return false;
     }
-
-
-
 
     bool DataBoxStore::deleteDB(const std::vector<ContentID> &ids) {
 
@@ -345,11 +341,9 @@ namespace SDS {
         impl_->getLoop()->remove_file_event(client->fd);
         close(client->fd);
 
-
         for(const auto& entry : impl_->getStoreInfo().databoxs) {
             removeClientFromEntry(entry.second, client);
         }
-        
     }
  
     arrow::Status DataBoxStore::processMessage(Client* client) {
@@ -449,10 +443,9 @@ namespace SDS {
         impl_->returnSender(server);
     }
 
-
-
-
-
+    void DataBoxStore::runServer() {
+        impl_->getLoop()->run();
+    }
 
 
 }

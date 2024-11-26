@@ -13,7 +13,7 @@
 #include "abstract/utils/directory_operation.h"
 #include "manager/databox/databox_manager.h"
 #include "manager/databox/databox_object.h"
-#include "manager/rpc/metadata_rpc/protocol.h"
+#include "manager/rpc/metadata_rpc/db_protocol.h"
 #include "manager/rpc/data_rpc/meta_server.h"
 #include "manager/rpc/data_rpc/server.h"
 
@@ -91,6 +91,8 @@ namespace SDS
 
             void addDataServer(std::shared_ptr<BasicDataServer> server);
 
+            void runServer();
+
         
     
         private:
@@ -101,9 +103,6 @@ namespace SDS
             bool removeClientFromEntry(DataBoxTableEntry* entry, Client*  client);
             bool prepareTransffer(const ContentID &cntID, DataboxObject* dbObject, SendEndpoint &ep);
             
-                
-                
-
     };
 
    

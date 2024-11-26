@@ -13,39 +13,99 @@
 #include <unordered_map>
 #include "manager/index/index.h"
 #include "manager/metadata/cnt_meta.h"
+#include "abstract/utils/time_operation.h"
 
 
 namespace SDS
 {
 
-    struct TimeDescList
+    struct TimeList
     {
-        int TimeSlotID;
-        struct TSDesc desc;
+        size_t timeIntervalID;
+        time_t endTime;                 // 结束时间
+        std::vector<time_t> timeIndex;
+        std::unordered_map<time_t, size_t> timeIDs;
+
+        size_t getTimeID(time_t t) {
+            auto ret = timeIDs.find(t);
+            if(ret != timeIDs.end()) {
+                return ret->second;
+            }
+            return 0;
+        }
+
+        size_t getTimeIntervalID() {
+            return timeIntervalID;
+        }
+
+        std::string getHemiTimeID(time_t t) {
+            int timeID = getTimeID(t);
+            if(timeID == 0) {
+                return std::to_string(timeIntervalID);
+            } else {
+                return std::to_string(timeIntervalID) + std::to_string(timeID);
+            }
+        }
+
+        void insertTimestamp(time_t t) {
+
+            auto ret = timeIDs.find(t);
+            if(ret == timeIDs.end()) {
+                timeIndex.push_back(t);
+                size_t timeID = timeIndex.size();
+                timeIDs.insert({t, timeID});
+            }
+        }
 
     };
 
     // 时间段节点
     struct TimeSlotNode
     {
-        size_t TimeSlotID;                      // 时间段ID
-        TimeDescList* me;                      // 时间段
-        TimeSlotNode* next;                   //  后一个节点
+        size_t timeSlotID;                      // 时间段ID
+        time_t reportTime;                 // 起报时间
+        size_t intervalNums;                    // 时间间隔数量
 
-        std::vector<TimeDescList>* children;  // 时间描述符
-        TimeSlotNode* CTSNode;               // 子孩子节点
+        std::unordered_map<time_t, TimeList*>  timeIntervalIndex;  // 不同时间分辨率
+
+        TimeSlotNode() {
+            intervalNums = 0;
+        }
+
+        std::string getTimeSlotID() {
+            return std::to_string(timeSlotID);
+        }
+
+        std::string getCompleteTimeID(long interval, time_t &t) {
+
+            if(intervalNums == 0) {
+                return getTimeSlotID();
+            }
+
+            auto ret = timeIntervalIndex.find(interval);
+            if(ret != timeIntervalIndex.end()) {
+                return getTimeSlotID() + ret->second->getHemiTimeID(t);
+            }
+            return getTimeSlotID();
+        }
+
+        void insertTimeList(time_t interval, TimeList* timeSlot) {
+            
+            auto ret = timeIntervalIndex.find(interval);
+            if(ret == timeIntervalIndex.end()) {
+                timeIntervalIndex.insert({interval, timeSlot});
+                intervalNums += 1;
+            }
+        }
     
     };
 
 
-    class TimeIndex : BaseIndex
+    class TimeIndex : public BaseIndex
     {
     public:
         TimeIndex();
         ~TimeIndex();
-
-        std::unordered_map<std::string, std::vector<std::string>> globalVarMap;
-        std::unordered_map<std::string, struct VarDesc*>   varDescMap;
         
         bool search(SearchTerm &term, ResultSet &result);       // 查询节点
         bool insert(SearchTerm &term, ResultSet &result);       // 插入节点
@@ -53,11 +113,21 @@ namespace SDS
         bool update(SearchTerm &oldTerm, SearchTerm 
                             &newTerm, ResultSet &result);       // 更新节点
         bool persist(std::string fileName); 
+        bool search(time_t reportTime,  TimeSlotNode* &node);
+        bool insert(time_t reportTime,  TimeSlotNode* &node);
 
     
     private:
-        bool getTerm(SearchTerm &term, std::string &varName);            // 解析检索关键字
-        //bool getResult(ResultSet &result);   // 解析检索结果 
+        std::vector<TimeSlotNode*>   timeSlotSet;
+        std::unordered_map<time_t, std::vector<TimeSlotNode*>::iterator> timeSlotIndex;
+        std::unordered_map<size_t, std::vector<TimeSlotNode*>::iterator> timeSlotIndexWithID;
+
+        
+        bool getTerm(SearchTerm &term, time_t &reportTime);
+        bool getResult(ResultSet &result, TimeSlotNode* &snode);
+
+     
+        
         
                         
 

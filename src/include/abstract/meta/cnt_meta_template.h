@@ -34,11 +34,12 @@ namespace SDS {
     // 连续时间段描述符
     struct TSDesc
     {
-        tm reportT;             // 起报时间
+        tm reportT;
         tm startT;              // 时间段开始时间
         tm endT;                // 时间段结束时间
         time_t interval;        // 时间间隔
         int count;              // 该时间段中的时间点数量
+
     };
 
   
@@ -79,6 +80,7 @@ namespace SDS {
     // 变量列表描述符
     struct VLDesc
     {
+        std::string groupName;
         std::unordered_map<std::string, int> varID; // 变量ID列表
         std::vector<VarDesc> desc;        // 变量描述符列表 
         int groupLen;                     // 变量组长度          
@@ -90,6 +92,23 @@ namespace SDS {
         SSDesc ssDesc;       // 语义空间描述符      
         TSDesc tsDesc;       // 时间段描述符
         VLDesc vlDesc;       // 变量列表描述符
+
+        void copyTimeSlotDesc(ContentDesc &desc) {
+            tsDesc.reportT = desc.tsDesc.reportT;
+            tsDesc.startT = desc.tsDesc.startT;
+            tsDesc.endT = desc.tsDesc.endT;
+            tsDesc.interval = desc.tsDesc.interval;
+            tsDesc.count = desc.tsDesc.count;
+        }
+
+        void copyVarListDesc(ContentDesc &desc) {
+            vlDesc.groupName = desc.vlDesc.groupName;
+            vlDesc.groupLen = desc.vlDesc.groupLen;
+            for(auto item : desc.vlDesc.varID) {
+                vlDesc.varID.insert(item);
+            }
+        }
+
     };
  
   

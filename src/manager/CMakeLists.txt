@@ -3,6 +3,8 @@ add_subdirectory(index)
 add_subdirectory(databox)
 add_subdirectory(rpc)
 add_subdirectory(proto)
+add_subdirectory(storagespace)
+add_subdirectory(semanticspace)
 
 
 
@@ -13,6 +15,8 @@ set(MANAGER_LIBS
         index
         databox
         index_pb
+        storagespace
+        semanticspace
         ) 
 
 

@@ -275,58 +275,6 @@ bool ContentMeta::parseVLDesc(std::vector<ContentDesc> &cntDescSet) {
 }
 
 
-
-bool ContentMeta::string_to_tm(std::string timeStr, tm &time) {
-    int year = 0, month = 0, day = 0, hour = 0, minute = 0, sec =0;
-
-    if(sscanf(timeStr.c_str(), "%4d%2d%2dT%2d%2d%2d", &year, &month, &day, &hour, &minute, &sec) != 6) {
-        return false;
-    } 
-
-    memset(&time, 0, sizeof(tm));
-
-    time.tm_year = year - 1900;
-    time.tm_mon = month - 1;
-    time.tm_mday = day;
-    time.tm_hour = hour;
-    time.tm_min = minute;
-    time.tm_sec = sec;
-    return true;
-}
-
-bool ContentMeta::string_to_time(std::string timeStr, time_t &time) {
-    tm tm1;
-    memset(&tm1, 0, sizeof(tm1));
-        
-    if(string_to_tm(timeStr, tm1)) {
-            time = mktime(&tm1);
-    }
-}
-
-bool ContentMeta::tm_to_string(struct tm &tm, std::string &timeStr) {
-    char buffer[32];
-    std::strftime(buffer, 32,  "%Y-%m-%d %H:%M:%S", &tm);
-    timeStr = std::string(buffer);
-}
-
-bool compareTm(const tm& a, const tm &b) {
-
-    if (a.tm_year != b.tm_year) {
-        return a.tm_year < b.tm_year;
-    } else if (a.tm_mon != b.tm_mon) {
-        return a.tm_mon < b.tm_mon;
-    } else if (a.tm_mday != b.tm_mday) {
-        return a.tm_mday < b.tm_mday;
-    } else if (a.tm_hour != b.tm_hour) {
-        return a.tm_hour < b.tm_hour;
-    } else if (a.tm_min != b.tm_min) {
-        return a.tm_min < b.tm_min;
-    } else {
-        return a.tm_sec < b.tm_sec;
-    }
-
-}
-
 // extract the time slot desciption accroding to directory name
 bool ContentMeta::extractTSDesc(struct ContentDesc &cntDesc, std::string dirPath) {
 
@@ -367,11 +315,71 @@ bool ContentMeta::extractTSDesc(struct ContentDesc &cntDesc, std::string dirPath
     return false;
 }
 
- bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::string dirPath, bool isSame) {
+bool ContentMeta::extractTSDesc(struct ContentDesc &cntDesc, std::vector<std::string> &times) {
+    
+    if(times.size() == 0) {
+        return false;
+    }
+
+    if(times.size() == 4) {
+        // have set the interval
+        time_t interval;
+        string_to_time(times[3], interval);
+        cntDesc.tsDesc.interval = interval;
+    } 
+    
+    if (times.size() >= 3) {
+        // have set the end time
+        tm endT;
+        string_to_tm(times[2], endT);
+        cntDesc.tsDesc.endT = endT;
+    } 
+    
+    if (times.size() >= 2) {
+        // have set the start time
+        tm startT;
+        string_to_tm(times[1], startT);
+        cntDesc.tsDesc.startT = startT;
+
+        // count the time num
+        if(times.size() == 4) {
+            auto totalInterval = mktime(&(cntDesc.tsDesc.endT)) - mktime(&(cntDesc.tsDesc.startT));
+            int count = totalInterval / cntDesc.tsDesc.interval;
+            cntDesc.tsDesc.count = count;
+        }
+    }
+
+    if (times.size() >= 1) {
+        // just have set the report time
+        tm reportT;
+        string_to_tm(times[0], reportT);
+        cntDesc.tsDesc.reportT = reportT;
+    }
+    return true;
+}
+
+bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::vector<std::string> &vars,
+                                std::unordered_map<std::string, size_t> &varList) {
+
+    for(auto varName : vars) {
+        auto ret = varList.find(varName);
+        if(ret != varList.end()) {
+            cntDesc.vlDesc.varID.insert({varName, ret->second});
+        }
+    }
+
+    cntDesc.vlDesc.groupLen = cntDesc.vlDesc.varID.size();
+    if(cntDesc.vlDesc.groupLen == 0) {
+        return false;
+    }
+
+    return true;
+}
+
+bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::string dirPath, bool isSame) {
 
     Adaptor* adaptor;
     adaptor = getAdaptor();
-
     if(!adaptor) {
         return false;
     }

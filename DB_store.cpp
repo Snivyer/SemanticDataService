@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <signal.h>
-#include "manager/databox/databox_store.h"
+#include "API/dataspace/databox_store.h"
 #include "abstract/adaptor/local_adaptor.h"
 #include "manager/rpc/data_rpc/meta_server.h"
 #include "manager/rpc/data_rpc/server.h"

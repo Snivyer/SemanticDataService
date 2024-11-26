@@ -3,6 +3,7 @@ add_library(
   OBJECT
   string_operation.cpp
   directory_operation.cpp
+  time_operation.cpp
 )
 
 set(ALL_OBJECT_FILES

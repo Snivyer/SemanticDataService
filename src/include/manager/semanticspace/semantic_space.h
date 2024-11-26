@@ -10,7 +10,8 @@
 #include <map>
 #include "manager/metadata/cnt_meta.h"
 #include "manager/index/space_index.h"
-
+#include "manager/index/time_index.h"
+#include "manager/index/var_index.h"
 
 namespace SDS
 {
@@ -68,9 +69,23 @@ namespace SDS
         size_t createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
         void printSpaceDesc(SemanticSpace *space);
 
+
+        ContentMeta* getContentMeta();
         SpaceIndex* getSpaceIndex();
+        TimeIndex* getTimeIndex();
+        VarIndex* getVarIndex();
+
+
         SemanticSpace* getSpaceByName(std::string spaceName);
         SemanticSpace* getSpaceByID(std::string spaceID);
+
+
+        // create time index
+        bool createTimeIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath);
+
+        // create var index 
+        bool createVarIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName = "default");
+            
 
 
 
@@ -78,6 +93,8 @@ namespace SDS
     private:
         ContentMeta* _metaManager;
         SpaceIndex* _spaceIndex;
+        TimeIndex* _timeIndex;
+        VarIndex* _varIndex;
         MetaStore* _metaStore;
         std::map<std::string, SemanticSpace*> _spaceNameMap;
         std::map<std::string, SemanticSpace*> _spaceIDMap;

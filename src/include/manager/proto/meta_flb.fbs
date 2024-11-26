@@ -1,0 +1,58 @@
+table  MetaClientConnectRequest {
+    fd:int;
+}
+
+table MetaClientConnectReply {
+    welcome:int;
+}
+
+table SemanticSpaceCreateRequest {
+    space_name:string;
+    geo_names:[string];
+}
+
+table SemanticSpaceCreateReply {
+    space_id:string;
+}
+
+table StorageSpaceCreateRequest {
+    space_name:string;
+    writable:bool;
+    kind:string;
+    space_size:ulong;
+    space_id:string;
+    user_name:string;
+    conf_file:string;
+    pool_name:string;
+    root_path:string;
+}
+
+table StorageSpaceCreateReply {
+    storage_id:string;
+}
+
+table ContentIndexCreateRequst {
+    semantic_space_name:string;
+    storage_space_name:string;
+    dir_path:string;
+}
+
+table ContentIndexReply {
+    welcome:int;
+}
+
+table ContentIndexSearchRequest {
+    geo_names:[string];
+    times:[string];
+    var_names:[string];
+    group_name:string;
+}
+
+table ContentIndexSearchReply {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+}
+
+
+

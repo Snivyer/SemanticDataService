@@ -17,22 +17,48 @@
 
 namespace SDS
 {
-    // 变量ID
-    using VarUID = std::vector<int>;
 
+  
     // 变量列表节点
     struct VarListNode
     {
-        size_t varListID;                                  // 变量列表ID
-        struct VLDesc* me;                                // 变量列表描述符  
-        std::unordered_map<std::string, int> varMap;     //  变量名索引表
+        size_t varListID;                               
+        std::unordered_map<std::string, size_t> varIndex;
+        size_t varNum;
 
-        size_t frontID;                                 // 前一个变量列表ID
-        struct VarListNode* frontNode;                  // 前一个节点
+        VarListNode() {
+            varNum = 0;
+        }
 
-        size_t behindID;                                // 后一个变量列表ID
-        struct VarListNode* behindNode;                 // 后一个节点 
+        std::string getVarListID() {
+            return std::to_string(varListID);
+        }
+
+        std::string getCompleteVarID(std::string varName) {
+
+            if(varNum == 0) {
+                return getVarListID();
+            }
+
+            auto ret = varIndex.find(varName);
+            if(ret != varIndex.end()) {
+                return getVarListID() + std::to_string(ret->second);
+            }
+            return getVarListID();
+        }
+
+        void insertVarList(std::string varName) {
+
+            auto ret = varIndex.find(varName);
+            if(ret == varIndex.end()) {
+                varNum += 1;
+                size_t varID = varNum;
+                varIndex.insert({varName, varID});
+            }
+            
+        }
     };
+
 
 
     class VarIndex : BaseIndex
@@ -41,22 +67,23 @@ namespace SDS
         VarIndex();
         ~VarIndex();
 
-        std::unordered_map<std::string, std::vector<std::string>> globalVarMap;
-        std::unordered_map<std::string, struct VarDesc*>   varDescMap;
-        
+        std::vector<VarListNode*> varListSet;
+        std::unordered_map<std::string, std::vector<VarListNode*>::iterator> varListIndex;
+
         bool search(SearchTerm &term, ResultSet &result);       // 查询节点
         bool insert(SearchTerm &term, ResultSet &result);       // 插入节点
         bool remove(SearchTerm &term, ResultSet &result);       // 移除节点
-        bool update(SearchTerm &oldTerm, SearchTerm 
-                            &newTerm, ResultSet &result);       // 更新节点
+        bool update(SearchTerm &oldTerm, SearchTerm  &newTerm, ResultSet &result);       // 更新节点
         bool persist(std::string fileName); 
+        bool search(std::string groupName, VarListNode* &nodeList);       
+        bool insert(std::string groupName, VarListNode* &nodeList);
 
     
     private:
         bool getTerm(SearchTerm &term, std::string &varName);            // 解析检索关键字
-        //bool getResult(ResultSet &result);   // 解析检索结果 
-        
-                        
+        bool getResult(ResultSet &result, VarListNode* &nodeList);
+
+     
 
     };
 

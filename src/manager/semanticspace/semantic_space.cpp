@@ -1,4 +1,4 @@
-#include "API/semanticspace/semantic_space.h"
+#include "manager/semanticspace/semantic_space.h"
 
 
 namespace SDS
@@ -53,7 +53,6 @@ namespace SDS
         }
 
         space = new SemanticSpace(SSName);
-        ContentDesc cntDesc;
         _metaManager->extractSSDesc(space->cntDesc, geoNames);
 
         // choose the adimistrator code as the search term
@@ -91,12 +90,23 @@ namespace SDS
         _metaManager->printSSDesc(space->cntDesc);
         std::cout << "---------------------------------" << std::endl;
     }
+
+    ContentMeta* SemanticSpaceManager::getContentMeta() {
+        return _metaManager;
+    }
      
 
     SpaceIndex* SemanticSpaceManager::getSpaceIndex() {
         return _spaceIndex;
     }
 
+    TimeIndex* SemanticSpaceManager::getTimeIndex() {
+        return _timeIndex;
+    }
+     
+    VarIndex* SemanticSpaceManager::getVarIndex() {
+        return _varIndex;
+    }
 
     SemanticSpace* SemanticSpaceManager::getSpaceByName(std::string spaceName) {
         auto ret = _spaceNameMap.find(spaceName);
@@ -113,8 +123,69 @@ namespace SDS
         }
         return nullptr;
     }
-    
+
+    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath) {
+        
+        SemanticSpace* space = getSpaceByID(spaceID);
+
+        // choose the adimistrator code as the search term
+        SearchTerm term;
+        ResultSet result;
+        TimeSlotNode* node = nullptr;
+        result.push_back(node);
+
+        _metaManager->setAdaptor(adaptor);
+        if(_metaManager->extractTSDesc(space->cntDesc, dirPath)) {
+            std::string reportTimeStr;
+            tm_to_string(space->cntDesc.tsDesc.reportT, reportTimeStr);
+            term.push_back(reportTimeStr); 
+
+            if( _timeIndex->insert(term, result)) {
+
+                auto tsDesc = space->cntDesc.tsDesc;
+                TimeList *timeList = new TimeList();
+                time_t startTime = mktime(&(tsDesc.startT));
+
+                for(int i = 0; i < tsDesc.count; i++) {
+                    timeList->insertTimestamp(startTime);
+                    startTime += tsDesc.interval;
+                }
+
+                node->insertTimeList(tsDesc.interval,timeList);
+                space->cntID.setTimeID(node->getTimeSlotID());
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 
+    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string groupName) {
+        SemanticSpace* space = getSpaceByID(spaceID);
 
+        // choose the adimistrator code as the search term
+        SearchTerm term;
+        ResultSet result;
+        VarListNode* node = nullptr;
+        result.push_back(node);
+
+        _metaManager->setAdaptor(adaptor);
+        if(_metaManager->extractVLDesc(space->cntDesc, dirPath)) {
+            
+            term.push_back(groupName);
+            if(_varIndex->insert(term, result)) {
+                auto varListDesc = space->cntDesc.vlDesc;
+                varListDesc.groupName = groupName;
+                for(auto item : varListDesc.desc) {
+                    node->insertVarList(item.varName);
+                }
+                node->varNum = varListDesc.desc.size();
+                space->cntID.setVarID(node->getVarListID());
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

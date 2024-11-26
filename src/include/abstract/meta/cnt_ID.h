@@ -17,7 +17,6 @@ namespace SDS {
         ContentID(const std::string spaceID ="", const std::string TimeID ="", const std::string varID ="");
         ContentID(std::vector<std::string> identify);
 
-
         size_t getBestStoID();
         bool operator==(const ContentID &cntID) const;
         void print();
@@ -28,6 +27,7 @@ namespace SDS {
         void setTimeID(const std::string ID);
         std::string getVarID() const;
         void setVarID(const std::string ID);
+
 
     private:
         std::string spaceID;            // 空间ID

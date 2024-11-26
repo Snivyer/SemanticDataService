@@ -26,7 +26,7 @@ void createSemanticSpaceTest() {
     SemanticSpace* space2 = spaceManager.getSpaceByName(std::string("赣州市空间"));
 
     // get the semantic space directly with the space ID
-    SemanticSpace* space4 = spaceManager.getSpaceByID(intToStringWithPadding(spaceID4, 3));
+    SemanticSpace* space4 = spaceManager.getSpace.ByID(intToStringWithPadding(spaceID4, 3));
 
     // get the parent semantic space by browering the space index 
     SpaceNode* node = space2->indexNode->moveUp();

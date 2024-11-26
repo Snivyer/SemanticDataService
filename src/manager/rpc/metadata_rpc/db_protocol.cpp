@@ -1,4 +1,4 @@
-#include "manager/rpc/metadata_rpc/protocol.h"
+#include "manager/rpc/metadata_rpc/db_protocol.h"
 
 
 namespace SDS {

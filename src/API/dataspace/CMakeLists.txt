@@ -1,8 +1,10 @@
 add_library(
   dataspace
   OBJECT
-  data_management.cpp
-  data_box.cpp
+  databox_store.cpp
+  databox_client.cpp
+  meta_service.cpp
+  meta_service_client.cpp
 )
 
 set(ALL_OBJECT_FILES

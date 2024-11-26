@@ -1,0 +1,7 @@
+add_library(
+    SDSlet
+    OBJECT
+    SDSlet.cpp
+)
+
+set(ALL_OBJECT_FILES ${ALL_OBJECT_FILES} $<TARGET_OBJECTS: SDSlet> PARENT_SCOPE)

@@ -1,14 +1,10 @@
 add_subdirectory(dataspace)
-add_subdirectory(storagespace)
-add_subdirectory(semanticspace)
 
 
 add_library(API STATIC ${ALL_OBJECT_FILES})
 
 set(API_LIBS
         dataspace
-        storagespace
-        semanticspace
         ) 
 
 target_link_libraries(

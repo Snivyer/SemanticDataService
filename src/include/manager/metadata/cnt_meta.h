@@ -14,10 +14,9 @@
 #include "abstract/meta/cnt_meta_template.h"
 #include "abstract/meta/cnt_ID.h"
 #include "abstract/adaptor/local_adaptor.h"
+#include "abstract/utils/time_operation.h"
 #include <string>
 #include <vector>
-#include <sys/time.h>
-#include <string.h>
 #include <iostream>
 #include <experimental/filesystem>
 #include <algorithm>
@@ -26,7 +25,6 @@ namespace SDS
 {
     
     namespace fs = std::experimental::filesystem;
-    bool compareTm(const tm& a, const tm &b);
 
     // 内容元数据管理类
     class  ContentMeta: public Metadata
@@ -43,11 +41,17 @@ namespace SDS
         bool extractSSDesc(struct ContentDesc &cntDesc, std::vector<std::string> &geoNames);
 
         
-        // extract the time slot desciption accroding to directory name
+        // extract the time slot desciption according to directory name
         bool extractTSDesc(struct ContentDesc &cntDesc, std::string dirName);  
 
-    
-        // extract the var list desciption by reading variable information fromNetCDF 
+        // extract the time slot description according to time vector
+        bool extractTSDesc(struct ContentDesc &cntDesc, std::vector<std::string> &times);
+
+        // extract the var list desciption by user give variable
+        bool extractVLDesc(struct ContentDesc &cntDesc, std::vector<std::string> &vars,
+                                std::unordered_map<std::string, size_t> &varList);
+        
+        // extract the var list desciption by reading variable information from NetCDF 
         bool extractVLDesc(struct ContentDesc &cntDesc, std::string dirName, bool isSame = true);
 
 
@@ -118,14 +122,9 @@ namespace SDS
         bool putMetaWithParquet(std::string path) override;   
 
 
+
+
     private:
-        bool string_to_tm(std::string timeStr, struct tm &time);       
-        bool string_to_time(std::string timeStr, time_t &time); 
-        bool tm_to_string(struct tm &tm, std::string &timeStr);
-     
-
-
-
         std::string getMeta(Key key) override;
         void putMeta(Key key, std::string value) override;   
 

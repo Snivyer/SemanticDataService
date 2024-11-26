@@ -31,7 +31,6 @@ namespace SDS
         IndexType type;         // 索引类型
         void*  rootNode;        // 索引根节点
         size_t nodeNum;         // 检索数量
-        void*  rootDesc;        // 根节点描述符
     };
 
 

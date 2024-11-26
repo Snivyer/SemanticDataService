@@ -129,20 +129,14 @@ namespace SDS {
     bool SpaceIndex::search(SearchTerm &term, ResultSet &result) {
 
         SpaceNode* node = nullptr;
+        result.push_back(node);
+
         std::string adcode;
         if(this->getTerm(term, adcode) == false) {
-            result.push_back(node);
             return false;
         }
 
-        if(this->search(adcode, node) == true) {
-            result.push_back(node);
-            return true;
-        }
-        else {
-            result.push_back(node);
-            return false;
-        }
+        return search(adcode, node);
     }
 
 

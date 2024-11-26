@@ -15,6 +15,7 @@ namespace SDS {
     {
         Ceph,
         Lustre,
+        BB,
         None,
     };
 
@@ -57,6 +58,7 @@ namespace SDS {
     // 存储元数据
     struct StoreDesc
     {
+        std::string SSName;
         bool writable;
         size_t size;
         size_t capacity;
@@ -70,6 +72,7 @@ namespace SDS {
     // 存储模板
     struct StoreTemplate
     {
+        std::string SSName;
         bool writable;
         StoreSpaceKind kind;
         struct ConnectConfig connConf;

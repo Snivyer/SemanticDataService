@@ -7,7 +7,7 @@
 #include "abstract/IO/io.h"
 #include "manager/databox/databox_manager.h"
 #include "manager/databox/databox_object.h"
-#include "manager/rpc/metadata_rpc/protocol.h"
+#include "manager/rpc/metadata_rpc/db_protocol.h"
 
 using arrow::Status;
 
@@ -39,11 +39,6 @@ namespace SDS
         arrow::Status releaseDB(ContentID &cntID, bool &is_release);
 
         arrow::Status deleteDB(ContentID &cntID, bool &is_delete);
-
-
-
-
-
 
         private:
             class Impl;

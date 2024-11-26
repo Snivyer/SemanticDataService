@@ -1,7 +1,8 @@
 add_library(
     metadata_rpc
     OBJECT
-    protocol.cpp
+    db_protocol.cpp
+    meta_protocol.cpp
     index_reader.cpp
 )
 

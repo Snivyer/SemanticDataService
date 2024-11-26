@@ -1,4 +1,4 @@
-#include "API/storagespace/storage_space.h"
+#include "manager/storagespace/storage_space.h"
 
 
 namespace SDS
@@ -22,11 +22,11 @@ namespace SDS
     }
 
     // create storage space according to the storage template
-    size_t  StorageSpaceManager::createStorageSpace(struct ContentID &cntID, struct StoreTemplate &stoT)
+    size_t  StorageSpaceManager::createStorageSpace(StoreTemplate &stoT)
     {
         // step1: generate the storage ID
         int stoID = generateStorageID();
-        this->bindCntID(cntID, stoID);
+        // this->bindCntID(cntID, stoID);
 
    
         // 无需创建存储空间，直接返回
@@ -105,7 +105,7 @@ namespace SDS
         spaceMap.insert({stoID, space});
     }
         
-    StorageSpace* StorageSpaceManager::getSpace(size_t stoID) {
+    StorageSpace* StorageSpaceManager::getSpaceByID(size_t stoID) {
         auto ret = spaceMap.find(stoID);
         if(ret != spaceMap.end()) {
             return ret->second;
@@ -115,40 +115,36 @@ namespace SDS
 
 
 
-    // fill databox with the given data which described by parameter contentDesc
-    bool StorageSpaceManager::fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count) {
+    // // fill databox with the given data which described by parameter contentDesc
+    // bool StorageSpaceManager::fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count) {
 
-        // first step: build space index of databox
-        // todo: 这里我不知道怎么填
-        // SerialElementIndex spaceIndex;
-        // spaceIndex.lastUpadatePosition = start;
-        // spaceIndex.count = count;
-        // db->metaSet.SpaceIndices.insert(spaceIndex);
-
-
+    //     // first step: build space index of databox
+    //     // todo: 这里我不知道怎么填
+    //     // SerialElementIndex spaceIndex;
+    //     // spaceIndex.lastUpadatePosition = start;
+    //     // spaceIndex.count = count;
+    //     // db->metaSet.SpaceIndices.insert(spaceIndex);
 
 
-        // first step: get the storage adaptor and fill data into the data region of the databox
-        StoreMeta stoMeta;
-        StoreDesc stoDesc = stoMeta.getStoreMeta(stoID);
 
-        Adaptor* adaptor = getAdaptor(stoID);
-        if(!adaptor) {
-            adaptor = new Adaptor(stoDesc.sysDesc.conConf);
-            addAdaptor(stoID, adaptor);
-        }
+
+    //     // first step: get the storage adaptor and fill data into the data region of the databox
+    //     StoreMeta stoMeta;
+    //     StoreDesc stoDesc = stoMeta.getStoreMeta(stoID);
+
+    //     Adaptor* adaptor = getAdaptor(stoID);
+    //     if(!adaptor) {
+    //         adaptor = new Adaptor(stoDesc.sysDesc.conConf);
+    //         addAdaptor(stoID, adaptor);
+    //     }
         
-        // adaptor->readVar(stoDesc.sysDesc.fileList, cntDesc.vlDesc.desc, db->data);
+    //     // adaptor->readVar(stoDesc.sysDesc.fileList, cntDesc.vlDesc.desc, db->data);
         
-        // second step: generate the data index and fill it into the metaset region of the databox
+    //     // second step: generate the data index and fill it into the metaset region of the databox
 
 
-        // third step: fill footer into the metadata region of the databox 
-
-
-
-
-    }
+    //     // third step: fill footer into the metadata region of the databox 
+    // }
 
 
 

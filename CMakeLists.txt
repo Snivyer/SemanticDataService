@@ -25,7 +25,7 @@ set(SDS_SRC_INCLUDE_DIR
     )
 
 set(SDS_THIRD_PARTY_INCLUDE_DIR
-        ${PROJECT_SOURCE_DIR}/third_party/ae/
+        ${PROJECT_SOURCE_DIR}/third_party/
 )
 
 set(SDS_THIRD_PARTY_LIB_INCLUDE_DIR
@@ -64,28 +64,30 @@ target_link_libraries(SDS_databox_test stdc++fs)
 # target_link_libraries(ARROW_test PRIVATE Arrow::arrow_shared)
 
 ## DB Store test
-add_executable(SDS_db_store_test DB_store.cpp)
-target_link_libraries(SDS_db_store_test manager)
-target_link_libraries(SDS_db_store_test abstract)
-target_link_libraries(SDS_db_store_test Arrow::arrow_shared)
-target_link_libraries(SDS_db_store_test netcdf)
-target_link_libraries(SDS_db_store_test duckdb)
-target_link_libraries(SDS_db_store_test stdc++fs)
-target_link_libraries(SDS_db_store_test ArrowFlight::arrow_flight_shared)
-target_link_libraries(SDS_db_store_test ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(SDS_db_store_test gRPC::grpc++)
+# add_executable(SDS_db_store_test DB_store.cpp)
+# target_link_libraries(SDS_db_store_test API)
+# target_link_libraries(SDS_db_store_test manager)
+# target_link_libraries(SDS_db_store_test abstract)
+# target_link_libraries(SDS_db_store_test Arrow::arrow_shared)
+# target_link_libraries(SDS_db_store_test netcdf)
+# target_link_libraries(SDS_db_store_test duckdb)
+# target_link_libraries(SDS_db_store_test stdc++fs)
+# target_link_libraries(SDS_db_store_test ArrowFlight::arrow_flight_shared)
+# target_link_libraries(SDS_db_store_test ${CMAKE_THREAD_LIBS_INIT})
+# target_link_libraries(SDS_db_store_test gRPC::grpc++)
 
 ## DB store client test
-add_executable(SDS_db_store_client_test DB_store_client.cpp)
-target_link_libraries(SDS_db_store_client_test manager)
-target_link_libraries(SDS_db_store_client_test abstract)
-target_link_libraries(SDS_db_store_client_test Arrow::arrow_shared)
-target_link_libraries(SDS_db_store_client_test netcdf)
-target_link_libraries(SDS_db_store_client_test duckdb)
-target_link_libraries(SDS_db_store_client_test stdc++fs)
-target_link_libraries(SDS_db_store_client_test ArrowFlight::arrow_flight_shared)
-target_link_libraries(SDS_db_store_client_test ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(SDS_db_store_client_test gRPC::grpc++)
+# add_executable(SDS_db_store_client_test DB_store_client.cpp)
+# target_link_libraries(SDS_db_store_client_test API)
+# target_link_libraries(SDS_db_store_client_test manager)
+# target_link_libraries(SDS_db_store_client_test abstract)
+# target_link_libraries(SDS_db_store_client_test Arrow::arrow_shared)
+# target_link_libraries(SDS_db_store_client_test netcdf)
+# target_link_libraries(SDS_db_store_client_test duckdb)
+# target_link_libraries(SDS_db_store_client_test stdc++fs)
+# target_link_libraries(SDS_db_store_client_test ArrowFlight::arrow_flight_shared)
+# target_link_libraries(SDS_db_store_client_test ${CMAKE_THREAD_LIBS_INIT})
+# target_link_libraries(SDS_db_store_client_test gRPC::grpc++)
 
 
 # dataManager test 
@@ -95,3 +97,18 @@ target_link_libraries(SDS_db_store_client_test gRPC::grpc++)
 # target_link_libraries(SDS_dataManager_test abstract)
 # target_link_libraries(SDS_dataManager_test netcdf)
 # target_link_libraries(SDS_dataManager_test duckdb)
+
+
+# SDSlet test 
+add_executable(SDSlet_test  SDSlet_test.cpp)
+target_link_libraries(SDSlet_test  SDSlet)
+target_link_libraries(SDSlet_test  API)
+target_link_libraries(SDSlet_test  manager)
+target_link_libraries(SDSlet_test  abstract)
+target_link_libraries(SDSlet_test Arrow::arrow_shared)
+target_link_libraries(SDSlet_test  netcdf)
+target_link_libraries(SDSlet_test  duckdb)
+target_link_libraries(SDSlet_test  stdc++fs)
+target_link_libraries(SDSlet_test  ArrowFlight::arrow_flight_shared)
+target_link_libraries(SDSlet_test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(SDSlet_test  gRPC::grpc++)

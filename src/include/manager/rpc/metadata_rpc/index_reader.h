@@ -1,5 +1,5 @@
-#pragma once
 
+#pragma once
 #include <grpcpp/grpcpp.h>
 #include "manager/proto/index.grpc.pb.h"
 #include "arrow/status.h"
@@ -17,7 +17,7 @@ namespace SDS {
 
 class IndexClient {
 public:
-    IndexClient (std::shared_ptr<grpc::Channel> channel);
+    IndexClient(std::shared_ptr<grpc::Channel> channel);
     bool GetIndex(std::string cntDesc, ContentID &cntID, std::vector<FilePathList> filepath);   
 
 

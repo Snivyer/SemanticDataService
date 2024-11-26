@@ -21,9 +21,9 @@ namespace SDS
     struct SpaceNode
     {
         size_t spaceID;                                     // 空间ID
-        std::string adCode;
+        std::string adCode;                                 // 检索词
         std::string PSSID;                                  // 父空间ID
-        struct SpaceNode* PSNode;                           // 父空间节点
+        SpaceNode* PSNode;                                  // 父空间节点
 
         std::vector<struct SpaceNode*> CSNode;              // 子空间节点
 
@@ -59,6 +59,9 @@ namespace SDS
         bool persist(std::string fileName) override; 
         bool getResult(ResultSet &result, SpaceNode* &node);          // 解析检索结果
 
+        bool search(std::string adcode, struct SpaceNode* &node); 
+        bool insert(std::string adcode, struct SpaceNode* &node);
+
 
     
     private:
@@ -68,8 +71,7 @@ namespace SDS
 
         bool createNode(size_t spaceID);
 
-        bool search(std::string adcode, struct SpaceNode* &node); 
-        bool insert(std::string adcode, struct SpaceNode* &node);
+
 
 
     };

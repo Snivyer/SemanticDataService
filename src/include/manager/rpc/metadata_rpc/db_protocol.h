@@ -1,16 +1,17 @@
+/* Author: Snivyer
+*  Create on: 2024/11/2
+*  Description:
+   protocol to send or receive socket message about operations of databox
+*/
 #pragma once
-
 #include <vector>
-
 #include "flatbuffers/flatbuffers.h"
 #include "arrow/status.h"
 #include "arrow/util/logging.h"
 #include "abstract/IO/io.h"
 #include "abstract/meta/cnt_ID.h"
-#include "manager/proto/meta_generated.h"
+#include "manager/proto/db_flb_generated.h"
 #include "manager/databox/databox_object.h"
-
-
 
 
 using arrow::Status;
@@ -33,9 +34,7 @@ namespace SDS {
     const int64_t MessageTypeDisconnectRequest  = 13;
     const int64_t MessageTypeDisconnectReply    = 14;
 
-
     Status messageReceive(int sock, int64_t message_type, std::vector<uint8_t>* buffer);
-    
 
     /* connect message functions*/
 
