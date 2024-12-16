@@ -15,10 +15,10 @@ namespace SDS {
             std::vector<uint8_t> inputBuffer;
 
             // semantic space manager
-            std::shared_ptr<SemanticSpaceManager> SemanticManager_;
+            std::shared_ptr<SemanticSpaceManager> semanticManager_;
 
             // storage space manager
-            std::shared_ptr<StorageSpaceManager> StorageManager_;
+            std::shared_ptr<StorageSpaceManager> storageManager_;
 
             // metadata index
             std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex_;
@@ -27,6 +27,8 @@ namespace SDS {
         public:
             Impl(std::shared_ptr<EventLoop> loop) {
                 loop_ = std::move(loop);
+                semanticManager_ = std::make_shared<SemanticSpaceManager>();
+                storageManager_ = std::make_shared<StorageSpaceManager>();
             }
 
             std::shared_ptr<EventLoop> getLoop() {
@@ -37,20 +39,37 @@ namespace SDS {
                 return this->metaInfo_;
             }
 
+            std::unordered_map<std::string, SemanticSpaceEntry*>& getSemanticSpaceInfo() {
+                return this->metaInfo_.semanticSpaceInfo_;
+            }
+
+            std::unordered_map<std::string, StorageSpaceEntry*>& getStorageSpaceInfo() {
+                return this->metaInfo_.storageSpaceInfo_;
+            }
+
             std::vector<uint8_t> & getInputBuffer() {
                 return this->inputBuffer;
             }
 
             std::shared_ptr<SemanticSpaceManager> getSemanticManager() {
-                return this->SemanticManager_;
+                return this->semanticManager_;
             }
 
             std::shared_ptr<StorageSpaceManager> getStorageManager() {
-                return this->StorageManager_;
+                return this->storageManager_;
             }
 
             void setMetaIndex(std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex) {
                 this->metaIndex_ = metaIndex;
+            }
+
+            bool getContentDesc(ContentID &cntID, ContentDesc &cntDesc) {
+                auto ret = metaIndex_.find(cntID);
+                if(ret != metaIndex_.end()) {
+                   cntDesc = ret->second;
+                   return true;
+                }
+                return false;
             }
 
             void addMetaIndex(ContentID &cntID, ContentDesc &cntDesc) {
@@ -58,11 +77,11 @@ namespace SDS {
             }
 
             void insertSemenaticSpaceEntry(std::string spaceName, SemanticSpaceEntry* entry) {
-                this->metaInfo_.SemanticSpaceInfo.insert({spaceName, entry});
+                this->metaInfo_.semanticSpaceInfo_.insert({spaceName, entry});
             }
 
             void insertStorageSpaceEntry(std::string spaceName, StorageSpaceEntry* entry) {
-                this->metaInfo_.StorageSpaceInfo.insert({spaceName, entry});
+                this->metaInfo_.storageSpaceInfo_.insert({spaceName, entry});
             }
             
     };
@@ -72,9 +91,8 @@ namespace SDS {
     }
     
     
-    std::shared_ptr<MetaService> MetaService::createMetaService(std::shared_ptr<EventLoop> loop, std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex) {
+    std::shared_ptr<MetaService> MetaService::createMetaService(std::shared_ptr<EventLoop> loop) {
         std::shared_ptr<Impl> impl = std::make_shared<Impl>(loop);
-        impl->setMetaIndex(metaIndex);
         std::shared_ptr<MetaService> service(new MetaService(impl)); 
         return service;
     }
@@ -83,19 +101,19 @@ namespace SDS {
 
     }
 
-    size_t MetaService::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client) {
+    std::string MetaService::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client) {
         
-        auto SemanticSpaceInfo = impl_->getMetaServiceInfo().SemanticSpaceInfo;
+        auto SemanticSpaceInfo = impl_->getSemanticSpaceInfo();
 
         if(SemanticSpaceInfo.count(SSName) != 0) {
-           return SemanticSpaceInfo[SSName]->space->spaceID;
+           return SemanticSpaceInfo[SSName]->space->getCompleteSpaceID();
         }
 
         auto manager = impl_->getSemanticManager();
-        size_t spaceID = manager->createSemanticSpace(SSName, geoNames);
+        std::string spaceID = manager->createSemanticSpace(SSName, geoNames);
 
-        if(spaceID != 0) {
-            SemanticSpace* space = manager->getSpaceByID(std::to_string(spaceID));
+        if(spaceID != "" ) {
+            SemanticSpace* space = manager->getSpaceByID(spaceID);
             SemanticSpaceEntry* entry = new SemanticSpaceEntry;
             entry->semanticSpaceName = SSName;
             entry->space = space;
@@ -103,13 +121,13 @@ namespace SDS {
             addClientToSemanticSpaceEntry(entry, client);
             return spaceID;
         }
-        return 0;
+        return "";
     }
 
     size_t MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client) {
 
         std::string SSName = storeInfo.SSName;
-        auto StorageSpaceInfo = impl_->getMetaServiceInfo().StorageSpaceInfo;
+        auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(SSName) != 0) {
            return StorageSpaceInfo[SSName]->space->storageID;
         }
@@ -141,21 +159,22 @@ namespace SDS {
     bool MetaService::createContentIndex(std::string SemanticSpaceName, std::string StoreSpaceName, std::string dirName) {
 
         // get spaceID
-        auto SemanticSpaceInfo = impl_->getMetaServiceInfo().SemanticSpaceInfo;
+        auto SemanticSpaceInfo = impl_->getSemanticSpaceInfo();
         if(SemanticSpaceInfo.count(SemanticSpaceName) == 0) {
             ARROW_LOG(DEBUG) << "Cannot Find Target Semantic Space Name.";
             return false;
         }
-        size_t spaceID =  SemanticSpaceInfo[SemanticSpaceName]->space->spaceID;
+
+        std::string spaceID = SemanticSpaceInfo[SemanticSpaceName]->space->getCompleteSpaceID();
 
         // get storageID
-        auto StorageSpaceInfo = impl_->getMetaServiceInfo().StorageSpaceInfo;
-        if(StorageSpaceInfo.count(StoreSpaceName) != 0) {
+        auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
+        if(StorageSpaceInfo.count(StoreSpaceName) == 0) {
             ARROW_LOG(DEBUG) << "Cannot Find Target Storage Space Name.";
             return false;
         }
         size_t storageID = StorageSpaceInfo[StoreSpaceName]->space->storageID;
-        return createContentIndexInternal(std::to_string(spaceID), storageID, dirName);
+        return createContentIndexInternal(spaceID, storageID, dirName);
 
     }
 
@@ -232,9 +251,16 @@ namespace SDS {
         cntID.setVarID(varID);
         cntID.storeIDs.push_back(semanticSpace->cntID.getBestStoID());
         impl_->addMetaIndex(cntID, cntDesc);
-
-
     }
+
+    ContentDesc& MetaService::getContentDesc(ContentID &cntID) {
+
+        ContentDesc cntDesc;
+        impl_->getContentDesc(cntID, cntDesc);
+        return cntDesc;
+    }
+
+
     bool MetaService::addClientToSemanticSpaceEntry(SemanticSpaceEntry *entry, MetaClient* client) {
     
         if(entry->clients.find(client) != entry->clients.end()) {
@@ -275,7 +301,8 @@ namespace SDS {
         int clientFd = AcceptClient(listenerSock);
         MetaClient* client = new MetaClient(clientFd);
 
-        impl_->getLoop()->add_file_event(clientFd, kEventLoopRead, [this, client](int events) {
+        auto loop = impl_->getLoop();
+        loop->add_file_event(clientFd, kEventLoopRead, [this, client](int events) {
             processMessage(client);
         });
     }
@@ -287,16 +314,16 @@ namespace SDS {
         impl_->getLoop()->remove_file_event(client->fd);
         close(client->fd);
 
-        for(const auto& entry : impl_->getMetaServiceInfo().SemanticSpaceInfo) {
+        for(const auto& entry : impl_->getSemanticSpaceInfo()) {
             removeClientFromSemanticSpaceEntry(entry.second, client);
         }
 
-        for(const auto& entry : impl_->getMetaServiceInfo().StorageSpaceInfo) {
+        for(const auto& entry : impl_->getStorageSpaceInfo()) {
             removeClientFromStorageSpaceEntry(entry.second, client);
         }
     }
 
-    Status MetaService::processMessage(MetaClient* client) {
+    Status MetaService:: processMessage(MetaClient* client) {
         int64_t type;
         Status s = ReadMessage(client->fd, &type, &(impl_->getInputBuffer()));
         assert(s.ok() || s.IsIOError());
@@ -317,8 +344,8 @@ namespace SDS {
                 std::string SSName;
                 std::vector<std::string> geoNames;
                 RETURN_NOT_OK(ReadCreateSemanticSpaceRequest(input, SSName, geoNames));
-                size_t spaceID = createSemanticSpace(SSName, geoNames, client);             
-                HANDLE_SIGPIPE(SendCreateSemanticSpaceReply(client->fd, std::to_string(spaceID)), client->fd);
+                std::string spaceID = createSemanticSpace(SSName, geoNames, client);             
+                HANDLE_SIGPIPE(SendCreateSemanticSpaceReply(client->fd, spaceID), client->fd);
          
             } break;
             case MessageTypeStorageSpaceCreateRequest: {
@@ -330,7 +357,7 @@ namespace SDS {
                 size_t storageID = createStorageSpace(spaceID, storeInfo, kind, client);
                 HANDLE_SIGPIPE(SendCreateStorageSpaceReply(client->fd, std::to_string(storageID)), client->fd);
             } break;
-            case MessageTypeDataImportFromLocalReply: {
+            case MessageTypeDataImportFromLocalRequest: {
                 std::string semanticSpaceName;
                 std::string storageSpaceName;
                 std::string dirPath;
@@ -338,7 +365,7 @@ namespace SDS {
                 createContentIndex(semanticSpaceName, storageSpaceName, dirPath);
                 HANDLE_SIGPIPE(SendCreateContentIndexReply(client->fd, 1), client->fd);
             } break;
-            case MessageTypeDataSearchReply: {
+            case MessageTypeDataSearchRequest: {
                 std::vector<std::string> geoNames;
                 std::vector<std::string> times;
                 std::vector<std::string> varNames;

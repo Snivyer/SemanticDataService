@@ -18,10 +18,8 @@ namespace SDS
     class Adaptor
     {
     public:
+        ConnectConfig connConfig;
         Adaptor(ConnectConfig &config):connConfig(config) {}
-
-
-
 
         virtual bool connect() {};
         virtual size_t getSize() {};
@@ -45,10 +43,8 @@ namespace SDS
         // 以NC文件的方式将数据写入存储系统中
         virtual bool importFile(struct SystemDesc &sysDesc, FilePathList pathList) {};
 
-        //
-
-    private:
-        struct ConnectConfig connConfig;
+        
+        
 
     };
 

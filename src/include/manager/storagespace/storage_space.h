@@ -42,23 +42,21 @@ namespace SDS
         void addAdaptor(size_t stoID, Adaptor* adaptor);
         Adaptor* getAdaptor(size_t stoID);
 
-        void addSpace(size_t stoID, StorageSpace* space);
+        void addSpace(size_t stoID, std::string spaceName, StorageSpace* space);
         StorageSpace* getSpaceByID(size_t stoID);
-       // StorageSpace* getSpaceByName(std::string spaceName);
+        StorageSpace* getSpaceByName(std::string spaceName);
 
 
     private:
         StoreMeta *storeMeta;
-        std::map<size_t, StorageSpace*> spaceMap;
-        std::map<size_t, Adaptor*> adapatorMap;
+        std::map<size_t, StorageSpace*> spaceIDMap_;
+        std::map<std::string, StorageSpace*> spaceNameMap_;
+        std::map<size_t, Adaptor*> adapatorMap_;
 
 
         size_t generateStorageID();                 // 生成存储空间ID
         void bindCntID(struct ContentID &cntID, size_t StoID);    // 绑定内容ID
         bool reserveSpace(StorageSpace *space, size_t spaceSize);
-
-
-
     };
 
 }

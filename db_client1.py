@@ -10,7 +10,7 @@ import time
 ## 通过reader按步加载对应的recordbatch
 ## 约束：只需要记住最近的服务器IP和端口即可
 
-metadata_client = pa.flight.connect("grpc://0.0.0.0:4448");
+metadata_client = pa.flight.connect("grpc://0.0.0.0:4444");
 
 n_flights = 0
 for flight_info in metadata_client.list_flights():

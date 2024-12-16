@@ -17,8 +17,6 @@ namespace SDSlet {
             int16_t maxReadNum_;
             int16_t maxSenderNum_;
 
-            // shared space
-            std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex_;
 
             // service related to data databox reader
             std::shared_ptr<MetaService> metaService_;
@@ -71,10 +69,6 @@ namespace SDSlet {
                 return this->metaServiceLoop_;
             }
 
-            std::unordered_map<ContentID, ContentDesc, ContentIDHasher>& getMetaIndex() {
-                return this->metaIndex_;
-            }
-
             void setAdaptor(Adaptor* adaptor) {
                 this->adaptor_ = adaptor;
             }
@@ -84,7 +78,7 @@ namespace SDSlet {
             }
 
             void setBasicMetaServer(std::shared_ptr<BasicMetaServer> rpcServer) {
-                this->rpcServer_ = rpcServer_;
+                this->rpcServer_ = rpcServer;
             }
 
             std::shared_ptr<BasicMetaServer> getBasicMetaServer() {
@@ -175,39 +169,43 @@ namespace SDSlet {
 
     Status SDSlet::run() {
 
-        /* run the data box store service */ 
-        std::shared_ptr<MetaService> metaService = impl_->getMetaService();
-        std::thread metaThread([&metaService]() {
-                    metaService->runServer();
+  
+        std::thread metaThread([this]() {
+            this->impl_->getMetaServiceEventLoop()->run();
         });
-        metaThread.join();
 
-
+      
         /* run the data box store service */ 
         // run the rpc metadata server thread
         std::shared_ptr<BasicMetaServer> rpcServer = impl_->getBasicMetaServer();
         std::thread rpcMetaThread([&rpcServer]() {
                     rpcServer->Serve();
         });
-        rpcMetaThread.join();
+        
 
         // run the rpc data server thread
         std::vector<std::shared_ptr<BasicDataServer>> dataServerPool = impl_->getRpcDataServers();
-        // std::vector<std::thread> dataServerThreadPool;
+        std::vector<std::thread> dataServerThreadPool;
         for(auto sender :  dataServerPool) {
             std::thread rpcDataThread([&sender]() {
                 sender->Serve();
             });
-            // dataServerThreadPool.push_back(rpcDataThread);
-            rpcDataThread.join();
+            dataServerThreadPool.push_back(std::move(rpcDataThread));
         }
 
-        // run the data box store thread
-        std::shared_ptr<DataBoxStore> dbStore = impl_->getDBStore();
-        std::thread dbStoreThread([&dbStore]() {
-            dbStore->runServer();
+        std::thread dbStoreThread([this]() {
+            this->impl_->getStoreServiceEventLoop()->run();
         });
+       
+
+        ARROW_LOG(INFO) << "SDSlet Services start...";
+        metaThread.join();
+        rpcMetaThread.join();
         dbStoreThread.join();
+
+        for(int i = 0; i < dataServerThreadPool.size(); i++) {
+            dataServerThreadPool[i].join();
+        }
         return Status::OK();
     }
 
@@ -244,6 +242,7 @@ namespace SDSlet {
         rpcDataServer->Init(options);
         rpcDataServer->SetShutdownOnSignals({SIGTERM});
         rpcDataServer->Connect("0.0.0.0", serverPort);
+        impl_->addBasicDataServer(rpcDataServer);
         return Status::OK();
     }
 
@@ -256,29 +255,34 @@ namespace SDSlet {
         std::string socketName = impl_->getStoreSocketName();
 
         std::shared_ptr<DataBoxStore> store =  DataBoxStore::createStore(loop, shareMemorySize, adaptor, rpcServer);
+        store->setMetaServer(impl_->getMetaService());
+
+        impl_->setDBStore(store);
         for(auto sender :  dataServerPool) {
             store->addDataServer(sender);
         }
 
         int socket = bind_ipc_sock(socketName, true);
         assert(socket >= 0);
+        auto storePtr = store.get();
         loop->add_file_event(socket, kEventLoopRead,
-            [&store, socket](int events) { store->connectClient(socket); });
-        impl_->setDBStore(store);
+            [storePtr, socket](int events) { storePtr->connectClient(socket); });
+       
         return Status::OK();
     }
 
     Status SDSlet::createMetaServer() {
         std::shared_ptr<EventLoop> loop = impl_->getMetaServiceEventLoop();
-        std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex = impl_->getMetaIndex();
-        std::shared_ptr<MetaService> metaService = MetaService::createMetaService(loop, metaIndex);
+        std::shared_ptr<MetaService> metaService = MetaService::createMetaService(loop);
+        impl_->setMetaService(metaService);
         std::string socketName = impl_->getMetaSocketName();
-
         int socket = bind_ipc_sock(socketName, true);
         assert(socket >= 0);
+
+        auto metaServicePtr = metaService.get();
         loop->add_file_event(socket, kEventLoopRead,
-            [&metaService, socket](int events) { metaService->connectClient(socket); });
-        impl_->setMetaService(metaService);
+            [metaServicePtr, socket](int events) { metaServicePtr->connectClient(socket); });
+      
         return Status::OK();
     }
 

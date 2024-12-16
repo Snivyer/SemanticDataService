@@ -23,14 +23,14 @@ namespace SDS
 
         arrow::Status disconnect();
         
-        arrow::Status createSemanticSpace(std::string &ssName, std::vector<std::string> &geoNames, std::string &spaceID);
+        arrow::Status createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, std::string &spaceID);
 
         arrow::Status createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, std::string &storageID);
        
         arrow::Status importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath);
        
         arrow::Status searchContentIndex(std::vector<std::string> &geoNames, std::vector<std::string> &times,
-                                        std::vector<std::string> &varNames, ContentID &cntID, std::string groupName = "defalut");
+                                        std::vector<std::string> &varNames, ContentID &cntID, std::string groupName = "default");
         
         private:
             class Impl;

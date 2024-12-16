@@ -41,10 +41,11 @@ namespace SDS
     bool VarIndex::search(std::string groupName, VarListNode *&nodeList) {
         
         auto ret = varListIndex.find(groupName);
-        if(ret == varListIndex.end()) {
-            return false;
+        if(ret != varListIndex.end()) {
+            nodeList = *(ret->second);
+            return true;
         }
-        return true;
+        return false;
     }
 
 
@@ -88,7 +89,7 @@ namespace SDS
         node->varListID = varListSet.size();
 
         // secondly, insert into varlistIndex
-        varListIndex.insert({groupName, varListSet.end()});
+        varListIndex.insert({groupName, (varListSet.end() - 1)});
         return true;
     }
 

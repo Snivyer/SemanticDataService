@@ -25,8 +25,8 @@ namespace SDS {
     class MetaService {
         public:
             ~MetaService();
-            static std::shared_ptr<MetaService> createMetaService(std::shared_ptr<EventLoop> loop, std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex);
-            size_t createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client);
+            static std::shared_ptr<MetaService> createMetaService(std::shared_ptr<EventLoop> loop);
+            std::string createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client);
             size_t createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client);
 
             
@@ -36,12 +36,15 @@ namespace SDS {
             // search the content index to get content ID
             bool searchContentIndex(std::vector<std::string> geoNames, std::vector<std::string> times, std::vector<std::string> varNames, 
                                     ContentID& cntID, std::string varGroupName = "default");
-
+            
+            ContentDesc& getContentDesc(ContentID &cntID);
            
             void connectClient(int listenerSock);
             void disconnectClient(MetaClient* client);
             Status processMessage(MetaClient* client);
             void runServer();
+
+
 
         private:
             class Impl;

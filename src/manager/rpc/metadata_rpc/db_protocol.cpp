@@ -9,7 +9,7 @@ namespace SDS {
         RETURN_NOT_OK(ReadMessage(sock, &type, buffer));
         ARROW_CHECK(type == message_type) << "type = " << type
                                     << ", message_type = " << message_type;
-        return Status::OK();
+         return Status::OK();
     }
 
     template <typename Message>

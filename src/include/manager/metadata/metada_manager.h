@@ -50,8 +50,8 @@ namespace SDS {
 
 
     struct MetaServiceInfo {
-        std::unordered_map<std::string, SemanticSpaceEntry*> SemanticSpaceInfo;
-        std::unordered_map<std::string, StorageSpaceEntry*> StorageSpaceInfo;
+        std::unordered_map<std::string, SemanticSpaceEntry*> semanticSpaceInfo_;
+        std::unordered_map<std::string, StorageSpaceEntry*> storageSpaceInfo_;
     };
 
 

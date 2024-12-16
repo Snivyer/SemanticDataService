@@ -47,7 +47,7 @@ namespace SDS {
 
     /* create semantic space message functions*/
     Status SendCreateSemanticSpaceRequest(int sock, std::string spaceName, std::vector<std::string> geoNames);
-    Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string spaceName, std::vector<std::string> &geoNames);
+    Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string &spaceName, std::vector<std::string> &geoNames);
     Status SendCreateSemanticSpaceReply(int sock, std::string spaceID);
     Status ReadCreateSemanticSpaceReply(uint8_t* data, std::string &spaceID);
 

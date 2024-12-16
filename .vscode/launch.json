@@ -12,6 +12,7 @@
             // "program": "${workspaceFolder}/build/SDS_db_store_test",  
             // "args": ["-m", "1000", "-s", "/tmp/store", "-p", "4448", "-c", "6667"],
             "program": "${workspaceFolder}/build/SDSlet_test",  
+            // "program": "${workspaceFolder}/build/SDSlet_client_test",
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
             "environment": [],

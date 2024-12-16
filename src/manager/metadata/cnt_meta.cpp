@@ -276,7 +276,7 @@ bool ContentMeta::parseVLDesc(std::vector<ContentDesc> &cntDescSet) {
 
 
 // extract the time slot desciption accroding to directory name
-bool ContentMeta::extractTSDesc(struct ContentDesc &cntDesc, std::string dirPath) {
+bool ContentMeta::extractTSDesc(struct ContentDesc &cntDesc, std::string dirName) {
 
     std::vector<tm> tmList;
     FilePathList pathList;
@@ -286,6 +286,7 @@ bool ContentMeta::extractTSDesc(struct ContentDesc &cntDesc, std::string dirPath
         return false;
     }
 
+    std::string dirPath = combinePath(adaptor->connConfig.rootPath, dirName);
     if(adaptor->getFilePath(pathList, dirPath)) {
         for(auto fileName : pathList.fileNames) {
             tm fileTm;
@@ -376,7 +377,7 @@ bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::vector<std::st
     return true;
 }
 
-bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::string dirPath, bool isSame) {
+bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::string dirName, bool isSame) {
 
     Adaptor* adaptor;
     adaptor = getAdaptor();
@@ -385,6 +386,7 @@ bool ContentMeta::extractVLDesc(struct ContentDesc &cntDesc, std::string dirPath
     }
 
     FilePathList pathList;
+    std::string dirPath = combinePath(adaptor->connConfig.rootPath, dirName);
     if(adaptor->getFilePath(pathList, dirPath)) {
         if(adaptor->getVarDescList(pathList, cntDesc.vlDesc.desc, isSame)) {
             cntDesc.vlDesc.groupLen =  cntDesc.vlDesc.desc.size();

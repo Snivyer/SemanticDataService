@@ -188,11 +188,9 @@ bool LocalAdaptor::getFilePath(FilePathList &pathList, std::string dirPath) {
 bool LocalAdaptor::getVarDescList(FilePathList &pathList, std::vector<VarDesc> &descList, bool isSame) {
 
     descList.clear();
-    std::string dirPath = combinePath(connConfig.rootPath, pathList.dirPath);
-
     for(std::string filepath : pathList.fileNames) {
    
-        std::string path = combinePath(dirPath, filepath);
+        std::string path = combinePath(pathList.dirPath, filepath);
         int ncid;
         if(nc_open(path.c_str(), NC_NOWRITE, &ncid) != NC_NOERR) {
             return false;

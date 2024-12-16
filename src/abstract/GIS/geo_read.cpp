@@ -26,7 +26,7 @@ int SearchIndex(json J, const std::string &name){
 
 // 根据编码打开对应的json文件
 json openJson(std::ifstream&ifs, const std::string& citycode) {
-  std::string path = "./mapjson/" + citycode + ".json";
+  std::string path = "/home/snivyer/SemanticDataService/mapjson/" + citycode + ".json";
   ifs.open(path.c_str(), std::ios::in);
   if (!ifs.is_open()) {  
     std::cout << "Failed to open the file." << std::endl;  
@@ -46,7 +46,7 @@ void getJsonInfo(struct SSDesc &desc, json J, int index) {
 
 bool getJsonInfo(struct SSDesc &desc, std::string &provice, std::string &city, std::string &district) {
     
-    std::ifstream ifs("./mapjson/100000.json", std::ios::in) ; 
+    std::ifstream ifs("/home/snivyer/SemanticDataService/mapjson/100000.json", std::ios::in) ; 
     std::ifstream ifsp, ifsc;
     std::string adcode;
 
@@ -168,7 +168,7 @@ void loadTable(MetaStore* &ms) {
   ms->excuteNonQuery(sql);
   for (auto item : files) {
 
-      std::string filePath = "./mapjson/" + item;
+      std::string filePath = "/home/snivyer/SemanticDataService/mapjson/" + item;
       sql = "INSERT INTO SSDESC BY NAME ( SELECT unnest(features[1:-1]).properties.name AS geoName, unnest(features[1:-1]).properties.adcode AS adCode, unnest(features[1:-1]).properties.center AS geoCentral, unnest(features[1:-1]).geometry.coordinates[1][1] as geoPerimeter FROM '" + filePath + "')";
       ms->excuteNonQuery(sql);
   }

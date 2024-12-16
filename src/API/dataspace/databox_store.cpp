@@ -19,6 +19,7 @@ namespace SDS {
             Adaptor* adaptor_;
             std::shared_ptr<BasicMetaServer> rpcServer_;
             std::deque<std::shared_ptr<BasicDataServer>> sendPool_;
+            std::shared_ptr<MetaService> metaService_;
 
             
 
@@ -29,6 +30,10 @@ namespace SDS {
                 storeInfo.memoryCapacity = systemMemory;
                 adaptor_ = adaptor;
                 rpcServer_ = rpcServer;
+            }
+
+            ContentDesc& getMetaIndex(ContentID &cntID) {
+                return metaService_->getContentDesc(cntID);
             }
 
 
@@ -93,6 +98,10 @@ namespace SDS {
 
             void returnSender(std::shared_ptr<BasicDataServer> server) {
                 sendPool_.push_back(server);
+            }
+
+            void setMetaServer(std::shared_ptr<MetaService> metaService) {
+                metaService_ = metaService;
             }
 
             ~Impl() {}
@@ -374,6 +383,8 @@ namespace SDS {
                 cntID.setTimeID(timeID);
                 cntID.setVarID(varID);
 
+
+
                 std::vector<FilePathList> pathListVector;
                 getFilePathList(dataPath, pathListVector);
 
@@ -441,6 +452,10 @@ namespace SDS {
 
     void  DataBoxStore::addDataServer(std::shared_ptr<BasicDataServer> server) {
         impl_->returnSender(server);
+    }
+
+    void DataBoxStore::setMetaServer(std::shared_ptr<MetaService> metaService) {
+        impl_->setMetaServer(metaService);
     }
 
     void DataBoxStore::runServer() {

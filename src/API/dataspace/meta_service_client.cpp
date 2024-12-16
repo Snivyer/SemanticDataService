@@ -55,7 +55,7 @@ namespace SDS {
         // send a ClientConnetRequest to the meta services
         RETURN_NOT_OK(SendMetaConnectRequest(impl_->getMetaConn()));
         std::vector<uint8_t> buffer;
-        RETURN_NOT_OK(messageReceive(impl_->getMetaConn(), MessageTypeMetaDisconnectReply, &buffer));
+        RETURN_NOT_OK(messageReceive(impl_->getMetaConn(), MessageTypeMetaConnectReply, &buffer));
 
         int64_t welcome;
         RETURN_NOT_OK(ReadConnectReply(buffer.data(), &welcome));
@@ -74,7 +74,7 @@ namespace SDS {
         return Status::OK();
     }
 
-    arrow::Status MetaServiceClient::createSemanticSpace(std::string &ssName, std::vector<std::string> &geoNames, std::string &spaceID) {
+    arrow::Status MetaServiceClient::createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, std::string &spaceID) {
         int client = impl_->getMetaConn();
         RETURN_NOT_OK(SendCreateSemanticSpaceRequest(client, ssName, geoNames));
             

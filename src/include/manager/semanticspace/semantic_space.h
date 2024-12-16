@@ -41,7 +41,7 @@ namespace SDS
         }
 
         void init(SpaceNode *sNode, SpaceStatus state = SpaceStatus::create) {
-            this->cntID.setSpaceID( std::to_string(sNode->spaceID));
+            this->cntID.setSpaceID( sNode->getCompleteSpaceID());
             this->spaceID = sNode->spaceID;
 
             this->PSSID = sNode->PSSID;
@@ -66,7 +66,7 @@ namespace SDS
         ~SemanticSpaceManager();
 
         // create the semantic space whose level number depends on the number of geoNames
-        size_t createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
+        std::string createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
         void printSpaceDesc(SemanticSpace *space);
 
 

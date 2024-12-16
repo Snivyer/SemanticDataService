@@ -112,3 +112,17 @@ target_link_libraries(SDSlet_test  stdc++fs)
 target_link_libraries(SDSlet_test  ArrowFlight::arrow_flight_shared)
 target_link_libraries(SDSlet_test ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(SDSlet_test  gRPC::grpc++)
+
+
+# SDSlet client test 
+add_executable(SDSlet_client_test  SDSlet_client_test.cpp)
+target_link_libraries(SDSlet_client_test  API)
+target_link_libraries(SDSlet_client_test  manager)
+target_link_libraries(SDSlet_client_test  abstract)
+target_link_libraries(SDSlet_client_test Arrow::arrow_shared)
+target_link_libraries(SDSlet_client_test  netcdf)
+target_link_libraries(SDSlet_client_test  duckdb)
+target_link_libraries(SDSlet_client_test  stdc++fs)
+target_link_libraries(SDSlet_client_test  ArrowFlight::arrow_flight_shared)
+target_link_libraries(SDSlet_client_test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(SDSlet_client_test  gRPC::grpc++)

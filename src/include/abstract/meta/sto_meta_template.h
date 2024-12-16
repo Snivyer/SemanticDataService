@@ -31,8 +31,7 @@ namespace SDS {
         // Luster
         std::string rootPath;
 
-      
-
+    
         void setConfig(ConnectConfig &config) {
             userName = config.userName;
             confFile = config.confFile;

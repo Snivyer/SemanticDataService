@@ -14,7 +14,10 @@ namespace SDS
 
         // todo: 将新增加的存储空间添加到存储系统中
 
-        spaceMap.clear();
+        spaceIDMap_.clear();
+        spaceNameMap_.clear(); 
+
+        // todo: adaptor也将添加到对应的缓存中
 
         if(storeMeta) {
             delete storeMeta;
@@ -30,8 +33,7 @@ namespace SDS
 
    
         // 无需创建存储空间，直接返回
-        if(stoT.kind == StoreSpaceKind::None)
-        {
+        if(stoT.kind == StoreSpaceKind::None) {
             return true;
         }
 
@@ -39,17 +41,10 @@ namespace SDS
         StorageSpace* space = new StorageSpace;
         space->storageID = stoID;
         space->status = SpaceStatus::create;
+        addSpace(stoID, stoT.SSName, space);
 
         // 提取存储描述符
         storeMeta->extractStoreDesc(stoT, space->stoMeta);
-
-        // 如果需要预留空间，则需要申请
-        if(stoT.spaceSize > 0)
-        {
-            space->stoMeta.capacity = stoT.spaceSize;
-            space->stoMeta.size = 0;
-            reserveSpace(space, stoT.spaceSize);
-        }
 
         // 初始化连接符并尝试连接
         if(space->stoMeta.kind == StoreSpaceKind::Ceph) {
@@ -62,6 +57,16 @@ namespace SDS
             Adaptor* adaptor = new LocalAdaptor(space->stoMeta.sysDesc.conConf);
             addAdaptor(stoID, adaptor);
         }
+
+        // 如果需要预留空间，则需要申请
+        if(stoT.spaceSize > 0)
+        {
+            space->stoMeta.capacity = stoT.spaceSize;
+            space->stoMeta.size = 0;
+            reserveSpace(space, stoT.spaceSize);
+        }
+
+        return stoID;
     }
 
     // 生成存储空间ID
@@ -82,32 +87,41 @@ namespace SDS
     // reserver space size
     bool StorageSpaceManager::reserveSpace(StorageSpace *space, size_t spaceSize)
     {
-        Adaptor* adaptor = getAdaptor(space->storageID);
-        space->stoMeta.sysDesc.conConf.rootPath = adaptor->AllocateSpace(spaceSize);
+        // Adaptor* adaptor = getAdaptor(space->storageID);
+        // space->stoMeta.sysDesc.conConf.rootPath = adaptor->AllocateSpace(spaceSize);
         return true;
     }
 
     // 将存储空间ID和存储适配器添加到映射表中
     void StorageSpaceManager::addAdaptor(size_t stoID, Adaptor* adaptor) {
-        adapatorMap.insert({stoID, adaptor});
+        adapatorMap_.insert({stoID, adaptor});
     }
 
     // 根据存储ID获取对应的存储适配器
     Adaptor*  StorageSpaceManager::getAdaptor(size_t stoID) {
-        auto ret = adapatorMap.find(stoID);
-        if(ret != adapatorMap.end()) {
+        auto ret = adapatorMap_.find(stoID);
+        if(ret != adapatorMap_.end()) {
             return ret->second;
         }
         return nullptr;
     }
 
-    void StorageSpaceManager::addSpace(size_t stoID, StorageSpace* space) {
-        spaceMap.insert({stoID, space});
+    void StorageSpaceManager::addSpace(size_t stoID, std::string spaceName, StorageSpace* space) {
+        spaceIDMap_.insert({stoID, space});
+        spaceNameMap_.insert({spaceName, space});
     }
         
     StorageSpace* StorageSpaceManager::getSpaceByID(size_t stoID) {
-        auto ret = spaceMap.find(stoID);
-        if(ret != spaceMap.end()) {
+        auto ret = spaceIDMap_.find(stoID);
+        if(ret != spaceIDMap_.end()) {
+            return ret->second;
+        }
+        return nullptr;
+    }
+
+    StorageSpace* StorageSpaceManager::getSpaceByName(std::string spaceName) {
+        auto ret = spaceNameMap_.find(spaceName);
+        if(ret != spaceNameMap_.end()) {
             return ret->second;
         }
         return nullptr;

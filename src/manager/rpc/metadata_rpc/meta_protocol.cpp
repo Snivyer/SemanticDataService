@@ -51,7 +51,7 @@ namespace SDS {
         return messageSend(sock, MessageTypeSemanticSpaceCreateRequest, &fbb, message);
     }
 
-     Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string spaceName, std::vector<std::string> &geoNames) {
+     Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string &spaceName, std::vector<std::string> &geoNames) {
 
         DCHECK(data);
         auto message = flatbuffers::GetRoot<SemanticSpaceCreateRequest>(data);
@@ -119,13 +119,13 @@ namespace SDS {
         flatbuffers::FlatBufferBuilder fbb;
         auto storageIDf = fbb.CreateString(storageID);
         auto message = CreateStorageSpaceCreateReply(fbb, storageIDf);
-        return messageSend(sock, MessageTypeSemanticSpaceCreateRequest, &fbb, message);
+        return messageSend(sock, MessageTypeStorageSpaceCreateReply, &fbb, message);
     }
 
     Status ReadCreateStorageSpaceReply(uint8_t* data, std::string &storageID) {
         DCHECK(data);
-        auto message = flatbuffers::GetRoot<StorageSpaceCreateRequest>(data);
-        storageID = message->space_id()->str();
+        auto message = flatbuffers::GetRoot<StorageSpaceCreateReply>(data);
+        storageID = message->storage_id()->str();
         return Status::OK();   
     }
 
@@ -154,7 +154,7 @@ namespace SDS {
     Status SendCreateContentIndexReply(int sock, int64_t welcome) {
         flatbuffers::FlatBufferBuilder fbb;
         auto message = CreateContentIndexReply(fbb, welcome);
-        return messageSend(sock, MessageTypeDataImportFromLocalRequest, &fbb, message);
+        return messageSend(sock, MessageTypeDataImportFromLocalReply, &fbb, message);
     }
 
     Status ReadCreateContentIndexReply(uint8_t* data, int64_t* welcome) {
@@ -195,6 +195,7 @@ namespace SDS {
         auto groupNamesf = fbb.CreateString(groupName);
 
         auto message = CreateContentIndexSearchRequest(fbb, geoNameVector, timeVector, varNameVector, groupNamesf);
+        return messageSend(sock, MessageTypeDataSearchRequest, &fbb, message);
     }
     Status ReadSearchContentIndexRequest(uint8_t* data, std::vector<std::string> &geoNames, std::vector<std::string> &times,
                                              std::vector<std::string> &varNames, std::string &groupName) {

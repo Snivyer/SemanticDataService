@@ -16,6 +16,7 @@
 #include "manager/rpc/metadata_rpc/db_protocol.h"
 #include "manager/rpc/data_rpc/meta_server.h"
 #include "manager/rpc/data_rpc/server.h"
+#include "API/dataspace/meta_service.h"
 
 
 
@@ -90,6 +91,7 @@ namespace SDS
 
 
             void addDataServer(std::shared_ptr<BasicDataServer> server);
+            void setMetaServer(std::shared_ptr<MetaService> metaService);
 
             void runServer();
 
