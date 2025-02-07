@@ -168,8 +168,6 @@ namespace SDSlet {
     }
 
     Status SDSlet::run() {
-
-  
         std::thread metaThread([this]() {
             this->impl_->getMetaServiceEventLoop()->run();
         });

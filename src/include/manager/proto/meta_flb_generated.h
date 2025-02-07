@@ -194,15 +194,37 @@ inline ::flatbuffers::Offset<SemanticSpaceCreateRequest> CreateSemanticSpaceCrea
 struct SemanticSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SemanticSpaceCreateReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SPACE_ID = 4
+    VT_SPACE_ID = 4,
+    VT_SSNAME = 6,
+    VT_PSSS_ID = 8,
+    VT_CHILDREN_NUM = 10,
+    VT_CREATE_TIME = 12
   };
   const ::flatbuffers::String *space_id() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
+  }
+  const ::flatbuffers::String *ssname() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SSNAME);
+  }
+  const ::flatbuffers::String *psss_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_PSSS_ID);
+  }
+  uint64_t children_num() const {
+    return GetField<uint64_t>(VT_CHILDREN_NUM, 0);
+  }
+  int64_t create_time() const {
+    return GetField<int64_t>(VT_CREATE_TIME, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_SPACE_ID) &&
            verifier.VerifyString(space_id()) &&
+           VerifyOffset(verifier, VT_SSNAME) &&
+           verifier.VerifyString(ssname()) &&
+           VerifyOffset(verifier, VT_PSSS_ID) &&
+           verifier.VerifyString(psss_id()) &&
+           VerifyField<uint64_t>(verifier, VT_CHILDREN_NUM, 8) &&
+           VerifyField<int64_t>(verifier, VT_CREATE_TIME, 8) &&
            verifier.EndTable();
   }
 };
@@ -213,6 +235,18 @@ struct SemanticSpaceCreateReplyBuilder {
   ::flatbuffers::uoffset_t start_;
   void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
     fbb_.AddOffset(SemanticSpaceCreateReply::VT_SPACE_ID, space_id);
+  }
+  void add_ssname(::flatbuffers::Offset<::flatbuffers::String> ssname) {
+    fbb_.AddOffset(SemanticSpaceCreateReply::VT_SSNAME, ssname);
+  }
+  void add_psss_id(::flatbuffers::Offset<::flatbuffers::String> psss_id) {
+    fbb_.AddOffset(SemanticSpaceCreateReply::VT_PSSS_ID, psss_id);
+  }
+  void add_children_num(uint64_t children_num) {
+    fbb_.AddElement<uint64_t>(SemanticSpaceCreateReply::VT_CHILDREN_NUM, children_num, 0);
+  }
+  void add_create_time(int64_t create_time) {
+    fbb_.AddElement<int64_t>(SemanticSpaceCreateReply::VT_CREATE_TIME, create_time, 0);
   }
   explicit SemanticSpaceCreateReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -227,19 +261,37 @@ struct SemanticSpaceCreateReplyBuilder {
 
 inline ::flatbuffers::Offset<SemanticSpaceCreateReply> CreateSemanticSpaceCreateReply(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> ssname = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> psss_id = 0,
+    uint64_t children_num = 0,
+    int64_t create_time = 0) {
   SemanticSpaceCreateReplyBuilder builder_(_fbb);
+  builder_.add_create_time(create_time);
+  builder_.add_children_num(children_num);
+  builder_.add_psss_id(psss_id);
+  builder_.add_ssname(ssname);
   builder_.add_space_id(space_id);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<SemanticSpaceCreateReply> CreateSemanticSpaceCreateReplyDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *space_id = nullptr) {
+    const char *space_id = nullptr,
+    const char *ssname = nullptr,
+    const char *psss_id = nullptr,
+    uint64_t children_num = 0,
+    int64_t create_time = 0) {
   auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
+  auto ssname__ = ssname ? _fbb.CreateString(ssname) : 0;
+  auto psss_id__ = psss_id ? _fbb.CreateString(psss_id) : 0;
   return CreateSemanticSpaceCreateReply(
       _fbb,
-      space_id__);
+      space_id__,
+      ssname__,
+      psss_id__,
+      children_num,
+      create_time);
 }
 
 struct StorageSpaceCreateRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -404,15 +456,54 @@ inline ::flatbuffers::Offset<StorageSpaceCreateRequest> CreateStorageSpaceCreate
 struct StorageSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StorageSpaceCreateReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_STORAGE_ID = 4
+    VT_STORAGE_ID = 4,
+    VT_SSNAME = 6,
+    VT_WRITABLE = 8,
+    VT_SIZE = 10,
+    VT_CAPACITY = 12,
+    VT_KIND = 14,
+    VT_ROOT_PATH = 16,
+    VT_POOL_NAME = 18
   };
   const ::flatbuffers::String *storage_id() const {
     return GetPointer<const ::flatbuffers::String *>(VT_STORAGE_ID);
+  }
+  const ::flatbuffers::String *ssname() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SSNAME);
+  }
+  bool writable() const {
+    return GetField<uint8_t>(VT_WRITABLE, 0) != 0;
+  }
+  uint64_t size() const {
+    return GetField<uint64_t>(VT_SIZE, 0);
+  }
+  uint64_t capacity() const {
+    return GetField<uint64_t>(VT_CAPACITY, 0);
+  }
+  const ::flatbuffers::String *kind() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_KIND);
+  }
+  const ::flatbuffers::String *root_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ROOT_PATH);
+  }
+  const ::flatbuffers::String *pool_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_POOL_NAME);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_STORAGE_ID) &&
            verifier.VerifyString(storage_id()) &&
+           VerifyOffset(verifier, VT_SSNAME) &&
+           verifier.VerifyString(ssname()) &&
+           VerifyField<uint8_t>(verifier, VT_WRITABLE, 1) &&
+           VerifyField<uint64_t>(verifier, VT_SIZE, 8) &&
+           VerifyField<uint64_t>(verifier, VT_CAPACITY, 8) &&
+           VerifyOffset(verifier, VT_KIND) &&
+           verifier.VerifyString(kind()) &&
+           VerifyOffset(verifier, VT_ROOT_PATH) &&
+           verifier.VerifyString(root_path()) &&
+           VerifyOffset(verifier, VT_POOL_NAME) &&
+           verifier.VerifyString(pool_name()) &&
            verifier.EndTable();
   }
 };
@@ -423,6 +514,27 @@ struct StorageSpaceCreateReplyBuilder {
   ::flatbuffers::uoffset_t start_;
   void add_storage_id(::flatbuffers::Offset<::flatbuffers::String> storage_id) {
     fbb_.AddOffset(StorageSpaceCreateReply::VT_STORAGE_ID, storage_id);
+  }
+  void add_ssname(::flatbuffers::Offset<::flatbuffers::String> ssname) {
+    fbb_.AddOffset(StorageSpaceCreateReply::VT_SSNAME, ssname);
+  }
+  void add_writable(bool writable) {
+    fbb_.AddElement<uint8_t>(StorageSpaceCreateReply::VT_WRITABLE, static_cast<uint8_t>(writable), 0);
+  }
+  void add_size(uint64_t size) {
+    fbb_.AddElement<uint64_t>(StorageSpaceCreateReply::VT_SIZE, size, 0);
+  }
+  void add_capacity(uint64_t capacity) {
+    fbb_.AddElement<uint64_t>(StorageSpaceCreateReply::VT_CAPACITY, capacity, 0);
+  }
+  void add_kind(::flatbuffers::Offset<::flatbuffers::String> kind) {
+    fbb_.AddOffset(StorageSpaceCreateReply::VT_KIND, kind);
+  }
+  void add_root_path(::flatbuffers::Offset<::flatbuffers::String> root_path) {
+    fbb_.AddOffset(StorageSpaceCreateReply::VT_ROOT_PATH, root_path);
+  }
+  void add_pool_name(::flatbuffers::Offset<::flatbuffers::String> pool_name) {
+    fbb_.AddOffset(StorageSpaceCreateReply::VT_POOL_NAME, pool_name);
   }
   explicit StorageSpaceCreateReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -437,19 +549,51 @@ struct StorageSpaceCreateReplyBuilder {
 
 inline ::flatbuffers::Offset<StorageSpaceCreateReply> CreateStorageSpaceCreateReply(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> storage_id = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> storage_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> ssname = 0,
+    bool writable = false,
+    uint64_t size = 0,
+    uint64_t capacity = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> kind = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> root_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> pool_name = 0) {
   StorageSpaceCreateReplyBuilder builder_(_fbb);
+  builder_.add_capacity(capacity);
+  builder_.add_size(size);
+  builder_.add_pool_name(pool_name);
+  builder_.add_root_path(root_path);
+  builder_.add_kind(kind);
+  builder_.add_ssname(ssname);
   builder_.add_storage_id(storage_id);
+  builder_.add_writable(writable);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<StorageSpaceCreateReply> CreateStorageSpaceCreateReplyDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *storage_id = nullptr) {
+    const char *storage_id = nullptr,
+    const char *ssname = nullptr,
+    bool writable = false,
+    uint64_t size = 0,
+    uint64_t capacity = 0,
+    const char *kind = nullptr,
+    const char *root_path = nullptr,
+    const char *pool_name = nullptr) {
   auto storage_id__ = storage_id ? _fbb.CreateString(storage_id) : 0;
+  auto ssname__ = ssname ? _fbb.CreateString(ssname) : 0;
+  auto kind__ = kind ? _fbb.CreateString(kind) : 0;
+  auto root_path__ = root_path ? _fbb.CreateString(root_path) : 0;
+  auto pool_name__ = pool_name ? _fbb.CreateString(pool_name) : 0;
   return CreateStorageSpaceCreateReply(
       _fbb,
-      storage_id__);
+      storage_id__,
+      ssname__,
+      writable,
+      size,
+      capacity,
+      kind__,
+      root_path__,
+      pool_name__);
 }
 
 struct ContentIndexCreateRequst FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

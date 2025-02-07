@@ -26,8 +26,8 @@ namespace SDS {
         public:
             ~MetaService();
             static std::shared_ptr<MetaService> createMetaService(std::shared_ptr<EventLoop> loop);
-            std::string createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client);
-            size_t createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client);
+            SemanticSpace* createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client);
+            StorageSpace* createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client);
 
             
             // create the content index for local dataset

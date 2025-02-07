@@ -74,18 +74,17 @@ namespace SDS {
         return Status::OK();
     }
 
-    arrow::Status MetaServiceClient::createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, std::string &spaceID) {
+    arrow::Status MetaServiceClient::createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, SemanticSpace &space) {
         int client = impl_->getMetaConn();
         RETURN_NOT_OK(SendCreateSemanticSpaceRequest(client, ssName, geoNames));
             
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeSemanticSpaceCreateReply, &buffer));
-        RETURN_NOT_OK(ReadCreateSemanticSpaceReply(buffer.data(), spaceID));
-        return Status::OK();      
+        RETURN_NOT_OK(ReadCreateSemanticSpaceReply(buffer.data(), space));
+        return Status::OK();  
     }
 
-    arrow::Status MetaServiceClient::createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, std::string &storageID) {
-        
+    arrow::Status MetaServiceClient::createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space) {
         std::string kindStr;
         if(temp.kind == StoreSpaceKind::Ceph) {
             kindStr = "Ceph";
@@ -100,11 +99,10 @@ namespace SDS {
         int client = impl_->getMetaConn();
         RETURN_NOT_OK(SendCreateStorageSpaceRequest(client,ssName, temp.spaceSize,
                                             spaceID, kindStr, temp.writable, temp.connConf));
-
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeStorageSpaceCreateReply, &buffer));
-        RETURN_NOT_OK(ReadCreateStorageSpaceReply(buffer.data(), storageID));
-        return Status::OK();   
+        RETURN_NOT_OK(ReadCreateStorageSpaceReply(buffer.data(), space));
+        return Status::OK(); 
     }
 
     arrow::Status MetaServiceClient::importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath) {

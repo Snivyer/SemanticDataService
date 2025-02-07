@@ -7,6 +7,8 @@
 #include "abstract/IO/io.h"
 #include "manager/rpc/metadata_rpc/meta_protocol.h"
 #include "abstract/meta/sto_meta_template.h"
+#include "manager/semanticspace/semantic_space.h"
+#include "manager/storagespace/storage_space.h"
 
 using arrow::Status;
 
@@ -23,9 +25,9 @@ namespace SDS
 
         arrow::Status disconnect();
         
-        arrow::Status createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, std::string &spaceID);
+        arrow::Status createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, SemanticSpace &space);
 
-        arrow::Status createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, std::string &storageID);
+        arrow::Status createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space);
        
         arrow::Status importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath);
        

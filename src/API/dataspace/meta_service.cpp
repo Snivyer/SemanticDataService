@@ -101,12 +101,12 @@ namespace SDS {
 
     }
 
-    std::string MetaService::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client) {
+    SemanticSpace* MetaService::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client) {
         
         auto SemanticSpaceInfo = impl_->getSemanticSpaceInfo();
 
         if(SemanticSpaceInfo.count(SSName) != 0) {
-           return SemanticSpaceInfo[SSName]->space->getCompleteSpaceID();
+           return SemanticSpaceInfo[SSName]->space;
         }
 
         auto manager = impl_->getSemanticManager();
@@ -119,17 +119,17 @@ namespace SDS {
             entry->space = space;
             impl_->insertSemenaticSpaceEntry(SSName, entry);
             addClientToSemanticSpaceEntry(entry, client);
-            return spaceID;
+            return space;
         }
-        return "";
+        return nullptr;
     }
 
-    size_t MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client) {
+    StorageSpace* MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client) {
 
         std::string SSName = storeInfo.SSName;
         auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(SSName) != 0) {
-           return StorageSpaceInfo[SSName]->space->storageID;
+           return StorageSpaceInfo[SSName]->space;
         }
 
         if(storekind == "Ceph") {
@@ -152,8 +152,10 @@ namespace SDS {
             entry->space = space;
             impl_->insertStorageSpaceEntry(SSName, entry);
             addClientToStorageSpaceEntry(entry, client);
-            return storageID;
+            return space;
         }
+
+        return nullptr;
     }
 
     bool MetaService::createContentIndex(std::string SemanticSpaceName, std::string StoreSpaceName, std::string dirName) {
@@ -344,8 +346,8 @@ namespace SDS {
                 std::string SSName;
                 std::vector<std::string> geoNames;
                 RETURN_NOT_OK(ReadCreateSemanticSpaceRequest(input, SSName, geoNames));
-                std::string spaceID = createSemanticSpace(SSName, geoNames, client);             
-                HANDLE_SIGPIPE(SendCreateSemanticSpaceReply(client->fd, spaceID), client->fd);
+                SemanticSpace* space = createSemanticSpace(SSName, geoNames, client);             
+                HANDLE_SIGPIPE(SendCreateSemanticSpaceReply(client->fd, space), client->fd);
          
             } break;
             case MessageTypeStorageSpaceCreateRequest: {
@@ -354,8 +356,8 @@ namespace SDS {
                 StoreTemplate storeInfo;
                 RETURN_NOT_OK(ReadCreateStorageSpaceRequest(input, storeInfo.SSName, storeInfo.spaceSize,
                                                 spaceID, kind, storeInfo.writable, storeInfo.connConf));
-                size_t storageID = createStorageSpace(spaceID, storeInfo, kind, client);
-                HANDLE_SIGPIPE(SendCreateStorageSpaceReply(client->fd, std::to_string(storageID)), client->fd);
+                auto space = createStorageSpace(spaceID, storeInfo, kind, client);
+                HANDLE_SIGPIPE(SendCreateStorageSpaceReply(client->fd, space), client->fd);
             } break;
             case MessageTypeDataImportFromLocalRequest: {
                 std::string semanticSpaceName;

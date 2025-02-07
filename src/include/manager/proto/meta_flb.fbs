@@ -13,6 +13,10 @@ table SemanticSpaceCreateRequest {
 
 table SemanticSpaceCreateReply {
     space_id:string;
+    ssname:string;
+    psss_id:string;
+    children_num:ulong;
+    create_time:long;
 }
 
 table StorageSpaceCreateRequest {
@@ -29,6 +33,13 @@ table StorageSpaceCreateRequest {
 
 table StorageSpaceCreateReply {
     storage_id:string;
+    ssname:string;
+    writable:bool;
+    size:ulong;
+    capacity:ulong;
+    kind:string;
+    root_path:string;
+    pool_name:string;
 }
 
 table ContentIndexCreateRequst {

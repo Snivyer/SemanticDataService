@@ -25,6 +25,13 @@ namespace SDS
         size_t storageID;          // 存储空间ID
         StoreDesc stoMeta;        // 存储元数据
         SpaceStatus status;
+
+        void print() {
+            std::cout << "---------------------------------" << std::endl;
+            std::cout << "存储空间ID为:"  << storageID << std::endl;
+            stoMeta.print();
+            std::cout << "---------------------------------" << std::endl;
+        }
     };
 
     class  StorageSpaceManager

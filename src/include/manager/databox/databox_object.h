@@ -8,7 +8,6 @@
 #include "abstract/meta/sto_meta_template.h"
 #include "abstract/meta/cnt_ID.h"
 #include "abstract/adaptor/adaptor.h"
-
 using namespace arrow;
 
 

@@ -65,17 +65,24 @@ namespace SDS {
         return Status::OK();
     }
  
-    Status SendCreateSemanticSpaceReply(int sock, std::string spaceID) {
+    Status SendCreateSemanticSpaceReply(int sock, SemanticSpace* space) {
         flatbuffers::FlatBufferBuilder fbb;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto message = CreateSemanticSpaceCreateReply(fbb, spaceIDf);
+        auto spaceIDf = fbb.CreateString(std::to_string(space->spaceID));
+        auto ssNamef = fbb.CreateString(space->SSName);
+        auto pssIDf = fbb.CreateString(space->PSSID);
+        
+        auto message = CreateSemanticSpaceCreateReply(fbb, spaceIDf, ssNamef, pssIDf, space->childrenNum, space->createT);
         return messageSend(sock, MessageTypeSemanticSpaceCreateReply, &fbb, message);
     }
 
-    Status ReadCreateSemanticSpaceReply(uint8_t* data, std::string &spaceID) {
+    Status ReadCreateSemanticSpaceReply(uint8_t* data, SemanticSpace& space) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<SemanticSpaceCreateReply>(data);
-        spaceID = message->space_id()->str();
+        space.spaceID = std::atoi(message->space_id()->str().c_str());
+        space.SSName = message->ssname()->str();
+        space.PSSID = message->psss_id()->str();
+        space.childrenNum = message->children_num();
+        space.createT = message->create_time();
         return Status::OK();   
     }
 
@@ -92,8 +99,9 @@ namespace SDS {
         auto confFilef = fbb.CreateString(config.confFile);
         auto poolNamef = fbb.CreateString(config.poolName);
         auto rootPathf = fbb.CreateString(config.rootPath);
-        auto message = CreateStorageSpaceCreateRequest(fbb, spaceNamef, writable, storageKindf, capacitySize, spaceIDf, userNamef, confFilef, poolNamef, rootPathf);
-        
+        auto message = CreateStorageSpaceCreateRequest(fbb, spaceNamef, writable, storageKindf,
+                                                        capacitySize, spaceIDf, userNamef, confFilef,
+                                                        poolNamef, rootPathf);
         return messageSend(sock, MessageTypeStorageSpaceCreateRequest, &fbb, message);
     }
     
@@ -115,19 +123,64 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendCreateStorageSpaceReply(int sock, std::string storageID) {
+    Status SendCreateStorageSpaceReply(int sock, StorageSpace *space){
         flatbuffers::FlatBufferBuilder fbb;
-        auto storageIDf = fbb.CreateString(storageID);
-        auto message = CreateStorageSpaceCreateReply(fbb, storageIDf);
+        auto storageIDf = fbb.CreateString(std::to_string(space->storageID));
+        auto ssNamef = fbb.CreateString(space->stoMeta.SSName);
+        auto poolNamef = fbb.CreateString(space->stoMeta.sysDesc.conConf.poolName);
+        auto rootPathf = fbb.CreateString(space->stoMeta.sysDesc.conConf.rootPath);
+        flatbuffers::Offset<flatbuffers::String> kindf;
+
+        switch(space->stoMeta.kind) {
+            case StoreSpaceKind::BB:
+                kindf = fbb.CreateString("BB");
+                break;
+            case StoreSpaceKind::Ceph:
+                kindf = fbb.CreateString("Ceph");
+                break;
+            case StoreSpaceKind::Lustre:
+                kindf = fbb.CreateString("Lustre");
+                break;
+            case StoreSpaceKind::Local:
+                kindf = fbb.CreateString("Local");
+                break;
+            default: 
+                kindf = fbb.CreateString("None");
+                break;
+        }
+
+        auto message = CreateStorageSpaceCreateReply(fbb, storageIDf, ssNamef, space->stoMeta.writable,
+                                                    space->stoMeta.size, space->stoMeta.capacity, kindf,
+                                                    poolNamef, rootPathf);
         return messageSend(sock, MessageTypeStorageSpaceCreateReply, &fbb, message);
     }
 
-    Status ReadCreateStorageSpaceReply(uint8_t* data, std::string &storageID) {
+    Status ReadCreateStorageSpaceReply(uint8_t* data, StorageSpace& space) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<StorageSpaceCreateReply>(data);
-        storageID = message->storage_id()->str();
+        space.storageID = std::atoi(message->storage_id()->str().c_str());
+        space.stoMeta.SSName = message->ssname()->str();
+        space.stoMeta.writable = message->writable();
+        space.stoMeta.size = message->size();
+        space.stoMeta.capacity = message->capacity();
+        space.stoMeta.sysDesc.conConf.rootPath = message->root_path()->str();
+        space.stoMeta.sysDesc.conConf.poolName = message->pool_name()->str();
+
+        if(message->kind()->str() == "BB") {
+            space.stoMeta.kind = StoreSpaceKind::BB;
+        } else if(message->kind()->str() == "Ceph") {
+            space.stoMeta.kind = StoreSpaceKind::Ceph;
+        } else if(message->kind()->str() == "Lustre") {
+            space.stoMeta.kind = StoreSpaceKind::Lustre;
+        } else if(message->kind()->str() == "Local") {
+            space.stoMeta.kind = StoreSpaceKind::Local;
+        } else {
+            space.stoMeta.kind = StoreSpaceKind::None;
+        }
         return Status::OK();   
     }
+    
+  
 
     Status SendCreateContentIndexRequest(int sock, std::string semanticSpaceName, std::string storageSpaceName, std::string dirPath) {
  

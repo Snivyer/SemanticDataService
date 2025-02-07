@@ -36,9 +36,13 @@ namespace SDS
         SpaceStatus status;         // 语义空间的状态
         SpaceNode* indexNode;
 
+        SemanticSpace() {}
+
         SemanticSpace(std::string SSName) {
             this->SSName = SSName;
         }
+
+        
 
         void init(SpaceNode *sNode, SpaceStatus state = SpaceStatus::create) {
             this->cntID.setSpaceID( sNode->getCompleteSpaceID());
@@ -52,8 +56,19 @@ namespace SDS
         }
 
         std::string getCompleteSpaceID(int keyLength = 3) {
-            return PSSID + intToStringWithPadding(spaceID, keyLength);
-            
+            return PSSID + intToStringWithPadding(spaceID, keyLength);     
+        }
+
+        void print() {
+            std::cout << "---------------------------------" << std::endl;
+            std::cout << "语义空间名为:"  << SSName.data() << std::endl;
+            std::cout << "语义空间ID为:" << getCompleteSpaceID().data() << std::endl;
+            std::cout << "父语义空间ID为:" << PSSID.data() << std::endl;
+            std::cout << "子语义空间数量为:" << childrenNum << std::endl;
+            std::cout <<  "创建时间" << std::put_time(std::localtime(&createT), "%Y-%m-%d %H:%M:%S") << std::endl;
+            cntID.print();
+            cntDesc.print();
+            std::cout << "---------------------------------" << std::endl;
         }
 
     };

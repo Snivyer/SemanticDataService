@@ -15,6 +15,8 @@
 #include "abstract/meta/sto_meta_template.h"
 #include "manager/proto/meta_flb_generated.h"
 #include "manager/rpc/metadata_rpc/db_protocol.h"
+#include "manager/semanticspace/semantic_space.h"
+#include "manager/storagespace/storage_space.h"
 
 
 using arrow::Status;
@@ -48,16 +50,16 @@ namespace SDS {
     /* create semantic space message functions*/
     Status SendCreateSemanticSpaceRequest(int sock, std::string spaceName, std::vector<std::string> geoNames);
     Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string &spaceName, std::vector<std::string> &geoNames);
-    Status SendCreateSemanticSpaceReply(int sock, std::string spaceID);
-    Status ReadCreateSemanticSpaceReply(uint8_t* data, std::string &spaceID);
+    Status SendCreateSemanticSpaceReply(int sock, SemanticSpace* space);
+    Status ReadCreateSemanticSpaceReply(uint8_t* data, SemanticSpace &space);
 
     /* create storage space message functions*/
     Status SendCreateStorageSpaceRequest(int sock, std::string SSName, size_t capacitySize, std::string spaceID, std::string storageKind,
                                          bool writable, ConnectConfig &config);
     Status ReadCreateStorageSpaceRequest(uint8_t* data, std::string& SSName, size_t &capacitySize, std::string& spaceID, std::string &storageKind,
                                          bool &writable, ConnectConfig &config);
-    Status SendCreateStorageSpaceReply(int sock, std::string storageID);
-    Status ReadCreateStorageSpaceReply(uint8_t* data, std::string &storageID);
+    Status SendCreateStorageSpaceReply(int sock, StorageSpace* space);
+    Status ReadCreateStorageSpaceReply(uint8_t* data, StorageSpace &space);
 
     /* create content index message functions*/
     Status SendCreateContentIndexRequest(int sock, std::string semanticSpaceName, std::string storageSpaceName, std::string dirPath);

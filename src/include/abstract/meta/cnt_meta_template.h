@@ -109,6 +109,19 @@ namespace SDS {
             }
         }
 
+        void print() {
+            std::cout << "  地理空间名字： " << ssDesc.geoName << std::endl;
+            std::cout << "  行政编码： " << ssDesc.adCode << std::endl;
+            std::cout << "  中心经纬度： " <<  ssDesc.geoCentral.logitude <<" , "
+                                  << ssDesc.geoCentral.latitude << std::endl;
+
+            std::cout << "  地理周界: "<< std::endl;
+            for(int i = 0; i < ssDesc.geoPerimeter.size(); i++){
+                std::cout << "      " << ssDesc.geoPerimeter[i].logitude
+                            <<" , "<< ssDesc.geoPerimeter[i].latitude << std::endl; 
+            }
+        }
+
     };
  
   

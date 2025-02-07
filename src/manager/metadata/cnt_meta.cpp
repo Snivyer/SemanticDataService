@@ -415,17 +415,7 @@ void ContentMeta::putMeta(Key key, std::string value) {
 
 // print the semantic space description
 void ContentMeta::printSSDesc(struct ContentDesc &desc) {
-    
-    std::cout << "  地理空间名字： " << desc.ssDesc.geoName << std::endl;
-    std::cout << "  行政编码： " << desc.ssDesc.adCode << std::endl;
-    std::cout << "  中心经纬度： " <<  desc.ssDesc.geoCentral.logitude <<" , "
-                                  << desc.ssDesc.geoCentral.latitude << std::endl;
-
-    std::cout << "  地理周界: "<< std::endl;
-    for(int i = 0; i < desc.ssDesc.geoPerimeter.size(); i++){
-            std::cout << "      " << desc.ssDesc.geoPerimeter[i].logitude
-            <<" , "<< desc.ssDesc.geoPerimeter[i].latitude << std::endl; 
-        }
+    desc.print();
 }
 
 // print the time slot description

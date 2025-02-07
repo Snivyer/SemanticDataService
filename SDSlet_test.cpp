@@ -12,6 +12,8 @@ int main() {
 
   sdslet->init();
   sdslet->run();
+
+  return 0;
     
     
 }
