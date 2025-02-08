@@ -7,11 +7,14 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <unordered_map>
+#include "abstract/meta/cnt_ID.h"
+#include "abstract/meta/sto_meta_template.h"
 #include "manager/metadata/cnt_meta.h"
 #include "manager/index/space_index.h"
 #include "manager/index/time_index.h"
 #include "manager/index/var_index.h"
+
 
 namespace SDS
 {
@@ -25,15 +28,16 @@ namespace SDS
     };
 
     struct SemanticSpace {
-        size_t spaceID;           // 语义空间ID
-        std::string SSName;         // 语义空间名称
-        std::string PSSID;           // 父语义空间ID
-        size_t childrenNum;       // 子语义空间数量    
-        time_t createT;             // 创建时间
-
-        ContentID cntID;     // 内容ID描述符
-        ContentDesc cntDesc;        // 内容描述符
-        SpaceStatus status;         // 语义空间的状态
+        size_t spaceID; 
+        SSDesc ssDesc;          
+        std::string SSName;         
+        std::string PSSID;          
+        size_t childrenNum;          
+        time_t createT;             
+        size_t databoxNum;  
+        
+        std::unordered_map<ContentID, ContentDesc, ContentIDHasher> databoxsIndex;
+        SpaceStatus status;         
         SpaceNode* indexNode;
 
         SemanticSpace() {}
@@ -45,14 +49,13 @@ namespace SDS
         
 
         void init(SpaceNode *sNode, SpaceStatus state = SpaceStatus::create) {
-            this->cntID.setSpaceID( sNode->getCompleteSpaceID());
             this->spaceID = sNode->spaceID;
-
             this->PSSID = sNode->PSSID;
             this->childrenNum = sNode->CSNode.size();
             this->createT = std::time(nullptr);
             this->status = state;
             this->indexNode = sNode;
+            this->databoxNum = 0;
         }
 
         std::string getCompleteSpaceID(int keyLength = 3) {
@@ -65,10 +68,17 @@ namespace SDS
             std::cout << "语义空间ID为:" << getCompleteSpaceID().data() << std::endl;
             std::cout << "父语义空间ID为:" << PSSID.data() << std::endl;
             std::cout << "子语义空间数量为:" << childrenNum << std::endl;
-            std::cout <<  "创建时间" << std::put_time(std::localtime(&createT), "%Y-%m-%d %H:%M:%S") << std::endl;
-            cntID.print();
-            cntDesc.print();
+            std::cout <<  "创建时间:" << std::put_time(std::localtime(&createT), "%Y-%m-%d %H:%M:%S") << std::endl;
+            std::cout << "数据箱子数量为:" << databoxNum << std::endl;
+            ssDesc.print();
+
+            for(auto item : databoxsIndex) {
+                std::cout << "---------------------------------" << std::endl;
+                item.first.print();
+                item.second.print();
+            }
             std::cout << "---------------------------------" << std::endl;
+            
         }
 
     };
@@ -79,6 +89,8 @@ namespace SDS
     public:
         SemanticSpaceManager(); 
         ~SemanticSpaceManager();
+
+
 
         // create the semantic space whose level number depends on the number of geoNames
         std::string createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
@@ -94,14 +106,8 @@ namespace SDS
         SemanticSpace* getSpaceByName(std::string spaceName);
         SemanticSpace* getSpaceByID(std::string spaceID);
 
-
-        // create time index
-        bool createTimeIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath);
-
-        // create var index 
-        bool createVarIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName = "default");
-            
-
+        // add a data box index into the semantic space
+        bool createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName = "default");
 
 
     
@@ -113,6 +119,15 @@ namespace SDS
         MetaStore* _metaStore;
         std::map<std::string, SemanticSpace*> _spaceNameMap;
         std::map<std::string, SemanticSpace*> _spaceIDMap;
+
+        // create time index
+        bool createTimeIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath,
+            ContentID &cntID, TSDesc &desc);
+
+        // create var index 
+        bool createVarIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath, 
+            ContentID &cntID, VLDesc &desc, std::string varGroupName = "default");
+
 
 
     };

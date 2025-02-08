@@ -70,10 +70,44 @@ namespace SDS {
         auto spaceIDf = fbb.CreateString(std::to_string(space->spaceID));
         auto ssNamef = fbb.CreateString(space->SSName);
         auto pssIDf = fbb.CreateString(space->PSSID);
-        
-        auto message = CreateSemanticSpaceCreateReply(fbb, spaceIDf, ssNamef, pssIDf, space->childrenNum, space->createT);
+        auto adcodef = fbb.CreateString(space->ssDesc.adCode);
+        auto geoNamef = fbb.CreateString(space->ssDesc.geoName);
+
+        std::vector<double> geo_logitude;
+        std::vector<double> geo_latitude;
+        for(auto item : space->ssDesc.geoPerimeter) {
+            geo_logitude.push_back(item.logitude);
+            geo_latitude.push_back(item.latitude);
+        }
+        auto geo_logitude_vector = fbb.CreateVector(geo_logitude);
+        auto geo_latitude_vector = fbb.CreateVector(geo_latitude);
+
+        auto message = CreateSemanticSpaceCreateReply(fbb, spaceIDf, ssNamef, pssIDf, space->childrenNum, 
+                                                        space->createT, space->databoxNum, geoNamef,
+                                                        adcodef, space->ssDesc.geoCentral.logitude, space->ssDesc.geoCentral.latitude,
+                                                        geo_logitude_vector, geo_latitude_vector);
         return messageSend(sock, MessageTypeSemanticSpaceCreateReply, &fbb, message);
     }
+
+    Status SendLoadSemanticSpaceRequest(int sock, std::string spaceName) {
+
+    }
+
+    Status ReadLoadSemanticSpaceRequest(uint8_t* data, std::string &spaceName) {
+
+    }
+
+    Status SendLoadSemanticSpaceReply(int sock, SemanticSpace* space) {
+
+    }
+
+    Status ReadLoadSemanticSpaceReply(uint8_t* data, SemanticSpace &space) {
+        
+    }
+
+
+
+
 
     Status ReadCreateSemanticSpaceReply(uint8_t* data, SemanticSpace& space) {
         DCHECK(data);
@@ -83,6 +117,20 @@ namespace SDS {
         space.PSSID = message->psss_id()->str();
         space.childrenNum = message->children_num();
         space.createT = message->create_time();
+        space.databoxNum = message->databox_num();
+        space.ssDesc.geoName = message->geo_names()->str();
+        space.ssDesc.adCode = message->adcode()->str();
+        space.ssDesc.geoCentral.logitude = message->logitude();
+        space.ssDesc.geoCentral.latitude = message->latitude();
+
+        auto geo_logitude_vector = message->perimeter_logitude();
+        auto geo_latitude_vector = message->perimeter_latitude();
+        for(int i = 0; i < geo_logitude_vector->size(); i++) {
+            GeoCoordinate geo;
+            geo.logitude = geo_logitude_vector->Get(i);
+            geo.latitude = geo_latitude_vector->Get(i);
+            space.ssDesc.geoPerimeter.push_back(geo);
+        }
         return Status::OK();   
     }
 

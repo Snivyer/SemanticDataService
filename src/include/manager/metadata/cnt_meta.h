@@ -35,24 +35,25 @@ namespace SDS
 
         /*------提取元数据------*/
         // extract the semantic space desciption according to province, city and district.
-        bool extractSSDesc(struct ContentDesc &cntDesc, std::string province, std::string city = "0", std::string district = "0");   
+        bool extractSSDesc(SSDesc &ssDesc, std::string province, std::string city = "0", std::string district = "0");   
 
         // extract the semantic space desciption according to arbitrary number of geoNames
-        bool extractSSDesc(struct ContentDesc &cntDesc, std::vector<std::string> &geoNames);
+        bool extractSSDesc(SSDesc &ssDesc, std::vector<std::string> &geoNames);
 
         
         // extract the time slot desciption according to directory name
-        bool extractTSDesc(struct ContentDesc &cntDesc, std::string dirName);  
+        bool extractTSDesc(TSDesc &tsDesc, std::string dirName);
+ 
 
         // extract the time slot description according to time vector
-        bool extractTSDesc(struct ContentDesc &cntDesc, std::vector<std::string> &times);
+        bool extractTSDesc(TSDesc &tsDesc, std::vector<std::string> &times);
 
         // extract the var list desciption by user give variable
-        bool extractVLDesc(struct ContentDesc &cntDesc, std::vector<std::string> &vars,
+        bool extractVLDesc(VLDesc &vlDesc, std::vector<std::string> &vars,
                                 std::unordered_map<std::string, size_t> &varList);
         
         // extract the var list desciption by reading variable information from NetCDF 
-        bool extractVLDesc(struct ContentDesc &cntDesc, std::string dirName, bool isSame = true);
+        bool extractVLDesc(VLDesc &vlDesc, std::string dirName, bool isSame = true);
 
 
         /*------配置元数据存储------*/
@@ -68,13 +69,13 @@ namespace SDS
         
         /*------填充元数据------*/
         // put the semantic space description
-        bool putSSDesc(struct ContentDesc &cntDesc, std::string spaceName = "", std::string spaceID ="");
+        bool putSSDesc(SSDesc &ssDesc, std::string spaceName = "", std::string spaceID ="");
 
         // put the time slot description 
-        bool putTSDesc(struct ContentDesc &cntDesc, std::string timeID = "");
+        bool putTSDesc(TSDesc &tsDesc, std::string timeID = "");
 
         // put the var list description 
-        bool putVLDesc(struct ContentDesc &cntDesc, std::string VLID = "", std::string VlName = "");
+        bool putVLDesc(VLDesc &vlDesc, std::string VLID = "", std::string VlName = "");
 
 
         /*------加载元数据------*/
@@ -103,18 +104,17 @@ namespace SDS
         
         /*------打印元数据------*/
         // print the semantic space description
-        void printSSDesc(struct ContentDesc &cntDesc);
+        void printSSDesc(SSDesc &ssDesc);
 
         // print the time slot description
-        void printTSDesc(struct ContentDesc &cntDesc);
-
+        void printTSDesc(TSDesc &tsDesc);
+            
         // print the var list description
-        void printVLDesc(struct ContentDesc &cntDesc);
+        void printVLDesc(VLDesc &vlDesc);
+            
 
 
         /*------获取元数据------*/
-        // get content metadata by search their cntID
-        ContentDesc getCntMeta(ContentID &cntID);
 
         /*------持久化元数据------*/
         bool putMetaWithJson(std::string path) override;

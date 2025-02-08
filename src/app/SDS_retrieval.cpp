@@ -11,8 +11,7 @@ namespace SDS_Retrieval {
             std::unordered_map<std::string, StorageSpace> storageSpaceCache_;
 
             // databox cache
-            std::unordered_map<ContentID, DataboxObject*, ContentIDHasher> databoxsCache_;
-
+            std::unordered_map<SDS::ContentID, DataboxObject*, ContentIDHasher> databoxsCache_;
         
             // meta service client
             std::shared_ptr< MetaServiceClient> meta_client_;
@@ -65,8 +64,10 @@ namespace SDS_Retrieval {
     void SDS_Retrieval_Client::menu() {
         std::cout << "欢迎使用语义数据服务检索系统，请输入相应指令：" << std::endl;
         std::cout << "创建空间:create/cr + 行政区划名 + 存储系统 + 根路径" << std::endl;
+        std::cout << "加载空间:load/lo + 空间名" << std::endl;
         std::cout << "导入数据:import/im + 行政区划名 + 文件目录路径" << std::endl;
         std::cout << "查询数据:search/sea + 行政区划名 + 时间段 + 变量列表" << std::endl;
+        std::cout << "展示元数据:show/sh + 元数据关键字(如:semanticspace或storespace等)" << std::endl;
         std::cout << "退出系统:quit/qu" << std::endl;
     }
 
@@ -102,6 +103,8 @@ namespace SDS_Retrieval {
                 isSuccess = importData(infos);
             } else if ((op == "create") || (op == "cr")) {
                 isSuccess = createSemanticStoreSpace(infos);
+            } else if((op == "load") || (op == "lo")) {
+                isSuccess = loadSemanticSpace(infos);
             } else if ((op == "search") || (op == "sea")) {
                 isSuccess = searchData(infos);
             } else if ((op == "show") || (op == "sh")) {
@@ -180,7 +183,7 @@ namespace SDS_Retrieval {
         } else if ((opType == "indexbyvar") || (opType == "in")) {
             // printVarIndexsInfo();
         } else if ((opType == "databox") || (opType == "da")) {
-            // printDBInfo();
+            showDBInfo();
         } else {
             std::cout << "要展示的信息输入有误！" << std::endl;
         }
@@ -207,6 +210,11 @@ namespace SDS_Retrieval {
                 
         ret = createStorageSpace(spaceID, ssName, temp);
         return ret;
+    }
+
+    bool SDS_Retrieval_Client::loadSemanticSpace(std::vector<std::string>& infos) {
+        std::string ssName = infos[1];
+        return loadSemanticSpace(ssName);
     }
 
     int SDS_Retrieval_Client::printError(bool flag, std::string code) {
@@ -271,7 +279,23 @@ namespace SDS_Retrieval {
         return false;
     }
 
+    bool SDS_Retrieval_Client::loadSemanticSpace(std::string SSName) {
+        SemanticSpace space;
+        auto status = impl_->meta_client_->loadSemanticSpace(SSName, space);
+        if(status.ok()) {
+            impl_->semanticSpaceCache_[SSName] = space;
+            return true;
+        }
+        std::cout << "语义空间加载失败！" << std::endl;
+        return false;
+    }
+
     void SDS_Retrieval_Client::showSemanticSpace() {
+
+        if(impl_->semanticSpaceCache_.size() == 0) {
+            std::cout << "暂时没有语义空间信息..." << std::endl;
+        }
+
         for(auto space: impl_->semanticSpaceCache_) {
             space.second.print();
             std::cout << std::endl;
@@ -295,6 +319,10 @@ namespace SDS_Retrieval {
     }
 
     void SDS_Retrieval_Client::showStorageSpace() {
+        if(impl_->storageSpaceCache_.size() == 0) {
+            std::cout << "暂时没有存储空间信息..." << std::endl;
+        }
+
         for(auto space: impl_->storageSpaceCache_) {
             space.second.print();
             std::cout << std::endl;
@@ -308,6 +336,17 @@ namespace SDS_Retrieval {
    
     bool SDS_Retrieval_Client::splitData(std::vector<std::string> &infos) {
 
+    }
+
+    bool SDS_Retrieval_Client::showDBInfo() {
+        if(impl_->databoxsCache_.size() == 0) {
+            std::cout << "暂时没有数据箱子..." << std::endl;
+        }
+
+        for(auto databox: impl_->databoxsCache_) {
+            databox.second->print();
+            std::cout << std::endl;
+        }
     }
 
 }

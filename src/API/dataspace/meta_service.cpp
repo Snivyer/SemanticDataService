@@ -104,7 +104,6 @@ namespace SDS {
     SemanticSpace* MetaService::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client) {
         
         auto SemanticSpaceInfo = impl_->getSemanticSpaceInfo();
-
         if(SemanticSpaceInfo.count(SSName) != 0) {
            return SemanticSpaceInfo[SSName]->space;
         }
@@ -123,6 +122,15 @@ namespace SDS {
         }
         return nullptr;
     }
+
+    SemanticSpace* MetaService::loadSemanticSpace(std::string SSName) {
+        auto SemanticSpaceInfo = impl_->getSemanticSpaceInfo();
+        if(SemanticSpaceInfo.count(SSName) != 0) {
+           return SemanticSpaceInfo[SSName]->space;
+        } 
+        return nullptr;
+    }
+
 
     StorageSpace* MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client) {
 
@@ -196,7 +204,7 @@ namespace SDS {
        
 
         // firstly, get spaceID by search space index
-        if(metaManager->extractSSDesc(cntDesc, geoNames) == false) {
+        if(metaManager->extractSSDesc(cntDesc.ssDesc, geoNames) == false) {
             ARROW_LOG(DEBUG) << "cannot find the actual geoName";
             return false;
         }
@@ -215,7 +223,7 @@ namespace SDS {
         auto timeIndex = semanticManager->getTimeIndex();
         TimeSlotNode* timeSlotNode = nullptr;
 
-        if( metaManager->extractTSDesc(cntDesc, times)) {
+        if(metaManager->extractTSDesc(cntDesc.tsDesc, times)) {
             // user have set the required time
             time_t reportT = mktime(&(cntDesc.tsDesc.reportT));
             timeIndex->search(reportT, timeSlotNode);  
@@ -225,8 +233,8 @@ namespace SDS {
             }
         } else {
             // inherit the time ID under the object semanticSpace
-            timeID = semanticSpace->cntID.getTimeID();
-            cntDesc.copyTimeSlotDesc(semanticSpace->cntDesc);
+            // timeID = semanticSpace->cntID.getTimeID();
+            // cntDesc.copyTimeSlotDesc(semanticSpace->cntDesc);
         }
 
         // thirdly, get varID by search var index 
@@ -236,13 +244,13 @@ namespace SDS {
 
         if(varListNode) {
             auto varList = varListNode->varIndex;
-            if(metaManager->extractVLDesc(cntDesc, varNames, varList)) {
+            if(metaManager->extractVLDesc(cntDesc.vlDesc, varNames, varList)) {
                 // user have set required var
                 varID = varListNode->getVarListID();
             } else {
                 // inherit the var ID under the object semanticSpace
-                varID = semanticSpace->cntID.getVarID();
-                cntDesc.copyVarListDesc(semanticSpace->cntDesc);
+                // varID = semanticSpace->cntID.getVarID();
+                // cntDesc.copyVarListDesc(semanticSpace->cntDesc);
         
             }
         }
@@ -251,7 +259,8 @@ namespace SDS {
         cntID.setSpaceID(spaceID);
         cntID.setTimeID(timeID);
         cntID.setVarID(varID);
-        cntID.storeIDs.push_back(semanticSpace->cntID.getBestStoID());
+        // todo: 这里需要修改一下
+        // cntID.storeIDs.push_back(semanticSpace->cntID.getBestStoID());
         impl_->addMetaIndex(cntID, cntDesc);
     }
 
@@ -348,7 +357,12 @@ namespace SDS {
                 RETURN_NOT_OK(ReadCreateSemanticSpaceRequest(input, SSName, geoNames));
                 SemanticSpace* space = createSemanticSpace(SSName, geoNames, client);             
                 HANDLE_SIGPIPE(SendCreateSemanticSpaceReply(client->fd, space), client->fd);
-         
+            } break;
+            case MessageTypeSemanticSpaceLoadRequest: {
+                std::string SSName;
+                RETURN_NOT_OK(ReadLoadSemanticSpaceRequest(input, SSName));
+                SemanticSpace* space = loadSemanticSpace(SSName);
+                HANDLE_SIGPIPE(SendLoadSemanticSpaceReply(client->fd, space), client->fd);
             } break;
             case MessageTypeStorageSpaceCreateRequest: {
                 std::string kind;
@@ -396,10 +410,7 @@ namespace SDS {
 
         // generate time index 
         auto adaptor = storageManager->getAdaptor(storageID);
-        semanticManger->createTimeIndex(adaptor, spaceID, dirName);
-        semanticManger->createVarIndex(adaptor, spaceID, dirName);
-        return true;
-
+        return semanticManger->createDataBoxIndex(adaptor, spaceID, dirName);
     }
 
 

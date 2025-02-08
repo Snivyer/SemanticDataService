@@ -3,12 +3,10 @@
 #include "API/dataspace/meta_service_client.h"
 #include "manager/semanticspace/semantic_space.h"
 #include "manager/storagespace/storage_space.h"
-
+#include "abstract/meta/cnt_ID.h"
 #include <unordered_map>
 
-
 using namespace SDS;
-using namespace std;
 using arrow::Status;
 
 namespace SDS_Retrieval {
@@ -29,9 +27,12 @@ namespace SDS_Retrieval {
             // create semantic space and storage space
             bool createSemanticStoreSpace(std::vector<std::string>& infos);
 
+            // load semantic space
+            bool loadSemanticSpace(std::vector<std::string>& infos);
+
             // create semantic space and storage space in the specified bucket
             bool createByBucket(std::vector<std::string>& infos);
-            
+
             // data import
             bool importData(std::vector<std::string>& infos);
 
@@ -66,12 +67,23 @@ namespace SDS_Retrieval {
             // create semantic space 
             bool createSemanticSpace(std::string SSName, std::vector<std::string> geoNames);
 
+            // load semantic space
+            bool loadSemanticSpace(std::string SSName);
+
+            // show semantic space
             void showSemanticSpace();
 
             /* storage space related*/
             // create storage space
             bool createStorageSpace(std::string spaceID, std::string SSName, StoreTemplate &temp);
+
+            // show storage space
             void showStorageSpace();
+
+            /* databox related*/
+            bool showDBInfo();
+
+
     };
 }
 

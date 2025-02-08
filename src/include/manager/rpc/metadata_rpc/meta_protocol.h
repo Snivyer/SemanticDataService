@@ -37,6 +37,9 @@ namespace SDS {
     const int64_t MessageTypeDataImportFromOtherReply        = 12;
     const int64_t MessageTypeDataSearchRequest               = 13;
     const int64_t MessageTypeDataSearchReply                 = 14;
+    const int64_t MessageTypeSemanticSpaceLoadRequest      = 15;
+    const int64_t MessageTypeSemanticSpaceLoadReply        = 16;
+
 
 
    
@@ -52,6 +55,12 @@ namespace SDS {
     Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string &spaceName, std::vector<std::string> &geoNames);
     Status SendCreateSemanticSpaceReply(int sock, SemanticSpace* space);
     Status ReadCreateSemanticSpaceReply(uint8_t* data, SemanticSpace &space);
+
+    /*load semantic space message functions*/
+    Status SendLoadSemanticSpaceRequest(int sock, std::string spaceName);
+    Status ReadLoadSemanticSpaceRequest(uint8_t* data, std::string &spaceName);
+    Status SendLoadSemanticSpaceReply(int sock, SemanticSpace* space);
+    Status ReadLoadSemanticSpaceReply(uint8_t* data, SemanticSpace &space);
 
     /* create storage space message functions*/
     Status SendCreateStorageSpaceRequest(int sock, std::string SSName, size_t capacitySize, std::string spaceID, std::string storageKind,

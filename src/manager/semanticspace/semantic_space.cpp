@@ -29,7 +29,7 @@ namespace SDS
         auto start = _spaceIDMap.begin();
         while(start != _spaceIDMap.end()) {
             if(start->second->status != SpaceStatus::read) {
-                _metaManager->putSSDesc(start->second->cntDesc, start->second->SSName, start->second->getCompleteSpaceID());
+                _metaManager->putSSDesc(start->second->ssDesc, start->second->SSName, start->second->getCompleteSpaceID());
             }
             start++;
         }
@@ -55,13 +55,13 @@ namespace SDS
         }
 
         space = new SemanticSpace(SSName);
-        _metaManager->extractSSDesc(space->cntDesc, geoNames);
+        _metaManager->extractSSDesc(space->ssDesc, geoNames);
 
         // choose the adimistrator code as the search term
         SearchTerm term;
         ResultSet result;
         SpaceNode* node;
-        std::string adcode = removeTrailingZeros(space->cntDesc.ssDesc.adCode);
+        std::string adcode = removeTrailingZeros(space->ssDesc.adCode);
         term.push_back(adcode);
 
         /// insert into space index
@@ -88,8 +88,7 @@ namespace SDS
         std::cout << "---------------------------------" << std::endl;
         std::cout << "语义空间名为:"  << space->SSName.data() << std::endl;
         std::cout << "语义空间ID为:" << space->getCompleteSpaceID().data() << std::endl;
-        space->cntID.print();
-        _metaManager->printSSDesc(space->cntDesc);
+        _metaManager->printSSDesc(space->ssDesc);
         std::cout << "---------------------------------" << std::endl;
     }
 
@@ -126,14 +125,39 @@ namespace SDS
         return nullptr;
     }
 
-    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath) {
-        
+    bool SemanticSpaceManager::createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName) {
+
+        // create a new data box 
+        ContentID cntID;
+        ContentDesc cntDesc;
         SemanticSpace* space = getSpaceByID(spaceID);
+        cntID.setSpaceID(spaceID);
+        
+
+        // create a time index
+        auto TSRet = createTimeIndex(adaptor, space, dirPath, cntID, cntDesc.tsDesc);
+
+        // create a var index
+        auto VLRet = createVarIndex(adaptor, space, dirPath, cntID, cntDesc.vlDesc, varGroupName);
+
+        if(TSRet && VLRet) {
+            cntDesc.setSpaceDesc(space->ssDesc);
+            
+            // add the data box into the semantic space
+            space->databoxsIndex.insert({cntID, cntDesc});
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath,
+                                                ContentID &cntID, TSDesc &tsDesc) {
+        
         TimeSlotNode* node = nullptr;
-       
         _metaManager->setAdaptor(adaptor);
-        if(_metaManager->extractTSDesc(space->cntDesc, dirPath)) {
-            auto tsDesc = space->cntDesc.tsDesc;
+        if(_metaManager->extractTSDesc(tsDesc, dirPath)) {
             time_t reportT = mktime(&(tsDesc.reportT));
     
             if( _timeIndex->insert(reportT, node)) {
@@ -147,7 +171,7 @@ namespace SDS
                 }
 
                 node->insertTimeList(tsDesc.interval,timeList);
-                space->cntID.setTimeID(node->getTimeSlotID());
+                cntID.setTimeID(node->getTimeSlotID());
                 return true;
             }
         }
@@ -155,24 +179,21 @@ namespace SDS
         return false;
     }
 
-
-    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string groupName) {
-        SemanticSpace* space = getSpaceByID(spaceID);
-
+    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath, 
+                                                ContentID &cntID, VLDesc &vlDesc, std::string groupName) {
+        
         // choose the adimistrator code as the search term
         VarListNode* node = nullptr;
 
         _metaManager->setAdaptor(adaptor);
-        if(_metaManager->extractVLDesc(space->cntDesc, dirPath)) {
+        if(_metaManager->extractVLDesc(vlDesc, dirPath)) {
             if(_varIndex->insert(groupName, node)) {
-
-                auto varListDesc = space->cntDesc.vlDesc;
-                space->cntDesc.vlDesc.groupName = groupName;
-                for(auto item : varListDesc.desc) {
+                vlDesc.groupName = groupName;
+                for(auto item : vlDesc.desc) {
                     node->insertVarList(item.varName);
                 }
-                node->varNum = varListDesc.desc.size();
-                space->cntID.setVarID(node->getVarListID());
+                node->varNum = vlDesc.desc.size();
+                cntID.setVarID(node->getVarListID());
                 return true;
             }
         }

@@ -25,6 +25,21 @@ struct SemanticSpaceCreateRequestBuilder;
 struct SemanticSpaceCreateReply;
 struct SemanticSpaceCreateReplyBuilder;
 
+struct ContentID;
+struct ContentIDBuilder;
+
+struct SSDesc;
+struct SSDescBuilder;
+
+struct ContentDesc;
+struct ContentDescBuilder;
+
+struct SemanticSpaceLoadRequest;
+struct SemanticSpaceLoadRequestBuilder;
+
+struct SemanticSpaceLoadReply;
+struct SemanticSpaceLoadReplyBuilder;
+
 struct StorageSpaceCreateRequest;
 struct StorageSpaceCreateRequestBuilder;
 
@@ -198,7 +213,14 @@ struct SemanticSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers:
     VT_SSNAME = 6,
     VT_PSSS_ID = 8,
     VT_CHILDREN_NUM = 10,
-    VT_CREATE_TIME = 12
+    VT_CREATE_TIME = 12,
+    VT_DATABOX_NUM = 14,
+    VT_GEO_NAMES = 16,
+    VT_ADCODE = 18,
+    VT_LOGITUDE = 20,
+    VT_LATITUDE = 22,
+    VT_PERIMETER_LOGITUDE = 24,
+    VT_PERIMETER_LATITUDE = 26
   };
   const ::flatbuffers::String *space_id() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
@@ -215,6 +237,27 @@ struct SemanticSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers:
   int64_t create_time() const {
     return GetField<int64_t>(VT_CREATE_TIME, 0);
   }
+  uint64_t databox_num() const {
+    return GetField<uint64_t>(VT_DATABOX_NUM, 0);
+  }
+  const ::flatbuffers::String *geo_names() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GEO_NAMES);
+  }
+  const ::flatbuffers::String *adcode() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ADCODE);
+  }
+  double logitude() const {
+    return GetField<double>(VT_LOGITUDE, 0.0);
+  }
+  double latitude() const {
+    return GetField<double>(VT_LATITUDE, 0.0);
+  }
+  const ::flatbuffers::Vector<double> *perimeter_logitude() const {
+    return GetPointer<const ::flatbuffers::Vector<double> *>(VT_PERIMETER_LOGITUDE);
+  }
+  const ::flatbuffers::Vector<double> *perimeter_latitude() const {
+    return GetPointer<const ::flatbuffers::Vector<double> *>(VT_PERIMETER_LATITUDE);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_SPACE_ID) &&
@@ -225,6 +268,17 @@ struct SemanticSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers:
            verifier.VerifyString(psss_id()) &&
            VerifyField<uint64_t>(verifier, VT_CHILDREN_NUM, 8) &&
            VerifyField<int64_t>(verifier, VT_CREATE_TIME, 8) &&
+           VerifyField<uint64_t>(verifier, VT_DATABOX_NUM, 8) &&
+           VerifyOffset(verifier, VT_GEO_NAMES) &&
+           verifier.VerifyString(geo_names()) &&
+           VerifyOffset(verifier, VT_ADCODE) &&
+           verifier.VerifyString(adcode()) &&
+           VerifyField<double>(verifier, VT_LOGITUDE, 8) &&
+           VerifyField<double>(verifier, VT_LATITUDE, 8) &&
+           VerifyOffset(verifier, VT_PERIMETER_LOGITUDE) &&
+           verifier.VerifyVector(perimeter_logitude()) &&
+           VerifyOffset(verifier, VT_PERIMETER_LATITUDE) &&
+           verifier.VerifyVector(perimeter_latitude()) &&
            verifier.EndTable();
   }
 };
@@ -248,6 +302,27 @@ struct SemanticSpaceCreateReplyBuilder {
   void add_create_time(int64_t create_time) {
     fbb_.AddElement<int64_t>(SemanticSpaceCreateReply::VT_CREATE_TIME, create_time, 0);
   }
+  void add_databox_num(uint64_t databox_num) {
+    fbb_.AddElement<uint64_t>(SemanticSpaceCreateReply::VT_DATABOX_NUM, databox_num, 0);
+  }
+  void add_geo_names(::flatbuffers::Offset<::flatbuffers::String> geo_names) {
+    fbb_.AddOffset(SemanticSpaceCreateReply::VT_GEO_NAMES, geo_names);
+  }
+  void add_adcode(::flatbuffers::Offset<::flatbuffers::String> adcode) {
+    fbb_.AddOffset(SemanticSpaceCreateReply::VT_ADCODE, adcode);
+  }
+  void add_logitude(double logitude) {
+    fbb_.AddElement<double>(SemanticSpaceCreateReply::VT_LOGITUDE, logitude, 0.0);
+  }
+  void add_latitude(double latitude) {
+    fbb_.AddElement<double>(SemanticSpaceCreateReply::VT_LATITUDE, latitude, 0.0);
+  }
+  void add_perimeter_logitude(::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_logitude) {
+    fbb_.AddOffset(SemanticSpaceCreateReply::VT_PERIMETER_LOGITUDE, perimeter_logitude);
+  }
+  void add_perimeter_latitude(::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_latitude) {
+    fbb_.AddOffset(SemanticSpaceCreateReply::VT_PERIMETER_LATITUDE, perimeter_latitude);
+  }
   explicit SemanticSpaceCreateReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -265,10 +340,24 @@ inline ::flatbuffers::Offset<SemanticSpaceCreateReply> CreateSemanticSpaceCreate
     ::flatbuffers::Offset<::flatbuffers::String> ssname = 0,
     ::flatbuffers::Offset<::flatbuffers::String> psss_id = 0,
     uint64_t children_num = 0,
-    int64_t create_time = 0) {
+    int64_t create_time = 0,
+    uint64_t databox_num = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> geo_names = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> adcode = 0,
+    double logitude = 0.0,
+    double latitude = 0.0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_logitude = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_latitude = 0) {
   SemanticSpaceCreateReplyBuilder builder_(_fbb);
+  builder_.add_latitude(latitude);
+  builder_.add_logitude(logitude);
+  builder_.add_databox_num(databox_num);
   builder_.add_create_time(create_time);
   builder_.add_children_num(children_num);
+  builder_.add_perimeter_latitude(perimeter_latitude);
+  builder_.add_perimeter_logitude(perimeter_logitude);
+  builder_.add_adcode(adcode);
+  builder_.add_geo_names(geo_names);
   builder_.add_psss_id(psss_id);
   builder_.add_ssname(ssname);
   builder_.add_space_id(space_id);
@@ -281,17 +370,391 @@ inline ::flatbuffers::Offset<SemanticSpaceCreateReply> CreateSemanticSpaceCreate
     const char *ssname = nullptr,
     const char *psss_id = nullptr,
     uint64_t children_num = 0,
-    int64_t create_time = 0) {
+    int64_t create_time = 0,
+    uint64_t databox_num = 0,
+    const char *geo_names = nullptr,
+    const char *adcode = nullptr,
+    double logitude = 0.0,
+    double latitude = 0.0,
+    const std::vector<double> *perimeter_logitude = nullptr,
+    const std::vector<double> *perimeter_latitude = nullptr) {
   auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
   auto ssname__ = ssname ? _fbb.CreateString(ssname) : 0;
   auto psss_id__ = psss_id ? _fbb.CreateString(psss_id) : 0;
+  auto geo_names__ = geo_names ? _fbb.CreateString(geo_names) : 0;
+  auto adcode__ = adcode ? _fbb.CreateString(adcode) : 0;
+  auto perimeter_logitude__ = perimeter_logitude ? _fbb.CreateVector<double>(*perimeter_logitude) : 0;
+  auto perimeter_latitude__ = perimeter_latitude ? _fbb.CreateVector<double>(*perimeter_latitude) : 0;
   return CreateSemanticSpaceCreateReply(
       _fbb,
       space_id__,
       ssname__,
       psss_id__,
       children_num,
-      create_time);
+      create_time,
+      databox_num,
+      geo_names__,
+      adcode__,
+      logitude,
+      latitude,
+      perimeter_logitude__,
+      perimeter_latitude__);
+}
+
+struct ContentID FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ContentIDBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_ID = 4,
+    VT_TIME_ID = 6,
+    VT_VAR_ID = 8
+  };
+  const ::flatbuffers::String *space_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
+  }
+  const ::flatbuffers::String *time_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TIME_ID);
+  }
+  const ::flatbuffers::String *var_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VAR_ID);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_ID) &&
+           verifier.VerifyString(space_id()) &&
+           VerifyOffset(verifier, VT_TIME_ID) &&
+           verifier.VerifyString(time_id()) &&
+           VerifyOffset(verifier, VT_VAR_ID) &&
+           verifier.VerifyString(var_id()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ContentIDBuilder {
+  typedef ContentID Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
+    fbb_.AddOffset(ContentID::VT_SPACE_ID, space_id);
+  }
+  void add_time_id(::flatbuffers::Offset<::flatbuffers::String> time_id) {
+    fbb_.AddOffset(ContentID::VT_TIME_ID, time_id);
+  }
+  void add_var_id(::flatbuffers::Offset<::flatbuffers::String> var_id) {
+    fbb_.AddOffset(ContentID::VT_VAR_ID, var_id);
+  }
+  explicit ContentIDBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ContentID> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ContentID>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ContentID> CreateContentID(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> time_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> var_id = 0) {
+  ContentIDBuilder builder_(_fbb);
+  builder_.add_var_id(var_id);
+  builder_.add_time_id(time_id);
+  builder_.add_space_id(space_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<ContentID> CreateContentIDDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_id = nullptr,
+    const char *time_id = nullptr,
+    const char *var_id = nullptr) {
+  auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
+  auto time_id__ = time_id ? _fbb.CreateString(time_id) : 0;
+  auto var_id__ = var_id ? _fbb.CreateString(var_id) : 0;
+  return CreateContentID(
+      _fbb,
+      space_id__,
+      time_id__,
+      var_id__);
+}
+
+struct SSDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef SSDescBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_GEO_NAMES = 4,
+    VT_ADCODE = 6,
+    VT_LOGITUDE = 8,
+    VT_LATITUDE = 10,
+    VT_PERIMETER_LOGITUDE = 12,
+    VT_PERIMETER_LATITUDE = 14
+  };
+  const ::flatbuffers::String *geo_names() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GEO_NAMES);
+  }
+  const ::flatbuffers::String *adcode() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ADCODE);
+  }
+  double logitude() const {
+    return GetField<double>(VT_LOGITUDE, 0.0);
+  }
+  double latitude() const {
+    return GetField<double>(VT_LATITUDE, 0.0);
+  }
+  const ::flatbuffers::Vector<double> *perimeter_logitude() const {
+    return GetPointer<const ::flatbuffers::Vector<double> *>(VT_PERIMETER_LOGITUDE);
+  }
+  const ::flatbuffers::Vector<double> *perimeter_latitude() const {
+    return GetPointer<const ::flatbuffers::Vector<double> *>(VT_PERIMETER_LATITUDE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_GEO_NAMES) &&
+           verifier.VerifyString(geo_names()) &&
+           VerifyOffset(verifier, VT_ADCODE) &&
+           verifier.VerifyString(adcode()) &&
+           VerifyField<double>(verifier, VT_LOGITUDE, 8) &&
+           VerifyField<double>(verifier, VT_LATITUDE, 8) &&
+           VerifyOffset(verifier, VT_PERIMETER_LOGITUDE) &&
+           verifier.VerifyVector(perimeter_logitude()) &&
+           VerifyOffset(verifier, VT_PERIMETER_LATITUDE) &&
+           verifier.VerifyVector(perimeter_latitude()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SSDescBuilder {
+  typedef SSDesc Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_geo_names(::flatbuffers::Offset<::flatbuffers::String> geo_names) {
+    fbb_.AddOffset(SSDesc::VT_GEO_NAMES, geo_names);
+  }
+  void add_adcode(::flatbuffers::Offset<::flatbuffers::String> adcode) {
+    fbb_.AddOffset(SSDesc::VT_ADCODE, adcode);
+  }
+  void add_logitude(double logitude) {
+    fbb_.AddElement<double>(SSDesc::VT_LOGITUDE, logitude, 0.0);
+  }
+  void add_latitude(double latitude) {
+    fbb_.AddElement<double>(SSDesc::VT_LATITUDE, latitude, 0.0);
+  }
+  void add_perimeter_logitude(::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_logitude) {
+    fbb_.AddOffset(SSDesc::VT_PERIMETER_LOGITUDE, perimeter_logitude);
+  }
+  void add_perimeter_latitude(::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_latitude) {
+    fbb_.AddOffset(SSDesc::VT_PERIMETER_LATITUDE, perimeter_latitude);
+  }
+  explicit SSDescBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<SSDesc> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<SSDesc>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<SSDesc> CreateSSDesc(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> geo_names = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> adcode = 0,
+    double logitude = 0.0,
+    double latitude = 0.0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_logitude = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_latitude = 0) {
+  SSDescBuilder builder_(_fbb);
+  builder_.add_latitude(latitude);
+  builder_.add_logitude(logitude);
+  builder_.add_perimeter_latitude(perimeter_latitude);
+  builder_.add_perimeter_logitude(perimeter_logitude);
+  builder_.add_adcode(adcode);
+  builder_.add_geo_names(geo_names);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<SSDesc> CreateSSDescDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *geo_names = nullptr,
+    const char *adcode = nullptr,
+    double logitude = 0.0,
+    double latitude = 0.0,
+    const std::vector<double> *perimeter_logitude = nullptr,
+    const std::vector<double> *perimeter_latitude = nullptr) {
+  auto geo_names__ = geo_names ? _fbb.CreateString(geo_names) : 0;
+  auto adcode__ = adcode ? _fbb.CreateString(adcode) : 0;
+  auto perimeter_logitude__ = perimeter_logitude ? _fbb.CreateVector<double>(*perimeter_logitude) : 0;
+  auto perimeter_latitude__ = perimeter_latitude ? _fbb.CreateVector<double>(*perimeter_latitude) : 0;
+  return CreateSSDesc(
+      _fbb,
+      geo_names__,
+      adcode__,
+      logitude,
+      latitude,
+      perimeter_logitude__,
+      perimeter_latitude__);
+}
+
+struct ContentDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ContentDescBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SSDESC = 4
+  };
+  const SSDesc *ssdesc() const {
+    return GetPointer<const SSDesc *>(VT_SSDESC);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SSDESC) &&
+           verifier.VerifyTable(ssdesc()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ContentDescBuilder {
+  typedef ContentDesc Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_ssdesc(::flatbuffers::Offset<SSDesc> ssdesc) {
+    fbb_.AddOffset(ContentDesc::VT_SSDESC, ssdesc);
+  }
+  explicit ContentDescBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ContentDesc> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ContentDesc>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ContentDesc> CreateContentDesc(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<SSDesc> ssdesc = 0) {
+  ContentDescBuilder builder_(_fbb);
+  builder_.add_ssdesc(ssdesc);
+  return builder_.Finish();
+}
+
+struct SemanticSpaceLoadRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef SemanticSpaceLoadRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_NAME = 4
+  };
+  const ::flatbuffers::String *space_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_NAME);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_NAME) &&
+           verifier.VerifyString(space_name()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SemanticSpaceLoadRequestBuilder {
+  typedef SemanticSpaceLoadRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_name(::flatbuffers::Offset<::flatbuffers::String> space_name) {
+    fbb_.AddOffset(SemanticSpaceLoadRequest::VT_SPACE_NAME, space_name);
+  }
+  explicit SemanticSpaceLoadRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<SemanticSpaceLoadRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<SemanticSpaceLoadRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<SemanticSpaceLoadRequest> CreateSemanticSpaceLoadRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_name = 0) {
+  SemanticSpaceLoadRequestBuilder builder_(_fbb);
+  builder_.add_space_name(space_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<SemanticSpaceLoadRequest> CreateSemanticSpaceLoadRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_name = nullptr) {
+  auto space_name__ = space_name ? _fbb.CreateString(space_name) : 0;
+  return CreateSemanticSpaceLoadRequest(
+      _fbb,
+      space_name__);
+}
+
+struct SemanticSpaceLoadReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef SemanticSpaceLoadReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_CNT_IDS = 4,
+    VT_CNT_DESCS = 6
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<ContentID>> *cnt_ids() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<ContentID>> *>(VT_CNT_IDS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>> *cnt_descs() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>> *>(VT_CNT_DESCS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_CNT_IDS) &&
+           verifier.VerifyVector(cnt_ids()) &&
+           verifier.VerifyVectorOfTables(cnt_ids()) &&
+           VerifyOffset(verifier, VT_CNT_DESCS) &&
+           verifier.VerifyVector(cnt_descs()) &&
+           verifier.VerifyVectorOfTables(cnt_descs()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SemanticSpaceLoadReplyBuilder {
+  typedef SemanticSpaceLoadReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_cnt_ids(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentID>>> cnt_ids) {
+    fbb_.AddOffset(SemanticSpaceLoadReply::VT_CNT_IDS, cnt_ids);
+  }
+  void add_cnt_descs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>>> cnt_descs) {
+    fbb_.AddOffset(SemanticSpaceLoadReply::VT_CNT_DESCS, cnt_descs);
+  }
+  explicit SemanticSpaceLoadReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<SemanticSpaceLoadReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<SemanticSpaceLoadReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<SemanticSpaceLoadReply> CreateSemanticSpaceLoadReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentID>>> cnt_ids = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>>> cnt_descs = 0) {
+  SemanticSpaceLoadReplyBuilder builder_(_fbb);
+  builder_.add_cnt_descs(cnt_descs);
+  builder_.add_cnt_ids(cnt_ids);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<SemanticSpaceLoadReply> CreateSemanticSpaceLoadReplyDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<ContentID>> *cnt_ids = nullptr,
+    const std::vector<::flatbuffers::Offset<ContentDesc>> *cnt_descs = nullptr) {
+  auto cnt_ids__ = cnt_ids ? _fbb.CreateVector<::flatbuffers::Offset<ContentID>>(*cnt_ids) : 0;
+  auto cnt_descs__ = cnt_descs ? _fbb.CreateVector<::flatbuffers::Offset<ContentDesc>>(*cnt_descs) : 0;
+  return CreateSemanticSpaceLoadReply(
+      _fbb,
+      cnt_ids__,
+      cnt_descs__);
 }
 
 struct StorageSpaceCreateRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

@@ -19,7 +19,7 @@ namespace SDS {
 
         size_t getBestStoID();
         bool operator==(const ContentID &cntID) const;
-        void print();
+        void print() const;
     
         std::string getSpaceID() const;
         void setSpaceID(const std::string ID);

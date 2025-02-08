@@ -4,8 +4,7 @@
 namespace SDS
 {
    
-    void StoreMeta::extractStoreDesc(StoreTemplate &stoT, StoreDesc &desc)
-    {
+    void StoreMeta::extractStoreDesc(StoreTemplate &stoT, StoreDesc &desc) {
         desc.SSName = stoT.SSName;
         desc.kind = stoT.kind;
         desc.writable = stoT.writable;

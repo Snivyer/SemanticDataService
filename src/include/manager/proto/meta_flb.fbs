@@ -17,6 +17,41 @@ table SemanticSpaceCreateReply {
     psss_id:string;
     children_num:ulong;
     create_time:long;
+    databox_num:ulong;
+    geo_names:string;
+    adcode:string;
+    logitude:double;
+    latitude:double;
+    perimeter_logitude:[double];
+    perimeter_latitude:[double];
+}
+
+table ContentID {
+    space_id:string;
+    time_id:string;
+    var_id:string;
+}
+
+table SSDesc {
+    geo_names:string;
+    adcode:string;
+    logitude:double;
+    latitude:double;
+    perimeter_logitude:[double];
+    perimeter_latitude:[double];
+}
+
+table ContentDesc {
+    ssdesc:SSDesc;
+}
+
+table SemanticSpaceLoadRequest {
+    space_name:string;
+}
+
+table SemanticSpaceLoadReply {
+    cnt_ids:[ContentID];
+    cnt_descs:[ContentDesc];
 }
 
 table StorageSpaceCreateRequest {

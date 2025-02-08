@@ -84,6 +84,15 @@ namespace SDS {
         return Status::OK();  
     }
 
+    arrow::Status MetaServiceClient::loadSemanticSpace(std::string ssName, SemanticSpace &space) {
+        int client = impl_->getMetaConn();
+        RETURN_NOT_OK(SendLoadSemanticSpaceRequest(client, ssName));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeSemanticSpaceLoadReply, &buffer));
+        RETURN_NOT_OK(ReadLoadSemanticSpaceReply(buffer.data(), space));
+        return Status::OK();
+    }
+
     arrow::Status MetaServiceClient::createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space) {
         std::string kindStr;
         if(temp.kind == StoreSpaceKind::Ceph) {

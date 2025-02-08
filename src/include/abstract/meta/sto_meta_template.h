@@ -56,10 +56,8 @@ namespace SDS {
         struct FilePathList  fileList;
 
         void print() {
-            std::cout << "---------------------------------" << std::endl;
             std::cout << "连接配置池名为:"  << conConf.poolName.data() << std::endl;
             std::cout << "连接配置根路径为:"  << conConf.rootPath.data() << std::endl;
-            std::cout << "---------------------------------" << std::endl;
         }
     };
 
