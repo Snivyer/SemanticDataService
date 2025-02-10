@@ -101,6 +101,8 @@ namespace SDS {
             kindStr = "Lustre";
         } else if (temp.kind == StoreSpaceKind::BB) {
             kindStr = "BB";
+        } else if (temp.kind == StoreSpaceKind::Local) {
+            kindStr = "Local";
         } else {
             kindStr = "None";
         }
@@ -121,9 +123,12 @@ namespace SDS {
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeDataImportFromLocalReply, &buffer));
 
-        int64_t welcome;
-        RETURN_NOT_OK(ReadCreateContentIndexReply(buffer.data(), &welcome));
-        return Status::OK();   
+        bool result = false; 
+        RETURN_NOT_OK(ReadCreateContentIndexReply(buffer.data(), result));
+
+        if(result) {
+            return Status::OK();  
+        } 
     }
 
     arrow::Status MetaServiceClient::searchContentIndex(std::vector<std::string> &geoNames,

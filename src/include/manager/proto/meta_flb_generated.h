@@ -25,14 +25,23 @@ struct SemanticSpaceCreateRequestBuilder;
 struct SemanticSpaceCreateReply;
 struct SemanticSpaceCreateReplyBuilder;
 
-struct ContentID;
-struct ContentIDBuilder;
+struct ContentIDRequest;
+struct ContentIDRequestBuilder;
 
-struct SSDesc;
-struct SSDescBuilder;
+struct SSDescRequest;
+struct SSDescRequestBuilder;
 
-struct ContentDesc;
-struct ContentDescBuilder;
+struct TSDescRequest;
+struct TSDescRequestBuilder;
+
+struct VarDescRequest;
+struct VarDescRequestBuilder;
+
+struct VLDescRequest;
+struct VLDescRequestBuilder;
+
+struct ContentDescRequest;
+struct ContentDescRequestBuilder;
 
 struct SemanticSpaceLoadRequest;
 struct SemanticSpaceLoadRequestBuilder;
@@ -401,8 +410,8 @@ inline ::flatbuffers::Offset<SemanticSpaceCreateReply> CreateSemanticSpaceCreate
       perimeter_latitude__);
 }
 
-struct ContentID FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ContentIDBuilder Builder;
+struct ContentIDRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ContentIDRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SPACE_ID = 4,
     VT_TIME_ID = 6,
@@ -429,43 +438,43 @@ struct ContentID FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
 };
 
-struct ContentIDBuilder {
-  typedef ContentID Table;
+struct ContentIDRequestBuilder {
+  typedef ContentIDRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
-    fbb_.AddOffset(ContentID::VT_SPACE_ID, space_id);
+    fbb_.AddOffset(ContentIDRequest::VT_SPACE_ID, space_id);
   }
   void add_time_id(::flatbuffers::Offset<::flatbuffers::String> time_id) {
-    fbb_.AddOffset(ContentID::VT_TIME_ID, time_id);
+    fbb_.AddOffset(ContentIDRequest::VT_TIME_ID, time_id);
   }
   void add_var_id(::flatbuffers::Offset<::flatbuffers::String> var_id) {
-    fbb_.AddOffset(ContentID::VT_VAR_ID, var_id);
+    fbb_.AddOffset(ContentIDRequest::VT_VAR_ID, var_id);
   }
-  explicit ContentIDBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ContentIDRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<ContentID> Finish() {
+  ::flatbuffers::Offset<ContentIDRequest> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<ContentID>(end);
+    auto o = ::flatbuffers::Offset<ContentIDRequest>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<ContentID> CreateContentID(
+inline ::flatbuffers::Offset<ContentIDRequest> CreateContentIDRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
     ::flatbuffers::Offset<::flatbuffers::String> time_id = 0,
     ::flatbuffers::Offset<::flatbuffers::String> var_id = 0) {
-  ContentIDBuilder builder_(_fbb);
+  ContentIDRequestBuilder builder_(_fbb);
   builder_.add_var_id(var_id);
   builder_.add_time_id(time_id);
   builder_.add_space_id(space_id);
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<ContentID> CreateContentIDDirect(
+inline ::flatbuffers::Offset<ContentIDRequest> CreateContentIDRequestDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *space_id = nullptr,
     const char *time_id = nullptr,
@@ -473,15 +482,15 @@ inline ::flatbuffers::Offset<ContentID> CreateContentIDDirect(
   auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
   auto time_id__ = time_id ? _fbb.CreateString(time_id) : 0;
   auto var_id__ = var_id ? _fbb.CreateString(var_id) : 0;
-  return CreateContentID(
+  return CreateContentIDRequest(
       _fbb,
       space_id__,
       time_id__,
       var_id__);
 }
 
-struct SSDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef SSDescBuilder Builder;
+struct SSDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef SSDescRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_GEO_NAMES = 4,
     VT_ADCODE = 6,
@@ -524,40 +533,40 @@ struct SSDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
 };
 
-struct SSDescBuilder {
-  typedef SSDesc Table;
+struct SSDescRequestBuilder {
+  typedef SSDescRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_geo_names(::flatbuffers::Offset<::flatbuffers::String> geo_names) {
-    fbb_.AddOffset(SSDesc::VT_GEO_NAMES, geo_names);
+    fbb_.AddOffset(SSDescRequest::VT_GEO_NAMES, geo_names);
   }
   void add_adcode(::flatbuffers::Offset<::flatbuffers::String> adcode) {
-    fbb_.AddOffset(SSDesc::VT_ADCODE, adcode);
+    fbb_.AddOffset(SSDescRequest::VT_ADCODE, adcode);
   }
   void add_logitude(double logitude) {
-    fbb_.AddElement<double>(SSDesc::VT_LOGITUDE, logitude, 0.0);
+    fbb_.AddElement<double>(SSDescRequest::VT_LOGITUDE, logitude, 0.0);
   }
   void add_latitude(double latitude) {
-    fbb_.AddElement<double>(SSDesc::VT_LATITUDE, latitude, 0.0);
+    fbb_.AddElement<double>(SSDescRequest::VT_LATITUDE, latitude, 0.0);
   }
   void add_perimeter_logitude(::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_logitude) {
-    fbb_.AddOffset(SSDesc::VT_PERIMETER_LOGITUDE, perimeter_logitude);
+    fbb_.AddOffset(SSDescRequest::VT_PERIMETER_LOGITUDE, perimeter_logitude);
   }
   void add_perimeter_latitude(::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_latitude) {
-    fbb_.AddOffset(SSDesc::VT_PERIMETER_LATITUDE, perimeter_latitude);
+    fbb_.AddOffset(SSDescRequest::VT_PERIMETER_LATITUDE, perimeter_latitude);
   }
-  explicit SSDescBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SSDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<SSDesc> Finish() {
+  ::flatbuffers::Offset<SSDescRequest> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<SSDesc>(end);
+    auto o = ::flatbuffers::Offset<SSDescRequest>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<SSDesc> CreateSSDesc(
+inline ::flatbuffers::Offset<SSDescRequest> CreateSSDescRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> geo_names = 0,
     ::flatbuffers::Offset<::flatbuffers::String> adcode = 0,
@@ -565,7 +574,7 @@ inline ::flatbuffers::Offset<SSDesc> CreateSSDesc(
     double latitude = 0.0,
     ::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_logitude = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<double>> perimeter_latitude = 0) {
-  SSDescBuilder builder_(_fbb);
+  SSDescRequestBuilder builder_(_fbb);
   builder_.add_latitude(latitude);
   builder_.add_logitude(logitude);
   builder_.add_perimeter_latitude(perimeter_latitude);
@@ -575,7 +584,7 @@ inline ::flatbuffers::Offset<SSDesc> CreateSSDesc(
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<SSDesc> CreateSSDescDirect(
+inline ::flatbuffers::Offset<SSDescRequest> CreateSSDescRequestDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *geo_names = nullptr,
     const char *adcode = nullptr,
@@ -587,7 +596,7 @@ inline ::flatbuffers::Offset<SSDesc> CreateSSDescDirect(
   auto adcode__ = adcode ? _fbb.CreateString(adcode) : 0;
   auto perimeter_logitude__ = perimeter_logitude ? _fbb.CreateVector<double>(*perimeter_logitude) : 0;
   auto perimeter_latitude__ = perimeter_latitude ? _fbb.CreateVector<double>(*perimeter_latitude) : 0;
-  return CreateSSDesc(
+  return CreateSSDescRequest(
       _fbb,
       geo_names__,
       adcode__,
@@ -597,44 +606,352 @@ inline ::flatbuffers::Offset<SSDesc> CreateSSDescDirect(
       perimeter_latitude__);
 }
 
-struct ContentDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ContentDescBuilder Builder;
+struct TSDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TSDescRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SSDESC = 4
+    VT_REPORT_T = 4,
+    VT_START_T = 6,
+    VT_END_T = 8,
+    VT_INTERVAL = 10,
+    VT_COUNT = 12
   };
-  const SSDesc *ssdesc() const {
-    return GetPointer<const SSDesc *>(VT_SSDESC);
+  int64_t report_t() const {
+    return GetField<int64_t>(VT_REPORT_T, 0);
+  }
+  int64_t start_t() const {
+    return GetField<int64_t>(VT_START_T, 0);
+  }
+  int64_t end_t() const {
+    return GetField<int64_t>(VT_END_T, 0);
+  }
+  int64_t interval() const {
+    return GetField<int64_t>(VT_INTERVAL, 0);
+  }
+  int32_t count() const {
+    return GetField<int32_t>(VT_COUNT, 0);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int64_t>(verifier, VT_REPORT_T, 8) &&
+           VerifyField<int64_t>(verifier, VT_START_T, 8) &&
+           VerifyField<int64_t>(verifier, VT_END_T, 8) &&
+           VerifyField<int64_t>(verifier, VT_INTERVAL, 8) &&
+           VerifyField<int32_t>(verifier, VT_COUNT, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct TSDescRequestBuilder {
+  typedef TSDescRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_report_t(int64_t report_t) {
+    fbb_.AddElement<int64_t>(TSDescRequest::VT_REPORT_T, report_t, 0);
+  }
+  void add_start_t(int64_t start_t) {
+    fbb_.AddElement<int64_t>(TSDescRequest::VT_START_T, start_t, 0);
+  }
+  void add_end_t(int64_t end_t) {
+    fbb_.AddElement<int64_t>(TSDescRequest::VT_END_T, end_t, 0);
+  }
+  void add_interval(int64_t interval) {
+    fbb_.AddElement<int64_t>(TSDescRequest::VT_INTERVAL, interval, 0);
+  }
+  void add_count(int32_t count) {
+    fbb_.AddElement<int32_t>(TSDescRequest::VT_COUNT, count, 0);
+  }
+  explicit TSDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TSDescRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TSDescRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TSDescRequest> CreateTSDescRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    int64_t report_t = 0,
+    int64_t start_t = 0,
+    int64_t end_t = 0,
+    int64_t interval = 0,
+    int32_t count = 0) {
+  TSDescRequestBuilder builder_(_fbb);
+  builder_.add_interval(interval);
+  builder_.add_end_t(end_t);
+  builder_.add_start_t(start_t);
+  builder_.add_report_t(report_t);
+  builder_.add_count(count);
+  return builder_.Finish();
+}
+
+struct VarDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VarDescRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VAR_NAME = 4,
+    VT_VAR_TYPE = 6,
+    VT_VAR_LEN = 8,
+    VT_RES_RATION = 10,
+    VT_SHAPE = 12,
+    VT_NC_VAR_ID = 14,
+    VT_NC_GROUP_ID = 16
+  };
+  const ::flatbuffers::String *var_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VAR_NAME);
+  }
+  const ::flatbuffers::String *var_type() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VAR_TYPE);
+  }
+  int32_t var_len() const {
+    return GetField<int32_t>(VT_VAR_LEN, 0);
+  }
+  double res_ration() const {
+    return GetField<double>(VT_RES_RATION, 0.0);
+  }
+  const ::flatbuffers::Vector<uint64_t> *shape() const {
+    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_SHAPE);
+  }
+  int32_t nc_var_id() const {
+    return GetField<int32_t>(VT_NC_VAR_ID, 0);
+  }
+  int32_t nc_group_id() const {
+    return GetField<int32_t>(VT_NC_GROUP_ID, 0);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VAR_NAME) &&
+           verifier.VerifyString(var_name()) &&
+           VerifyOffset(verifier, VT_VAR_TYPE) &&
+           verifier.VerifyString(var_type()) &&
+           VerifyField<int32_t>(verifier, VT_VAR_LEN, 4) &&
+           VerifyField<double>(verifier, VT_RES_RATION, 8) &&
+           VerifyOffset(verifier, VT_SHAPE) &&
+           verifier.VerifyVector(shape()) &&
+           VerifyField<int32_t>(verifier, VT_NC_VAR_ID, 4) &&
+           VerifyField<int32_t>(verifier, VT_NC_GROUP_ID, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct VarDescRequestBuilder {
+  typedef VarDescRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_var_name(::flatbuffers::Offset<::flatbuffers::String> var_name) {
+    fbb_.AddOffset(VarDescRequest::VT_VAR_NAME, var_name);
+  }
+  void add_var_type(::flatbuffers::Offset<::flatbuffers::String> var_type) {
+    fbb_.AddOffset(VarDescRequest::VT_VAR_TYPE, var_type);
+  }
+  void add_var_len(int32_t var_len) {
+    fbb_.AddElement<int32_t>(VarDescRequest::VT_VAR_LEN, var_len, 0);
+  }
+  void add_res_ration(double res_ration) {
+    fbb_.AddElement<double>(VarDescRequest::VT_RES_RATION, res_ration, 0.0);
+  }
+  void add_shape(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> shape) {
+    fbb_.AddOffset(VarDescRequest::VT_SHAPE, shape);
+  }
+  void add_nc_var_id(int32_t nc_var_id) {
+    fbb_.AddElement<int32_t>(VarDescRequest::VT_NC_VAR_ID, nc_var_id, 0);
+  }
+  void add_nc_group_id(int32_t nc_group_id) {
+    fbb_.AddElement<int32_t>(VarDescRequest::VT_NC_GROUP_ID, nc_group_id, 0);
+  }
+  explicit VarDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<VarDescRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<VarDescRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<VarDescRequest> CreateVarDescRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> var_name = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> var_type = 0,
+    int32_t var_len = 0,
+    double res_ration = 0.0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> shape = 0,
+    int32_t nc_var_id = 0,
+    int32_t nc_group_id = 0) {
+  VarDescRequestBuilder builder_(_fbb);
+  builder_.add_res_ration(res_ration);
+  builder_.add_nc_group_id(nc_group_id);
+  builder_.add_nc_var_id(nc_var_id);
+  builder_.add_shape(shape);
+  builder_.add_var_len(var_len);
+  builder_.add_var_type(var_type);
+  builder_.add_var_name(var_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<VarDescRequest> CreateVarDescRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *var_name = nullptr,
+    const char *var_type = nullptr,
+    int32_t var_len = 0,
+    double res_ration = 0.0,
+    const std::vector<uint64_t> *shape = nullptr,
+    int32_t nc_var_id = 0,
+    int32_t nc_group_id = 0) {
+  auto var_name__ = var_name ? _fbb.CreateString(var_name) : 0;
+  auto var_type__ = var_type ? _fbb.CreateString(var_type) : 0;
+  auto shape__ = shape ? _fbb.CreateVector<uint64_t>(*shape) : 0;
+  return CreateVarDescRequest(
+      _fbb,
+      var_name__,
+      var_type__,
+      var_len,
+      res_ration,
+      shape__,
+      nc_var_id,
+      nc_group_id);
+}
+
+struct VLDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VLDescRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_GROUP_NAME = 4,
+    VT_GROUP_LEN = 6,
+    VT_VARS = 8
+  };
+  const ::flatbuffers::String *group_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GROUP_NAME);
+  }
+  int32_t group_len() const {
+    return GetField<int32_t>(VT_GROUP_LEN, 0);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>> *vars() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>> *>(VT_VARS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_GROUP_NAME) &&
+           verifier.VerifyString(group_name()) &&
+           VerifyField<int32_t>(verifier, VT_GROUP_LEN, 4) &&
+           VerifyOffset(verifier, VT_VARS) &&
+           verifier.VerifyVector(vars()) &&
+           verifier.VerifyVectorOfTables(vars()) &&
+           verifier.EndTable();
+  }
+};
+
+struct VLDescRequestBuilder {
+  typedef VLDescRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_group_name(::flatbuffers::Offset<::flatbuffers::String> group_name) {
+    fbb_.AddOffset(VLDescRequest::VT_GROUP_NAME, group_name);
+  }
+  void add_group_len(int32_t group_len) {
+    fbb_.AddElement<int32_t>(VLDescRequest::VT_GROUP_LEN, group_len, 0);
+  }
+  void add_vars(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>>> vars) {
+    fbb_.AddOffset(VLDescRequest::VT_VARS, vars);
+  }
+  explicit VLDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<VLDescRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<VLDescRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<VLDescRequest> CreateVLDescRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> group_name = 0,
+    int32_t group_len = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>>> vars = 0) {
+  VLDescRequestBuilder builder_(_fbb);
+  builder_.add_vars(vars);
+  builder_.add_group_len(group_len);
+  builder_.add_group_name(group_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<VLDescRequest> CreateVLDescRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *group_name = nullptr,
+    int32_t group_len = 0,
+    const std::vector<::flatbuffers::Offset<VarDescRequest>> *vars = nullptr) {
+  auto group_name__ = group_name ? _fbb.CreateString(group_name) : 0;
+  auto vars__ = vars ? _fbb.CreateVector<::flatbuffers::Offset<VarDescRequest>>(*vars) : 0;
+  return CreateVLDescRequest(
+      _fbb,
+      group_name__,
+      group_len,
+      vars__);
+}
+
+struct ContentDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ContentDescRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SSDESC = 4,
+    VT_TSDESC = 6,
+    VT_VLDESC = 8
+  };
+  const SSDescRequest *ssdesc() const {
+    return GetPointer<const SSDescRequest *>(VT_SSDESC);
+  }
+  const TSDescRequest *tsdesc() const {
+    return GetPointer<const TSDescRequest *>(VT_TSDESC);
+  }
+  const VLDescRequest *vldesc() const {
+    return GetPointer<const VLDescRequest *>(VT_VLDESC);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_SSDESC) &&
            verifier.VerifyTable(ssdesc()) &&
+           VerifyOffset(verifier, VT_TSDESC) &&
+           verifier.VerifyTable(tsdesc()) &&
+           VerifyOffset(verifier, VT_VLDESC) &&
+           verifier.VerifyTable(vldesc()) &&
            verifier.EndTable();
   }
 };
 
-struct ContentDescBuilder {
-  typedef ContentDesc Table;
+struct ContentDescRequestBuilder {
+  typedef ContentDescRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_ssdesc(::flatbuffers::Offset<SSDesc> ssdesc) {
-    fbb_.AddOffset(ContentDesc::VT_SSDESC, ssdesc);
+  void add_ssdesc(::flatbuffers::Offset<SSDescRequest> ssdesc) {
+    fbb_.AddOffset(ContentDescRequest::VT_SSDESC, ssdesc);
   }
-  explicit ContentDescBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  void add_tsdesc(::flatbuffers::Offset<TSDescRequest> tsdesc) {
+    fbb_.AddOffset(ContentDescRequest::VT_TSDESC, tsdesc);
+  }
+  void add_vldesc(::flatbuffers::Offset<VLDescRequest> vldesc) {
+    fbb_.AddOffset(ContentDescRequest::VT_VLDESC, vldesc);
+  }
+  explicit ContentDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<ContentDesc> Finish() {
+  ::flatbuffers::Offset<ContentDescRequest> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<ContentDesc>(end);
+    auto o = ::flatbuffers::Offset<ContentDescRequest>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<ContentDesc> CreateContentDesc(
+inline ::flatbuffers::Offset<ContentDescRequest> CreateContentDescRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<SSDesc> ssdesc = 0) {
-  ContentDescBuilder builder_(_fbb);
+    ::flatbuffers::Offset<SSDescRequest> ssdesc = 0,
+    ::flatbuffers::Offset<TSDescRequest> tsdesc = 0,
+    ::flatbuffers::Offset<VLDescRequest> vldesc = 0) {
+  ContentDescRequestBuilder builder_(_fbb);
+  builder_.add_vldesc(vldesc);
+  builder_.add_tsdesc(tsdesc);
   builder_.add_ssdesc(ssdesc);
   return builder_.Finish();
 }
@@ -693,17 +1010,23 @@ inline ::flatbuffers::Offset<SemanticSpaceLoadRequest> CreateSemanticSpaceLoadRe
 struct SemanticSpaceLoadReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SemanticSpaceLoadReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CNT_IDS = 4,
-    VT_CNT_DESCS = 6
+    VT_SEMANTICSPACE = 4,
+    VT_CNT_IDS = 6,
+    VT_CNT_DESCS = 8
   };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<ContentID>> *cnt_ids() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<ContentID>> *>(VT_CNT_IDS);
+  const SemanticSpaceCreateReply *semanticspace() const {
+    return GetPointer<const SemanticSpaceCreateReply *>(VT_SEMANTICSPACE);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>> *cnt_descs() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>> *>(VT_CNT_DESCS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<ContentIDRequest>> *cnt_ids() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<ContentIDRequest>> *>(VT_CNT_IDS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<ContentDescRequest>> *cnt_descs() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<ContentDescRequest>> *>(VT_CNT_DESCS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SEMANTICSPACE) &&
+           verifier.VerifyTable(semanticspace()) &&
            VerifyOffset(verifier, VT_CNT_IDS) &&
            verifier.VerifyVector(cnt_ids()) &&
            verifier.VerifyVectorOfTables(cnt_ids()) &&
@@ -718,10 +1041,13 @@ struct SemanticSpaceLoadReplyBuilder {
   typedef SemanticSpaceLoadReply Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_cnt_ids(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentID>>> cnt_ids) {
+  void add_semanticspace(::flatbuffers::Offset<SemanticSpaceCreateReply> semanticspace) {
+    fbb_.AddOffset(SemanticSpaceLoadReply::VT_SEMANTICSPACE, semanticspace);
+  }
+  void add_cnt_ids(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentIDRequest>>> cnt_ids) {
     fbb_.AddOffset(SemanticSpaceLoadReply::VT_CNT_IDS, cnt_ids);
   }
-  void add_cnt_descs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>>> cnt_descs) {
+  void add_cnt_descs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentDescRequest>>> cnt_descs) {
     fbb_.AddOffset(SemanticSpaceLoadReply::VT_CNT_DESCS, cnt_descs);
   }
   explicit SemanticSpaceLoadReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
@@ -737,22 +1063,26 @@ struct SemanticSpaceLoadReplyBuilder {
 
 inline ::flatbuffers::Offset<SemanticSpaceLoadReply> CreateSemanticSpaceLoadReply(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentID>>> cnt_ids = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentDesc>>> cnt_descs = 0) {
+    ::flatbuffers::Offset<SemanticSpaceCreateReply> semanticspace = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentIDRequest>>> cnt_ids = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<ContentDescRequest>>> cnt_descs = 0) {
   SemanticSpaceLoadReplyBuilder builder_(_fbb);
   builder_.add_cnt_descs(cnt_descs);
   builder_.add_cnt_ids(cnt_ids);
+  builder_.add_semanticspace(semanticspace);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<SemanticSpaceLoadReply> CreateSemanticSpaceLoadReplyDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<ContentID>> *cnt_ids = nullptr,
-    const std::vector<::flatbuffers::Offset<ContentDesc>> *cnt_descs = nullptr) {
-  auto cnt_ids__ = cnt_ids ? _fbb.CreateVector<::flatbuffers::Offset<ContentID>>(*cnt_ids) : 0;
-  auto cnt_descs__ = cnt_descs ? _fbb.CreateVector<::flatbuffers::Offset<ContentDesc>>(*cnt_descs) : 0;
+    ::flatbuffers::Offset<SemanticSpaceCreateReply> semanticspace = 0,
+    const std::vector<::flatbuffers::Offset<ContentIDRequest>> *cnt_ids = nullptr,
+    const std::vector<::flatbuffers::Offset<ContentDescRequest>> *cnt_descs = nullptr) {
+  auto cnt_ids__ = cnt_ids ? _fbb.CreateVector<::flatbuffers::Offset<ContentIDRequest>>(*cnt_ids) : 0;
+  auto cnt_descs__ = cnt_descs ? _fbb.CreateVector<::flatbuffers::Offset<ContentDescRequest>>(*cnt_descs) : 0;
   return CreateSemanticSpaceLoadReply(
       _fbb,
+      semanticspace,
       cnt_ids__,
       cnt_descs__);
 }
@@ -1141,14 +1471,14 @@ inline ::flatbuffers::Offset<ContentIndexCreateRequst> CreateContentIndexCreateR
 struct ContentIndexReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ContentIndexReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_WELCOME = 4
+    VT_RESULT = 4
   };
-  int32_t welcome() const {
-    return GetField<int32_t>(VT_WELCOME, 0);
+  bool result() const {
+    return GetField<uint8_t>(VT_RESULT, 0) != 0;
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_WELCOME, 4) &&
+           VerifyField<uint8_t>(verifier, VT_RESULT, 1) &&
            verifier.EndTable();
   }
 };
@@ -1157,8 +1487,8 @@ struct ContentIndexReplyBuilder {
   typedef ContentIndexReply Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_welcome(int32_t welcome) {
-    fbb_.AddElement<int32_t>(ContentIndexReply::VT_WELCOME, welcome, 0);
+  void add_result(bool result) {
+    fbb_.AddElement<uint8_t>(ContentIndexReply::VT_RESULT, static_cast<uint8_t>(result), 0);
   }
   explicit ContentIndexReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1173,9 +1503,9 @@ struct ContentIndexReplyBuilder {
 
 inline ::flatbuffers::Offset<ContentIndexReply> CreateContentIndexReply(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t welcome = 0) {
+    bool result = false) {
   ContentIndexReplyBuilder builder_(_fbb);
-  builder_.add_welcome(welcome);
+  builder_.add_result(result);
   return builder_.Finish();
 }
 

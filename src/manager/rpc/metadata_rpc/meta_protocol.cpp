@@ -52,7 +52,6 @@ namespace SDS {
     }
 
      Status ReadCreateSemanticSpaceRequest(uint8_t* data, std::string &spaceName, std::vector<std::string> &geoNames) {
-
         DCHECK(data);
         auto message = flatbuffers::GetRoot<SemanticSpaceCreateRequest>(data);
         spaceName = message->space_name()->str();
@@ -61,10 +60,9 @@ namespace SDS {
         for(int i = 0; i < geoNamesList->size(); i++) {
             geoNames.push_back(geoNamesList->Get(i)->str());
         }
-
         return Status::OK();
     }
- 
+
     Status SendCreateSemanticSpaceReply(int sock, SemanticSpace* space) {
         flatbuffers::FlatBufferBuilder fbb;
         auto spaceIDf = fbb.CreateString(std::to_string(space->spaceID));
@@ -89,26 +87,6 @@ namespace SDS {
         return messageSend(sock, MessageTypeSemanticSpaceCreateReply, &fbb, message);
     }
 
-    Status SendLoadSemanticSpaceRequest(int sock, std::string spaceName) {
-
-    }
-
-    Status ReadLoadSemanticSpaceRequest(uint8_t* data, std::string &spaceName) {
-
-    }
-
-    Status SendLoadSemanticSpaceReply(int sock, SemanticSpace* space) {
-
-    }
-
-    Status ReadLoadSemanticSpaceReply(uint8_t* data, SemanticSpace &space) {
-        
-    }
-
-
-
-
-
     Status ReadCreateSemanticSpaceReply(uint8_t* data, SemanticSpace& space) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<SemanticSpaceCreateReply>(data);
@@ -132,6 +110,174 @@ namespace SDS {
             space.ssDesc.geoPerimeter.push_back(geo);
         }
         return Status::OK();   
+    }
+
+    Status SendLoadSemanticSpaceRequest(int sock, std::string spaceName) {
+        ARROW_LOG(INFO) <<  "Send load semantic space request, spaceName:" << spaceName;
+        flatbuffers::FlatBufferBuilder fbb;
+        auto spaceNamef = fbb.CreateString(spaceName);
+        auto message = CreateSemanticSpaceLoadRequest(fbb, spaceNamef);
+        return messageSend(sock, MessageTypeSemanticSpaceLoadRequest, &fbb, message);
+    }
+
+    Status ReadLoadSemanticSpaceRequest(uint8_t* data, std::string &spaceName) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<SemanticSpaceLoadRequest>(data);
+        spaceName = message->space_name()->str();
+        return Status::OK();
+    }
+
+    Status SendLoadSemanticSpaceReply(int sock, SemanticSpace* space) {
+        flatbuffers::FlatBufferBuilder fbb;
+        std::vector<ContentID> cntIDVec;
+        std::vector<ContentDesc> cntDescVec;
+        for(auto item: space->databoxsIndex) {
+            cntIDVec.push_back(item.first);
+            cntDescVec.push_back(item.second);
+        }
+
+        std::vector<flatbuffers::Offset<ContentIDRequest>> cntIDfVec;
+        std::vector<flatbuffers::Offset<ContentDescRequest>> cntDescfVec;
+
+        // Serialize Space info
+        auto spaceIDf = fbb.CreateString(std::to_string(space->spaceID));
+        auto ssNamef = fbb.CreateString(space->SSName);
+        auto pssIDf = fbb.CreateString(space->PSSID);
+        auto adcodef = fbb.CreateString(space->ssDesc.adCode);
+        auto geoNamef = fbb.CreateString(space->ssDesc.geoName);
+
+        std::vector<double> geo_logitude;
+        std::vector<double> geo_latitude;
+        for(auto item : space->ssDesc.geoPerimeter) {
+            geo_logitude.push_back(item.logitude);
+            geo_latitude.push_back(item.latitude);
+        }
+        auto geo_logitude_vector = fbb.CreateVector(geo_logitude);
+        auto geo_latitude_vector = fbb.CreateVector(geo_latitude);
+
+        auto spaceInfof = CreateSemanticSpaceCreateReply(fbb, spaceIDf, ssNamef, pssIDf, space->childrenNum, 
+                                                        space->createT, space->databoxNum, geoNamef,
+                                                        adcodef, space->ssDesc.geoCentral.logitude, space->ssDesc.geoCentral.latitude,
+                                                        geo_logitude_vector, geo_latitude_vector);
+
+        // Serialize Content ID
+        for(int i = 0; i <cntIDVec.size(); i++) {
+            auto spaceIDf = fbb.CreateString(cntIDVec[i].getSpaceID());
+            auto timeIDf = fbb.CreateString(cntIDVec[i].getTimeID());
+            auto varIDf = fbb.CreateString(cntIDVec[i].getVarID());
+            auto cntIDf = CreateContentIDRequest(fbb, spaceIDf, timeIDf, varIDf);
+            cntIDfVec.push_back(cntIDf);
+        }
+        auto cntIDfVecf = fbb.CreateVector(cntIDfVec);
+
+        // Serialize Content Decription
+        for(int i = 0; i < cntDescVec.size(); i++) {
+
+            // Serialize Space Description
+            auto geoNamef = fbb.CreateString(cntDescVec[i].ssDesc.geoName);
+            auto adcodef = fbb.CreateString(cntDescVec[i].ssDesc.adCode);
+            std::vector<double> geo_logitude;
+            std::vector<double> geo_latitude;
+
+            for(auto item : cntDescVec[i].ssDesc.geoPerimeter) {
+                geo_logitude.push_back(item.logitude);
+                geo_latitude.push_back(item.latitude);
+            }
+            auto geo_logitude_vec = fbb.CreateVector(geo_logitude);
+            auto geo_latitude_vec = fbb.CreateVector(geo_latitude);
+
+            auto SSDescf = CreateSSDescRequest(fbb, geoNamef, adcodef, cntDescVec[i].ssDesc.geoCentral.logitude,
+                                            cntDescVec[i].ssDesc.geoCentral.latitude, geo_logitude_vec, geo_latitude_vec);
+            
+            // Serialize Time Decription
+            time_t reportT = std::mktime(cntDescVec[i].tsDesc.reportT);
+            time_t startT = std::mktime(cntDescVec[i].tsDesc.startT);
+            time_t endT = std::mktime(cntDescVec[i].tsDesc.endT);
+            auto tsDescf = CreateTSDescRequest(fbb, reportT, startT, endT,
+                                                cntDescVec[i].tsDesc.interval, cntDescVec[i].tsDesc.count);
+
+            // Serialize Var Description
+            auto groupNamef = fbb.CreateString(cntDescVec[i].vlDesc.groupName);
+            std::vector<flatbuffers::Offset<VarDescRequest>> varDescfVec;
+            for(auto item : cntDescVec[i].vlDesc.desc) {
+                auto varNamef = fbb.CreateString(item.varName);
+                auto varTypef = fbb.CreateString(item.varType);
+                auto shapeVecf = fbb.CreateVector(item.shape);
+                auto varDescf = CreateVarDescRequest(fbb, varNamef, varTypef, item.varLen,
+                                                        item.resRation, shapeVecf, item.ncVarID, item.ncGroupID);
+                varDescfVec.push_back(varDescf);
+            }
+            auto varDescfVecf = fbb.CreateVector(varDescfVec);
+            auto vlDescf = CreateVLDescRequest(fbb, groupNamef, cntDescVec[i].vlDesc.groupLen, varDescfVecf);
+
+            auto cntDescf = CreateContentDescRequest(fbb, SSDescf, tsDescf, vlDescf);
+            cntDescfVec.push_back(cntDescf);
+        }
+        auto cntDescfVecf = fbb.CreateVector(cntDescfVec);
+        auto message = CreateSemanticSpaceLoadReply(fbb, spaceInfof, cntIDfVecf, cntDescfVecf);
+        return messageSend(sock, MessageTypeSemanticSpaceLoadReply, &fbb, message);
+    }
+
+    Status ReadLoadSemanticSpaceReply(uint8_t* data, SemanticSpace &space) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<SemanticSpaceLoadReply>(data);
+        auto cntIDVecf =  message->cnt_ids();
+        auto cntDescVecf = message->cnt_descs();
+        auto spaceInfo = message->semanticspace();
+        
+        space.spaceID = std::atoi(spaceInfo->space_id()->str().c_str());
+        space.SSName = spaceInfo->ssname()->str();
+        space.PSSID = spaceInfo->psss_id()->str();
+        space.childrenNum = spaceInfo->children_num();
+        space.createT = spaceInfo->create_time();
+        space.databoxNum = spaceInfo->databox_num();
+        space.ssDesc.geoName = spaceInfo->geo_names()->str();
+        space.ssDesc.adCode = spaceInfo->adcode()->str();
+        space.ssDesc.geoCentral.logitude = spaceInfo->logitude();
+        space.ssDesc.geoCentral.latitude = spaceInfo->latitude();
+
+        auto geo_logitude_vector = spaceInfo->perimeter_logitude();
+        auto geo_latitude_vector = spaceInfo->perimeter_latitude();
+        for(int i = 0; i < geo_logitude_vector->size(); i++) {
+            GeoCoordinate geo;
+            geo.logitude = geo_logitude_vector->Get(i);
+            geo.latitude = geo_latitude_vector->Get(i);
+            space.ssDesc.geoPerimeter.push_back(geo);
+        }
+    
+        for(int i = 0; i < cntIDVecf->size(); i++) {
+            // Deserialize Content ID
+            ContentID cntID;
+            cntID.setSpaceID(cntIDVecf->Get(i)->space_id()->str());
+            cntID.setTimeID(cntIDVecf->Get(i)->time_id()->str());
+            cntID.setVarID(cntIDVecf->Get(i)->var_id()->str());
+
+            ContentDesc cntDesc;
+            // Deserialize space Desc
+            std::vector<GeoCoordinate> geoCoor;
+            for(int i = 0; i < cntDescVecf->size(); i++) {
+                GeoCoordinate geo;
+                geo.latitude = cntDescVecf->Get(i)->ssdesc()->perimeter_latitude()->Get(i);
+                geo.logitude = cntDescVecf->Get(i)->ssdesc()->perimeter_logitude()->Get(i);
+            }
+
+            cntDesc.setSpaceDesc(cntDescVecf->Get(i)->ssdesc()->geo_names()->str(),
+                                    cntDescVecf->Get(i)->ssdesc()->adcode()->str(),
+                                    cntDescVecf->Get(i)->ssdesc()->logitude(),
+                                    cntDescVecf->Get(i)->ssdesc()->latitude(),
+                                    geoCoor);
+            
+            // Deserialize time Desc
+            cntDesc.setTimeSlotDesc(cntDescVecf->Get(i)->tsdesc()->report_t,
+                                        cntDescVecf->Get(i)->tsdesc()->report_t,
+                                        cntDescVecf->Get(i)->tsdesc()->report_t)
+
+            // Deserialize var Desc
+
+
+            space.databoxsIndex.insert({cntID, cntDesc});
+        } 
+        return Status::OK();
     }
 
     Status SendCreateStorageSpaceRequest(int sock, std::string SSName, size_t capacitySize, std::string spaceID, std::string storageKind,
@@ -196,7 +342,6 @@ namespace SDS {
                 kindf = fbb.CreateString("None");
                 break;
         }
-
         auto message = CreateStorageSpaceCreateReply(fbb, storageIDf, ssNamef, space->stoMeta.writable,
                                                     space->stoMeta.size, space->stoMeta.capacity, kindf,
                                                     poolNamef, rootPathf);
@@ -228,8 +373,6 @@ namespace SDS {
         return Status::OK();   
     }
     
-  
-
     Status SendCreateContentIndexRequest(int sock, std::string semanticSpaceName, std::string storageSpaceName, std::string dirPath) {
  
         ARROW_LOG(INFO) <<  "Send content index create request, dirPath:" << dirPath;
@@ -252,16 +395,16 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendCreateContentIndexReply(int sock, int64_t welcome) {
+    Status SendCreateContentIndexReply(int sock, bool result) {
         flatbuffers::FlatBufferBuilder fbb;
-        auto message = CreateContentIndexReply(fbb, welcome);
+        auto message = CreateContentIndexReply(fbb, result);
         return messageSend(sock, MessageTypeDataImportFromLocalReply, &fbb, message);
     }
 
-    Status ReadCreateContentIndexReply(uint8_t* data, int64_t* welcome) {
+    Status ReadCreateContentIndexReply(uint8_t* data, bool &result) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<ContentIndexReply>(data);
-        *welcome = message->welcome();
+        result = message->result();
         return Status::OK();
     }
 

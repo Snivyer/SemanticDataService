@@ -133,11 +133,43 @@ namespace SDS {
         TSDesc tsDesc;       // 时间段描述符
         VLDesc vlDesc;       // 变量列表描述符
 
+        void setSpaceDesc(std::string geoName, std::string adCode,
+                            GeoCoordinate &geoCentral, std::vector<GeoCoordinate>  &geoPerimeter) {
+            ssDesc.geoName = geoName;
+            ssDesc.adCode = adCode;
+            ssDesc.geoCentral.latitude = geoCentral.latitude;
+            ssDesc.geoCentral.logitude = geoCentral.logitude;
+
+            for(auto item : geoPerimeter) {
+                GeoCoordinate geo;
+                geo.latitude = item.latitude;
+                geo.logitude = item.logitude;
+                ssDesc.geoPerimeter.push_back(geo);
+            }
+        }
+
+        void setSpaceDesc(std::string geoName, std::string adCode, double logitude, double latitude,
+                            std::vector<GeoCoordinate> &geoCoor) {
+       
+            ssDesc.geoName = geoName;
+            ssDesc.adCode = adCode;
+            ssDesc.geoCentral.latitude = latitude;
+            ssDesc.geoCentral.logitude = logitude;
+
+            for(auto item : geoCoor) {
+                GeoCoordinate geo;
+                geo.latitude = item.latitude;
+                geo.logitude = item.logitude;
+                ssDesc.geoPerimeter.push_back(geo);
+            }
+        }
+
         void setSpaceDesc(SSDesc &desc) {
             ssDesc.geoName = desc.geoName;
             ssDesc.adCode = desc.adCode;
             ssDesc.geoCentral.latitude = desc.geoCentral.latitude;
             ssDesc.geoCentral.logitude = desc.geoCentral.logitude;
+
 
             for(auto item : desc.geoPerimeter) {
                 GeoCoordinate geo;

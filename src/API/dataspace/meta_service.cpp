@@ -132,22 +132,12 @@ namespace SDS {
     }
 
 
-    StorageSpace* MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client) {
+    StorageSpace* MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, MetaClient* client) {
 
         std::string SSName = storeInfo.SSName;
         auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(SSName) != 0) {
            return StorageSpaceInfo[SSName]->space;
-        }
-
-        if(storekind == "Ceph") {
-            storeInfo.kind = SDS::StoreSpaceKind::Ceph;
-        } else if (storekind == "Lustre") {
-            storeInfo.kind = StoreSpaceKind::Lustre;
-        } else if (storekind == "BB") {
-            storeInfo.kind = StoreSpaceKind::BB;
-        } else {
-            storeInfo.kind = StoreSpaceKind::None;
         }
 
         auto manager = impl_->getStorageManager();
@@ -334,7 +324,7 @@ namespace SDS {
         }
     }
 
-    Status MetaService:: processMessage(MetaClient* client) {
+    Status MetaService::processMessage(MetaClient* client) {
         int64_t type;
         Status s = ReadMessage(client->fd, &type, &(impl_->getInputBuffer()));
         assert(s.ok() || s.IsIOError());
@@ -370,7 +360,8 @@ namespace SDS {
                 StoreTemplate storeInfo;
                 RETURN_NOT_OK(ReadCreateStorageSpaceRequest(input, storeInfo.SSName, storeInfo.spaceSize,
                                                 spaceID, kind, storeInfo.writable, storeInfo.connConf));
-                auto space = createStorageSpace(spaceID, storeInfo, kind, client);
+                storeInfo.setStoreKind(kind);
+                auto space = createStorageSpace(spaceID, storeInfo, client);
                 HANDLE_SIGPIPE(SendCreateStorageSpaceReply(client->fd, space), client->fd);
             } break;
             case MessageTypeDataImportFromLocalRequest: {
@@ -378,8 +369,8 @@ namespace SDS {
                 std::string storageSpaceName;
                 std::string dirPath;
                 RETURN_NOT_OK(ReadCreateContentIndexRequest(input, semanticSpaceName, storageSpaceName, dirPath));
-                createContentIndex(semanticSpaceName, storageSpaceName, dirPath);
-                HANDLE_SIGPIPE(SendCreateContentIndexReply(client->fd, 1), client->fd);
+                auto ret = createContentIndex(semanticSpaceName, storageSpaceName, dirPath);
+                HANDLE_SIGPIPE(SendCreateContentIndexReply(client->fd, ret), client->fd);
             } break;
             case MessageTypeDataSearchRequest: {
                 std::vector<std::string> geoNames;

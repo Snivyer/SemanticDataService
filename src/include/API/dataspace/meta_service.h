@@ -29,7 +29,7 @@ namespace SDS {
             SemanticSpace* createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client);
             SemanticSpace* loadSemanticSpace(std::string SSName);
 
-            StorageSpace* createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, std::string storekind, MetaClient* client);
+            StorageSpace* createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, MetaClient* client);
        
 
             // create the content index for local dataset

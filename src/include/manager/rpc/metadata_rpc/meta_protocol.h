@@ -37,12 +37,10 @@ namespace SDS {
     const int64_t MessageTypeDataImportFromOtherReply        = 12;
     const int64_t MessageTypeDataSearchRequest               = 13;
     const int64_t MessageTypeDataSearchReply                 = 14;
-    const int64_t MessageTypeSemanticSpaceLoadRequest      = 15;
-    const int64_t MessageTypeSemanticSpaceLoadReply        = 16;
+    const int64_t MessageTypeSemanticSpaceLoadRequest        = 15;
+    const int64_t MessageTypeSemanticSpaceLoadReply          = 16;
 
 
-
-   
 
     /* connect message functions*/
     Status SendMetaConnectRequest(int sock);
@@ -73,8 +71,9 @@ namespace SDS {
     /* create content index message functions*/
     Status SendCreateContentIndexRequest(int sock, std::string semanticSpaceName, std::string storageSpaceName, std::string dirPath);
     Status ReadCreateContentIndexRequest(uint8_t* data, std::string &semanticSpaceName, std::string &storageSpaceName, std::string &dirPath);
-    Status SendCreateContentIndexReply(int sock, int64_t welcome);
-    Status ReadCreateContentIndexReply(uint8_t* data, int64_t* welcome);
+    Status SendCreateContentIndexReply(int sock, bool result);
+    Status ReadCreateContentIndexReply(uint8_t* data, bool &result);
+     
 
     /* search content index message functions*/
     Status SendSearchContentIndexRequest(int sock, std::vector<std::string> &geoNames, std::vector<std::string> &times, std::vector<std::string> &varNames, std::string &groupName);

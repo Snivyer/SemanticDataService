@@ -26,13 +26,13 @@ table SemanticSpaceCreateReply {
     perimeter_latitude:[double];
 }
 
-table ContentID {
+table ContentIDRequest {
     space_id:string;
     time_id:string;
     var_id:string;
 }
 
-table SSDesc {
+table SSDescRequest {
     geo_names:string;
     adcode:string;
     logitude:double;
@@ -41,8 +41,34 @@ table SSDesc {
     perimeter_latitude:[double];
 }
 
-table ContentDesc {
-    ssdesc:SSDesc;
+table TSDescRequest {
+    report_t:long;
+    start_t:long;
+    end_t:long;
+    interval:long;
+    count:int;
+}
+
+table VarDescRequest {
+    var_name:string;
+    var_type:string;
+    var_len:int;
+    res_ration:double;
+    shape:[ulong];
+    nc_var_id:int;
+    nc_group_id:int;
+}
+
+table VLDescRequest {
+    group_name: string;
+    group_len: int;
+    vars:[VarDescRequest];
+}
+
+table ContentDescRequest{
+    ssdesc:SSDescRequest;
+    tsdesc:TSDescRequest;
+    vldesc:VLDescRequest;
 }
 
 table SemanticSpaceLoadRequest {
@@ -50,8 +76,10 @@ table SemanticSpaceLoadRequest {
 }
 
 table SemanticSpaceLoadReply {
-    cnt_ids:[ContentID];
-    cnt_descs:[ContentDesc];
+    semanticspace:SemanticSpaceCreateReply;
+    cnt_ids:[ContentIDRequest];
+    cnt_descs:[ContentDescRequest];
+
 }
 
 table StorageSpaceCreateRequest {
@@ -84,7 +112,7 @@ table ContentIndexCreateRequst {
 }
 
 table ContentIndexReply {
-    welcome:int;
+    result:bool;
 }
 
 table ContentIndexSearchRequest {

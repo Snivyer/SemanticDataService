@@ -145,6 +145,16 @@ namespace SDS
             
             // add the data box into the semantic space
             space->databoxsIndex.insert({cntID, cntDesc});
+            space->databoxNum += 1;
+
+            // parent space add too
+            auto node = space->indexNode->moveUp();
+            while(node) {
+                auto parentSpace = getSpaceByID(node->getCompleteSpaceID());
+                parentSpace->databoxsIndex.insert({cntID, cntDesc});
+                parentSpace->databoxNum += 1;
+                node = parentSpace->indexNode->moveUp();
+            }
             return true;
         } else {
             return false;
