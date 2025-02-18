@@ -192,7 +192,7 @@ namespace SDS {
 
         if(this->getTerm(term, adcode) == false)  {
             result.push_back(node);
-            return false;
+            return false; 
         }
 
         // insert mulptile node accoring the relationship of adcode

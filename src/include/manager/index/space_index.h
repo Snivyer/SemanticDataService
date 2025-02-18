@@ -31,6 +31,10 @@ namespace SDS
             return PSSID + intToStringWithPadding(spaceID, keyLength);
         }
 
+        std::vector<struct SpaceNode*> getChildNodes() {
+            return CSNode;
+        }
+
         SpaceNode* moveUp() {
             return this->PSNode;
         }

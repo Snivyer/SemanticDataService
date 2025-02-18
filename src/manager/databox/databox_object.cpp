@@ -50,8 +50,9 @@ namespace SDS {
              return arrow::Status::OK();
         }
 
-        // fill the data recordbatch
-        adaptor->getVarDescList(dataPath_, meta_.varList);
+        // fill the data recordbatch 
+        // todo: 这个需要重新改一下，今天先不改了，2-18
+        // adaptor->getVarDescList(dataPath_, meta_.varList);
 
         if(meta_.varList.size() == 0) {
             return arrow::Status::UnknownError("test");

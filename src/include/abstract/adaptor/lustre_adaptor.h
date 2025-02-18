@@ -37,6 +37,7 @@ namespace SDS
         // 以NC文件的方式将数据写入存储系统中
         bool importFile(struct SystemDesc &sysDesc, FilePathList pathList);
 
+
     private:
         struct ConnectConfig connConfig;
         

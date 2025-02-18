@@ -6,8 +6,6 @@
 */
 
 #pragma once
-
-
 #include "meta.h"
 #include "abstract/GIS/geo_read.h"
 #include "abstract/utils/string_operation.h"
@@ -48,12 +46,18 @@ namespace SDS
         // extract the time slot description according to time vector
         bool extractTSDesc(TSDesc &tsDesc, std::vector<std::string> &times);
 
+        // extract the time info from different file template
+        bool extractTimeInfo(std::string fileName, tm &fileTm);
+
+
         // extract the var list desciption by user give variable
         bool extractVLDesc(VLDesc &vlDesc, std::vector<std::string> &vars,
                                 std::unordered_map<std::string, size_t> &varList);
         
         // extract the var list desciption by reading variable information from NetCDF 
         bool extractVLDesc(VLDesc &vlDesc, std::string dirName, bool isSame = true);
+
+
 
 
         /*------配置元数据存储------*/

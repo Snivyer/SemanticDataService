@@ -70,6 +70,7 @@ namespace SDS
                 space->init(node);
                 _spaceNameMap.insert({SSName, space});
                 _spaceIDMap.insert({space->getCompleteSpaceID(), space});
+                autoReferDataBox(space);        
                 return space->getCompleteSpaceID();
             }  
         } else {
@@ -77,6 +78,7 @@ namespace SDS
                 space->init(node, SpaceStatus::read);
                 _spaceNameMap.insert({SSName, space});
                 _spaceIDMap.insert({space->getCompleteSpaceID(), space});
+                autoReferDataBox(space);
                 return node->getCompleteSpaceID();
             }
         }
@@ -125,6 +127,35 @@ namespace SDS
         return nullptr;
     }
 
+    void SemanticSpaceManager::autoReferDataBox(SemanticSpace* space) {
+        auto childNodes = space->indexNode->getChildNodes();
+        for(auto node: childNodes) {
+            auto childSpace = getSpaceByID(node->getCompleteSpaceID());
+            if(childSpace) {
+                for(auto item : childSpace->databoxsIndex) {
+                    space->databoxsIndex.insert({item.first, item.second});
+                    space->databoxNum += 1;
+                    autoAddDataBox(space, item.first, item.second);
+                }
+            }
+        }
+    }
+
+    bool SemanticSpaceManager::autoAddDataBox(SemanticSpace* space, const ContentID &cntID, ContentDesc &cntDesc) {
+        auto parentNode = space->indexNode->moveUp();
+        while(parentNode) {
+            auto parentSpace = getSpaceByID(parentNode->getCompleteSpaceID());
+            if(parentSpace) {
+                parentSpace->databoxsIndex.insert({cntID, cntDesc});
+                parentSpace->databoxNum += 1;
+                parentNode = parentNode->moveUp();
+            } else {
+                return true;
+            }
+        }
+    }
+
+
     bool SemanticSpaceManager::createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName) {
 
         // create a new data box 
@@ -143,18 +174,13 @@ namespace SDS
         if(TSRet && VLRet) {
             cntDesc.setSpaceDesc(space->ssDesc);
             
-            // add the data box into the semantic space
+            // add the databox into the semantic space
             space->databoxsIndex.insert({cntID, cntDesc});
             space->databoxNum += 1;
 
-            // parent space add too
-            auto node = space->indexNode->moveUp();
-            while(node) {
-                auto parentSpace = getSpaceByID(node->getCompleteSpaceID());
-                parentSpace->databoxsIndex.insert({cntID, cntDesc});
-                parentSpace->databoxNum += 1;
-                node = parentSpace->indexNode->moveUp();
-            }
+            // add the databox into parent semantic space
+            autoAddDataBox(space, cntID, cntDesc);
+
             return true;
         } else {
             return false;
@@ -194,15 +220,20 @@ namespace SDS
         
         // choose the adimistrator code as the search term
         VarListNode* node = nullptr;
-
         _metaManager->setAdaptor(adaptor);
+
         if(_metaManager->extractVLDesc(vlDesc, dirPath)) {
+            groupName = vlDesc.groupName;
             if(_varIndex->insert(groupName, node)) {
-                vlDesc.groupName = groupName;
+                vlDesc.groupLen = vlDesc.desc.size();
                 for(auto item : vlDesc.desc) {
                     node->insertVarList(item.varName);
                 }
                 node->varNum = vlDesc.desc.size();
+                cntID.setVarID(node->getVarListID());
+                return true;
+            } else {
+                _varIndex->search(groupName, node);
                 cntID.setVarID(node->getVarListID());
                 return true;
             }

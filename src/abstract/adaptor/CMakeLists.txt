@@ -2,6 +2,9 @@ add_library(
     adaptor
     OBJECT
     local_adaptor.cpp
+    NC_pluge.cpp
+    HDF_pluge.cpp
+    pluge_factory.cpp
 )
 
 

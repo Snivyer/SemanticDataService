@@ -5,15 +5,16 @@
 */
 
 #pragma once
-
-#include "abstract/meta/sto_meta_template.h"
-#include "abstract/meta/cnt_meta_template.h"
-#include <arrow/api.h>
+#include "abstract/adaptor/pluge_factory.h"
 
 namespace SDS
 {
-
     using namespace arrow;
+    enum PlugeType {
+        NC_PLUGE,
+        HDF_PLUGE,
+    };
+
 
     class Adaptor
     {
@@ -30,23 +31,20 @@ namespace SDS
         virtual bool getFilePath(FilePathList &pathList, std::string dirPath) {};
 
         // 从NC文件中读取变量信息
-        virtual bool getVarDescList(FilePathList &pathList, std::vector<VarDesc> &descList, bool isSame = true) {};
+        virtual bool getVarDescList(FilePathList &pathList,  VLDesc &VLDesc, bool isSame = true) {};
 
         virtual bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {};
 
-        virtual bool readVarList(std::string pathList, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray) {};
-
-
+        virtual bool readVarList(std::string filePath, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray) {};
         // 以数据箱子的方式将数据写入到存储系统中
         // virtual bool importFile();
 
         // 以NC文件的方式将数据写入存储系统中
         virtual bool importFile(struct SystemDesc &sysDesc, FilePathList pathList) {};
 
-        
-        
-
     };
+
+
 
 
 }

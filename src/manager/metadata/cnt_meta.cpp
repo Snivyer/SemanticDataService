@@ -255,9 +255,23 @@ namespace SDS {
     }
 
 
-    // extract the time slot desciption accroding to directory name
-    bool ContentMeta::extractTSDesc(TSDesc &tsDesc, std::string dirName) {
+    bool ContentMeta::extractTimeInfo(std::string fileName, tm &fileTm) {
+        std::string fileType = readFileExtension(fileName);
+        if(fileType == "nc") {
+            // ps: tempalte is ldasin.yyyymmddTHHMMSS.nc 
+            string_to_tm(splitString(fileName, '.')[1], fileTm, fileType);
+            return true;
+        } else if (fileType == "HDF") { 
+            // ps: tempalte is xxx_xxx_xxx_xxx_xxx_xxx_xxxx_yyyymmdd_xxx_xxx_xx.HD5
+            string_to_tm(splitString(fileName, '_')[7], fileTm, fileType);
+            return true;
+        } else { 
+            return false;
+        }
 
+    }
+    
+    bool ContentMeta::extractTSDesc(TSDesc &tsDesc, std::string dirName) {
         std::vector<tm> tmList;
         FilePathList pathList;
         Adaptor* adaptor = getAdaptor();
@@ -270,7 +284,7 @@ namespace SDS {
         if(adaptor->getFilePath(pathList, dirPath)) {
             for(auto fileName : pathList.fileNames) {
                 tm fileTm;
-                string_to_tm(splitString(fileName, '.')[1], fileTm);
+                extractTimeInfo(fileName, fileTm);
                 tmList.push_back(fileTm);
             }
 
@@ -287,10 +301,12 @@ namespace SDS {
             }
 
             // set the report Time by parse the directory name
-            std::vector<std::string> dirNames = splitString(dirPath, '-');
             tm reportTm;
-            string_to_tm(dirNames[1], reportTm);
-            tsDesc.reportT = reportTm;
+            if(extractTimeInfo(dirName, reportTm)) {
+                tsDesc.reportT = reportTm;
+            } else {
+                tsDesc.reportT = tsDesc.startT;
+            }
             return true;
         }
         return false;
@@ -365,11 +381,7 @@ namespace SDS {
         FilePathList pathList;
         std::string dirPath = combinePath(adaptor->connConfig.rootPath, dirName);
         if(adaptor->getFilePath(pathList, dirPath)) {
-            if(adaptor->getVarDescList(pathList, vlDesc.desc, isSame)) {
-                vlDesc.groupLen =  vlDesc.desc.size();
-                for(int i = 0; i < vlDesc.groupLen; i++) {
-                    vlDesc.varID.insert({vlDesc.desc[i].varName, i});
-                }
+            if(adaptor->getVarDescList(pathList, vlDesc, isSame)) {
                 return true;
             }
             return false;

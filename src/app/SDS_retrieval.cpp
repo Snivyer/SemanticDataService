@@ -116,6 +116,7 @@ namespace SDS_Retrieval {
             } else if ((op == "quit") || (op == "qu")) {
                 exitSys();
                 std::cout << "成功退出系统！" << std::endl;
+                break;
             } else {
                 printOpTypeError(op);
                 isSuccess = false;
@@ -154,13 +155,10 @@ namespace SDS_Retrieval {
     bool SDS_Retrieval_Client::importData(std::vector<std::string>& infos) {
         std::string ssName = infos[1];
         std::string target_path = infos[2];
-
-        auto ret = impl_->meta_client_->importDataFromLocal(ssName, ssName, target_path);
-        if(ret.ok()) {
-            ARROW_LOG(INFO) <<  "import data success!\n";
-            return true;
-        }
-        return false;
+        
+        bool result;
+        impl_->meta_client_->importDataFromLocal(ssName, ssName, target_path, result);
+        return result;
     }
 
     bool SDS_Retrieval_Client::createByBucket(std::vector<std::string>& infos) {

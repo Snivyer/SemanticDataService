@@ -97,6 +97,7 @@ namespace SDS
         void printSpaceDesc(SemanticSpace *space);
 
 
+
         ContentMeta* getContentMeta();
         SpaceIndex* getSpaceIndex();
         TimeIndex* getTimeIndex();
@@ -108,6 +109,13 @@ namespace SDS
 
         // add a data box index into the semantic space
         bool createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName = "default");
+
+        // auto refer to databox from children space
+        void autoReferDataBox(SemanticSpace* space);
+
+        // auto add databox to parent space
+        bool autoAddDataBox(SemanticSpace* space, const ContentID &cntID, ContentDesc &cntdesc);
+
 
 
     

@@ -82,6 +82,28 @@ namespace SDS {
         int ncVarID;                    // 变量对应的nc文件ID
         int ncGroupID;                  // 变量对应的nc文件组ID
 
+
+        void setVarDesc(std::string varName, int varLen, double resRation,
+                        std::string varType, Dimes &shape, int ncVarID, int ncGroupID) {
+            this->varName = varName;
+            this->varLen = varLen;
+            this->resRation = resRation;
+            this->varType = varType;
+            this->shape = shape;
+            this->ncGroupID = ncGroupID;
+            this->ncVarID = ncVarID;
+        }
+
+        void setVarDesc(VarDesc &desc) {
+            varName = desc.varName;
+            varLen = desc.varLen;
+            resRation = desc.resRation;
+            varType = desc.varType;
+            shape = desc.shape;
+            ncVarID = desc.ncVarID;
+            ncGroupID = desc.ncGroupID;
+        }
+
         std::string shapeTostr() {
             std::string shapeStr;
             for(int i = 0; i < shape.size(); i++) {
@@ -114,6 +136,7 @@ namespace SDS {
             std::cout << "变量组内变量数量:" << groupLen << std::endl;
 
             for(int i = 0; i < groupLen; i++) {
+                std::cout << "---------------------------------" << std::endl;
                 std::cout << "变量ID:" << i << std::endl;
                 std::cout << "变量名:" << desc[i].varName << std::endl;
                 std::cout << "变量长度:" << desc[i].varLen << std::endl;
@@ -122,7 +145,7 @@ namespace SDS {
                 std::cout << "变量维度:" << desc[i].shapeTostr() << std::endl;;
                 std::cout << "NC文件ID:" << desc[i].ncVarID << std::endl;
                 std::cout << "NC文件组ID:" << desc[i].ncGroupID << std::endl;
-                std::cout << "---------------------------------" << desc[i].ncGroupID << std::endl;
+                
             }
         }
     };  
@@ -179,6 +202,16 @@ namespace SDS {
             }
         }
 
+        void setTimeSlotDesc(time_t reportT, time_t startT, time_t endT,
+                             time_t interval, int count)  {
+    
+            gmtime_r(&reportT, &(tsDesc.reportT));
+            gmtime_r(&startT, &(tsDesc.startT));
+            gmtime_r(&endT, &(tsDesc.endT));
+            tsDesc.interval = interval;
+            tsDesc.count = count;
+        }
+
         void setTimeSlotDesc(TSDesc &desc)  {
             tsDesc.reportT = desc.reportT;
             tsDesc.startT = desc.startT;
@@ -192,6 +225,22 @@ namespace SDS {
             vlDesc.groupLen = desc.groupLen;
             for(auto item : desc.varID) {
                 vlDesc.varID.insert({item.first, item.second});
+            }
+        }
+
+        void setVarListDesc(std::string groupName, int groupLen) {
+            vlDesc.groupName = groupName;
+            vlDesc.groupLen = groupLen;
+        }
+
+        void setVarListVarDesc(std::vector<VarDesc> &varDesc) {
+            int i = 0;
+            for(auto item: varDesc) {
+                VarDesc desc;
+                desc.setVarDesc(item);
+                vlDesc.desc.push_back(desc);
+                vlDesc.varID.insert({desc.varName, i});
+                i++;
             }
         }
 

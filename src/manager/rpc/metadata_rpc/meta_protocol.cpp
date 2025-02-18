@@ -190,9 +190,9 @@ namespace SDS {
                                             cntDescVec[i].ssDesc.geoCentral.latitude, geo_logitude_vec, geo_latitude_vec);
             
             // Serialize Time Decription
-            time_t reportT = std::mktime(cntDescVec[i].tsDesc.reportT);
-            time_t startT = std::mktime(cntDescVec[i].tsDesc.startT);
-            time_t endT = std::mktime(cntDescVec[i].tsDesc.endT);
+            time_t reportT = std::mktime(&(cntDescVec[i].tsDesc.reportT));
+            time_t startT = std::mktime(&(cntDescVec[i].tsDesc.startT));
+            time_t endT = std::mktime(&(cntDescVec[i].tsDesc.endT));
             auto tsDescf = CreateTSDescRequest(fbb, reportT, startT, endT,
                                                 cntDescVec[i].tsDesc.interval, cntDescVec[i].tsDesc.count);
 
@@ -255,10 +255,11 @@ namespace SDS {
             ContentDesc cntDesc;
             // Deserialize space Desc
             std::vector<GeoCoordinate> geoCoor;
-            for(int i = 0; i < cntDescVecf->size(); i++) {
+            for(int j = 0; j < cntDescVecf->Get(i)->ssdesc()->perimeter_latitude()->size(); j++) {
                 GeoCoordinate geo;
-                geo.latitude = cntDescVecf->Get(i)->ssdesc()->perimeter_latitude()->Get(i);
-                geo.logitude = cntDescVecf->Get(i)->ssdesc()->perimeter_logitude()->Get(i);
+                geo.latitude = cntDescVecf->Get(i)->ssdesc()->perimeter_latitude()->Get(j);
+                geo.logitude = cntDescVecf->Get(i)->ssdesc()->perimeter_logitude()->Get(j);
+                geoCoor.push_back(geo);
             }
 
             cntDesc.setSpaceDesc(cntDescVecf->Get(i)->ssdesc()->geo_names()->str(),
@@ -268,13 +269,35 @@ namespace SDS {
                                     geoCoor);
             
             // Deserialize time Desc
-            cntDesc.setTimeSlotDesc(cntDescVecf->Get(i)->tsdesc()->report_t,
-                                        cntDescVecf->Get(i)->tsdesc()->report_t,
-                                        cntDescVecf->Get(i)->tsdesc()->report_t)
+            cntDesc.setTimeSlotDesc(cntDescVecf->Get(i)->tsdesc()->report_t(),
+                                    cntDescVecf->Get(i)->tsdesc()->start_t(),
+                                    cntDescVecf->Get(i)->tsdesc()->end_t(),
+                                    cntDescVecf->Get(i)->tsdesc()->interval(),
+                                    cntDescVecf->Get(i)->tsdesc()->count());
 
             // Deserialize var Desc
+            cntDesc.setVarListDesc(cntDescVecf->Get(i)->vldesc()->group_name()->str(), 
+                                    cntDescVecf->Get(i)->vldesc()->group_len());
+            
+            std::vector<VarDesc> varDesc;
+            for(int j = 0; j < cntDescVecf->Get(i)->vldesc()->vars()->size(); j++) {
+                VarDesc desc;
+                Dimes shape;
+                for(int k = 0; k < cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->shape()->size(); k++) {
+                    shape.push_back(cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->shape()->Get(k));
+                }
 
+                desc.setVarDesc(cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_name()->str(),
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_len(),
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->res_ration(),
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_type()->str(),
+                                shape,
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_group_id(),
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_var_id());
+               varDesc.push_back(desc);   
+            }
 
+            cntDesc.setVarListVarDesc(varDesc);
             space.databoxsIndex.insert({cntID, cntDesc});
         } 
         return Status::OK();
@@ -408,10 +431,8 @@ namespace SDS {
         return Status::OK();
     }
 
-
     Status SendSearchContentIndexRequest(int sock, std::vector<std::string> &geoNames, std::vector<std::string> &times, 
                                             std::vector<std::string> &varNames, std::string &groupName) {
-        
         ARROW_LOG(INFO) <<  "Send content index search request:";
         flatbuffers::FlatBufferBuilder fbb;
         std::vector<flatbuffers::Offset<flatbuffers::String>> geoNamesf;
@@ -441,6 +462,7 @@ namespace SDS {
         auto message = CreateContentIndexSearchRequest(fbb, geoNameVector, timeVector, varNameVector, groupNamesf);
         return messageSend(sock, MessageTypeDataSearchRequest, &fbb, message);
     }
+    
     Status ReadSearchContentIndexRequest(uint8_t* data, std::vector<std::string> &geoNames, std::vector<std::string> &times,
                                              std::vector<std::string> &varNames, std::string &groupName) {
 

@@ -116,19 +116,16 @@ namespace SDS {
         return Status::OK(); 
     }
 
-    arrow::Status MetaServiceClient::importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath) {
-
+    arrow::Status MetaServiceClient::importDataFromLocal(std::string semanticSpace, std::string storageSpace,
+                                                         std::string dirPath, bool &res) {
         int client = impl_->getMetaConn();
         RETURN_NOT_OK(SendCreateContentIndexRequest(client, semanticSpace, storageSpace, dirPath));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeDataImportFromLocalReply, &buffer));
 
-        bool result = false; 
-        RETURN_NOT_OK(ReadCreateContentIndexReply(buffer.data(), result));
-
-        if(result) {
-            return Status::OK();  
-        } 
+        RETURN_NOT_OK(ReadCreateContentIndexReply(buffer.data(), res));
+        return Status::OK();
+       
     }
 
     arrow::Status MetaServiceClient::searchContentIndex(std::vector<std::string> &geoNames,

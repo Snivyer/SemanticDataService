@@ -17,6 +17,7 @@ find_package(ArrowFlight REQUIRED)
 find_package(Threads REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
+find_package(HDF5 REQUIRED COMPONENTS CXX)
 
 set(SDS_SRC_INCLUDE_DIR 
         ${PROJECT_SOURCE_DIR}
@@ -33,6 +34,7 @@ set(SDS_THIRD_PARTY_LIB_INCLUDE_DIR
 )
 
 include_directories(${SDS_SRC_INCLUDE_DIR} ${SDS_THIRD_PARTY_INCLUDE_DIR} ${SDS_THIRD_PARTY_LIB_INCLUDE_DIR})
+include_directories(${HDF5_INCLUDE_DIRS})
 
 add_subdirectory(src)  
 add_subdirectory(third_party) 
@@ -112,6 +114,7 @@ target_link_libraries(SDSlet_test  stdc++fs)
 target_link_libraries(SDSlet_test  ArrowFlight::arrow_flight_shared)
 target_link_libraries(SDSlet_test ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(SDSlet_test  gRPC::grpc++)
+target_link_libraries(SDSlet_test  ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})
 
 
 # SDSlet client test 
@@ -127,7 +130,7 @@ target_link_libraries(SDSlet_test  gRPC::grpc++)
 # target_link_libraries(SDSlet_client_test ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries(SDSlet_client_test  gRPC::grpc++)
 
-
+# SDSlet MVP1
 add_executable(MVP1  mvp1.cpp)
 target_link_libraries(MVP1  retrieval)
 target_link_libraries(MVP1  API)
@@ -140,3 +143,8 @@ target_link_libraries(MVP1  stdc++fs)
 target_link_libraries(MVP1  ArrowFlight::arrow_flight_shared)
 target_link_libraries(MVP1 ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(MVP1  gRPC::grpc++)
+target_link_libraries(MVP1  ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})
+
+
+add_executable(HDF5_test HDF5_read.cpp)
+target_link_libraries(HDF5_test ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})

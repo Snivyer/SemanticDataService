@@ -3,11 +3,17 @@
 
 namespace SDS {
 
-bool string_to_tm(std::string timeStr, tm &time) {
+bool string_to_tm(std::string timeStr, tm &time, std::string mode) {
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, sec =0;
 
-    if(sscanf(timeStr.c_str(), "%4d%2d%2dT%2d%2d%2d", &year, &month, &day, &hour, &minute, &sec) != 6) {
-        return false;
+    if(mode == "nc") {
+        if(sscanf(timeStr.c_str(), "%4d%2d%2dT%2d%2d%2d", &year, &month, &day, &hour, &minute, &sec) != 6) {
+            return false;
+        } 
+    } else if (mode == "HDF") {
+        if(sscanf(timeStr.c_str(), "%4d%2d%2d", &year, &month, &day) != 3) {
+            return false;
+        } 
     } 
 
     memset(&time, 0, sizeof(tm));
@@ -21,18 +27,22 @@ bool string_to_tm(std::string timeStr, tm &time) {
     return true;
 }
 
-bool string_to_time(std::string timeStr, time_t &time) {
+bool string_to_time(std::string timeStr, time_t &time, std::string mode) {
     tm tm1;
     memset(&tm1, 0, sizeof(tm1));
         
-    if(string_to_tm(timeStr, tm1)) {
-            time = mktime(&tm1);
+    if(string_to_tm(timeStr, tm1, mode)) {
+        time = mktime(&tm1);
     }
 }
 
-bool tm_to_string(struct tm &tm, std::string &timeStr) {
+bool tm_to_string(struct tm &tm, std::string &timeStr, std::string mode) {
     char buffer[32];
-    std::strftime(buffer, 32,  "%Y-%m-%d %H:%M:%S", &tm);
+    if(mode == "nc") {
+        std::strftime(buffer, 32,  "%Y-%m-%d %H:%M:%S", &tm);
+    } else if (mode == "HDF") {
+        std::strftime(buffer, 32,  "%Y-%m-%d", &tm);
+    }
     timeStr = std::string(buffer);
 }
 

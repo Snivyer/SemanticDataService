@@ -82,8 +82,6 @@ namespace SDS_Retrieval {
 
             /* databox related*/
             bool showDBInfo();
-
-
     };
 }
 

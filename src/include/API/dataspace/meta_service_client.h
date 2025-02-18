@@ -32,7 +32,7 @@ namespace SDS
 
         arrow::Status createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space);
        
-        arrow::Status importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath);
+        arrow::Status importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath, bool &result);
        
         arrow::Status searchContentIndex(std::vector<std::string> &geoNames, std::vector<std::string> &times,
                                         std::vector<std::string> &varNames, ContentID &cntID, std::string groupName = "default");
