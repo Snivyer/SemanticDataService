@@ -15,12 +15,12 @@ namespace SDS
 
             H5::Group openGroup(H5::Group &group, std::string groupName);
 
-          
-
             bool readVarDesc(H5::DataSet &dataset,  VarDesc &desc);
 
             bool readVLDescList(H5::Group &rootGroup, std::string groupName, int groupID, VLDesc &vlDes);
 
+            bool readAttributes(H5::Group &group, std::unordered_map<std::string, std::string> &attrs);
+            
             bool readVarList(std::string path, std::string groupName, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray);
 
             

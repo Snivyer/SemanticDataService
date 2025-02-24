@@ -42,7 +42,6 @@ std::string removeTrailingZeros(const std::string input) {
     while (end != input.begin() && *(end - 1) == '0') {
         --end;
     }
- 
     return std::string(start, end);
 }
 

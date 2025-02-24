@@ -70,9 +70,14 @@ namespace SDS {
 
 
     void ContentID::print() const {
-        std::cout << "space ID:" << spaceID.data() << std::endl;
-        std::cout << "Time ID:" << timeID.data() << std::endl;
-        std::cout << "Var ID:" << varID.data() << std::endl;
+        std::cout << "空间ID:" << spaceID.data() << std::endl;
+        std::cout << "时间ID:" << timeID.data() << std::endl;
+        std::cout << "变量ID:" << varID.data() << std::endl;
+    }
+
+    void ContentID::printWithTreeModel() const {
+        std::cout << "  ";
+        std::cout << "├─ " << spaceID.data() << "-" << timeID.data() << "-" << varID.data()  << std::endl;
     }
 
 

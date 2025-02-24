@@ -43,6 +43,13 @@ namespace SDS {
                         <<" , "<< geoPerimeter[i].latitude << std::endl; 
             }
         }
+
+        void printWithTreeModel() {
+            std::cout << "  "; 
+            std::cout << "  ";
+            std::cout << "├─ " << geoName << "(" + adCode + ")" << std::endl;
+        }
+
     };
 
     // 连续时间段描述符
@@ -67,24 +74,32 @@ namespace SDS {
             }
         }
 
+        void printWithTreeModel() {
+            std::cout << "  "; 
+            std::cout << "  ";
+            std::cout << "  ";
+            std::cout << "├─ [" << std::put_time(&reportT, "%Y-%m-%d %H:%M:%S") << "] - [" << std::put_time(&endT, "%Y-%m-%d %H:%M:%S")  
+                               << "] - [" <<  count  << "]" << std::endl;
+        }
     };
 
 
     // 变量描述符
     struct VarDesc 
     {
-        std::string varName;            // 变量名
-        int varLen;                     // 变量长度
-        double resRation;               // 分辨率大小
-        std::string varType;            // 变量类型
-        Dimes shape;                    // 变量大小
+        std::string varName;           
+        int varLen;                     
+        double resRation;              
+        std::string varType;            
+        Dimes shape;                    
+        int ncVarID;                    
+        int ncGroupID;       
+        std::string groupPath;        
+        std::unordered_map<std::string, std::string> attrs;
         
-        int ncVarID;                    // 变量对应的nc文件ID
-        int ncGroupID;                  // 变量对应的nc文件组ID
-
-
         void setVarDesc(std::string varName, int varLen, double resRation,
-                        std::string varType, Dimes &shape, int ncVarID, int ncGroupID) {
+                        std::string varType, Dimes &shape, int ncVarID, int ncGroupID, 
+                        std::string groupPath, std::unordered_map<std::string, std::string> &attrs) {
             this->varName = varName;
             this->varLen = varLen;
             this->resRation = resRation;
@@ -92,6 +107,11 @@ namespace SDS {
             this->shape = shape;
             this->ncGroupID = ncGroupID;
             this->ncVarID = ncVarID;
+            this->groupPath = groupPath;
+
+            for(auto item : attrs) {
+                this->attrs.insert(item);
+            }
         }
 
         void setVarDesc(VarDesc &desc) {
@@ -102,6 +122,10 @@ namespace SDS {
             shape = desc.shape;
             ncVarID = desc.ncVarID;
             ncGroupID = desc.ncGroupID;
+            groupPath = desc.groupPath;
+            for(auto item: desc.attrs) {
+                attrs.insert(item);
+            }
         }
 
         std::string shapeTostr() {
@@ -128,13 +152,14 @@ namespace SDS {
     // 变量列表描述符
     struct VLDesc {
         std::string groupName;
-        std::unordered_map<std::string, int> varID; // 变量ID列表
-        std::vector<VarDesc> desc;        // 变量描述符列表 
-        int groupLen;                     // 变量组长度    
+        std::unordered_map<std::string, int> varID; 
+        int groupLen; 
+        std::vector<VarDesc> desc;        
+        int attrLen;            
+        std::unordered_map<std::string, std::string> attrs;       
         
         void print() {
             std::cout << "变量组内变量数量:" << groupLen << std::endl;
-
             for(int i = 0; i < groupLen; i++) {
                 std::cout << "---------------------------------" << std::endl;
                 std::cout << "变量ID:" << i << std::endl;
@@ -143,9 +168,25 @@ namespace SDS {
                 std::cout << "分辨率大小:" << desc[i].resRation << std::endl;
                 std::cout << "变量类型:" << desc[i].varType << std::endl;
                 std::cout << "变量维度:" << desc[i].shapeTostr() << std::endl;;
-                std::cout << "NC文件ID:" << desc[i].ncVarID << std::endl;
-                std::cout << "NC文件组ID:" << desc[i].ncGroupID << std::endl;
-                
+                std::cout << "属性数量:" << desc[i].attrs.size() << std::endl;
+                std::cout << "变量于文件内ID:" << desc[i].ncVarID << std::endl;
+                std::cout << "变量于文件组ID:" << desc[i].ncGroupID << std::endl;    
+                std::cout << "变量于文件组路径" << desc[i].groupPath << std::endl;      
+            }
+
+            std::cout << "变量组内属性数量:" << groupLen << std::endl;
+            for(auto item: attrs) {
+                std::cout << "属性名:" << item.first << "\t\t\t\t\t\t 属性值:" << item.second << std::endl;     
+            }
+        }
+
+        void printWithTreeModel() {
+            for(int i = 0; i < groupLen; i++) {
+                std::cout << "  "; 
+                std::cout << "  ";
+                std::cout << "  ";
+                std::cout << "  ";
+                std::cout << "├─ " << desc[i].varName << std::endl;
             }
         }
     };  
@@ -228,9 +269,13 @@ namespace SDS {
             }
         }
 
-        void setVarListDesc(std::string groupName, int groupLen) {
+        void setVarListDesc(std::string groupName, int groupLen, 
+                                std::unordered_map<std::string, std::string> attrs) {
             vlDesc.groupName = groupName;
             vlDesc.groupLen = groupLen;
+            for(auto item: attrs) {
+                vlDesc.attrs.insert({item});
+            }
         }
 
         void setVarListVarDesc(std::vector<VarDesc> &varDesc) {
@@ -248,6 +293,12 @@ namespace SDS {
             ssDesc.print();
             tsDesc.print();
             vlDesc.print();       
+        }
+
+        void printWithTreeModel() {
+            ssDesc.printWithTreeModel();
+            tsDesc.printWithTreeModel();
+            vlDesc.printWithTreeModel();
         }
 
 

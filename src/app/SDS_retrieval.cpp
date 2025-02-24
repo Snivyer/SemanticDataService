@@ -4,8 +4,12 @@ namespace SDS_Retrieval {
 
     class SDS_Retrieval_Client::Impl {
         public:
+
+
+
             // semantic space cache
             std::unordered_map<std::string, SemanticSpace> semanticSpaceCache_;
+            std::unordered_map<std::string, SpaceInfo*> semanticSpaceTree_;
             
             // storage space cache
             std::unordered_map<std::string, StorageSpace> storageSpaceCache_;
@@ -62,12 +66,14 @@ namespace SDS_Retrieval {
     }
 
     void SDS_Retrieval_Client::menu() {
-        std::cout << "欢迎使用语义数据服务检索系统，请输入相应指令：" << std::endl;
+        
         std::cout << "创建空间:create/cr + 行政区划名 + 存储系统 + 根路径" << std::endl;
         std::cout << "加载空间:load/lo + 空间名" << std::endl;
         std::cout << "导入数据:import/im + 行政区划名 + 文件目录路径" << std::endl;
         std::cout << "查询数据:search/sea + 行政区划名 + 时间段 + 变量列表" << std::endl;
         std::cout << "展示元数据:show/sh + 元数据关键字(如:semanticspace或storespace等)" << std::endl;
+        std::cout << "详细展示元数据:detail/de +  元数据关键字(如:semanticspace或storespace等)" << std::endl;
+        std::cout << "帮助:help/he" << std::endl;
         std::cout << "退出系统:quit/qu" << std::endl;
     }
 
@@ -75,8 +81,8 @@ namespace SDS_Retrieval {
         std::string codes;
         std::vector<std::string> infos;
 
+        std::cout << "欢迎使用语义数据服务检索系统，请输入相应指令：" << std::endl;
         while(true) {
-            menu();
             if(codes != "") {
                 std::cout << "请输入指令: " << std::endl;
             }
@@ -96,7 +102,6 @@ namespace SDS_Retrieval {
             size_t size = infos.size();
             size_t inputInfoNum;
             bool isSuccess; 
-
             std::string op = infos[0];
             transform(op.begin(), op.end(), op.begin(), ::tolower);
             if((op == "import") || (op == "im")) {
@@ -109,10 +114,16 @@ namespace SDS_Retrieval {
                 isSuccess = searchData(infos);
             } else if ((op == "show") || (op == "sh")) {
                 showContentInfo(infos);
-            } else if ((op == "getdata") || (op == "ge")) {
+            } else if ((op == "detail") || (op == "detail")) {
+                detailContentInfo(infos);
+            }
+            else if ((op == "getdata") || (op == "ge")) {
                 isSuccess = getData(infos);
             } else if ((op == "bind") || (op == "bi")) {
                 isSuccess = createByBucket(infos);
+            } else if (op == "help" || op == "he") {
+                menu();
+                isSuccess = true;
             } else if ((op == "quit") || (op == "qu")) {
                 exitSys();
                 std::cout << "成功退出系统！" << std::endl;
@@ -131,10 +142,9 @@ namespace SDS_Retrieval {
     bool SDS_Retrieval_Client::searchData(std::vector<std::string>& infos) {
         std::string opType = infos[1];
         transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
-
         bool flag = true;
         if ((opType == "space") || (opType == "sp")) {
-            // flag = searchDataBySSInfo(infos);
+            return searchDataBoxBySemanticName(infos[2]);
         } else if ((opType == "time") || (opType == "ti")) {
             // flag = searchDataByTimeInfo(infos);
         } else if ((opType == "var") || (opType == "va")) {
@@ -171,7 +181,38 @@ namespace SDS_Retrieval {
         transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
 
         if ((opType == "semanticspace") || (opType == "sem")) {
-            showSemanticSpace();
+            if(infos.size() == 3) {
+                showSemanticSpace(infos[2]);
+            } else {
+                showSemanticSpace();
+            }
+        } else if ((opType == "time") || (opType == "ti")) {
+            // printTimeInfo();
+        } else if ((opType == "storespace") || (opType == "st")) {
+            showStorageSpace();
+        } else if ((opType == "groupbyvar") || (opType == "gr")) {
+            // printVarGroupInfo();
+        } else if ((opType == "indexbyvar") || (opType == "in")) {
+            // printVarIndexsInfo();
+        } else if ((opType == "databox") || (opType == "da")) {
+            showDBInfo();
+        } else {
+            std::cout << "要展示的信息输入有误！" << std::endl;
+        }
+    }
+
+
+    void SDS_Retrieval_Client::detailContentInfo(std::vector<std::string>& infos) {
+        std::string opType = infos[1];
+        std::string spaceName = infos[2];
+        transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
+
+        if ((opType == "semanticspace") || (opType == "sem")) {
+            if(infos.size() == 4) {
+                detailSemanticSpace(spaceName, infos[3]);
+            } else {
+                detailSemanticSpace(spaceName);
+            }
         } else if ((opType == "time") || (opType == "ti")) {
             // printTimeInfo();
         } else if ((opType == "storespace") || (opType == "st")) {
@@ -235,31 +276,6 @@ namespace SDS_Retrieval {
         std::cout << "正在退出系统..." << std::endl;
     }
 
-    std::vector<std::string> SDS_Retrieval_Client::parseSpaceInfo(std::string admin) {
-        std::vector<std::string> result;
-        int temp = 0;
-        size_t SSId = 0;
-        bool isNumber = true;
-
-        for (auto& c : admin) {
-            temp = (int)c;
-            if (temp >= 48 && temp <= 57) {
-                continue;
-            }
-            else {
-                isNumber = false;
-                break;
-            }
-        }
- 
-        if (isNumber) {
-                SSId = std::atoi(admin.c_str());
-                result.push_back(std::to_string(SSId));
-        } else {
-            result = splitString(admin, ',');
-        }
-        return result;
-    }
 
     bool SDS_Retrieval_Client::createSemanticSpace(std::string SSName, std::vector<std::string> geoNames) {
         SemanticSpace space;
@@ -267,10 +283,9 @@ namespace SDS_Retrieval {
         if(ret != impl_->semanticSpaceCache_.end()) {
             return true;
         }
-        
         auto status = impl_->meta_client_->createSemanticSpace(SSName, geoNames, space);
         if(status.ok()) {
-            impl_->semanticSpaceCache_[SSName] = space;
+            cacheSemanticSpace(space);
             return true;
         }
         std::cout << "语义空间创建失败！" << std::endl;
@@ -281,22 +296,93 @@ namespace SDS_Retrieval {
         SemanticSpace space;
         auto status = impl_->meta_client_->loadSemanticSpace(SSName, space);
         if(status.ok()) {
-            impl_->semanticSpaceCache_[SSName] = space;
+            cacheSemanticSpace(space);
             return true;
         }
         std::cout << "语义空间加载失败！" << std::endl;
         return false;
     }
 
-    void SDS_Retrieval_Client::showSemanticSpace() {
+    void SDS_Retrieval_Client::cacheSemanticSpace(SemanticSpace &space) {
+        // insert space cahce
+        std::string SSName = space.SSName;
+        impl_->semanticSpaceCache_[SSName] = space;
 
-        if(impl_->semanticSpaceCache_.size() == 0) {
-            std::cout << "暂时没有语义空间信息..." << std::endl;
+        // insert space tree
+        addToSpaceTree(space);
+    }
+
+    bool SDS_Retrieval_Client::addToSpaceTree(std::string spaceID, SpaceInfo* info, int keyLength) {
+        if(spaceID.size() == 0) {
+            return true;
         }
 
-        for(auto space: impl_->semanticSpaceCache_) {
-            space.second.print();
-            std::cout << std::endl;
+        auto ret = impl_->semanticSpaceTree_.find(spaceID);
+        if(ret != impl_->semanticSpaceTree_.end()) {
+            ret->second->children.insert({info->spaceID, info});
+            info->parent = ret->second;
+            return true;
+        } else {
+            SpaceInfo *pInfo = new SpaceInfo();
+            pInfo->spaceName = "";
+            pInfo->parent = nullptr;
+            pInfo->spaceID = spaceID;
+            pInfo->children.insert({info->spaceID, info});
+            impl_->semanticSpaceTree_.insert({spaceID, pInfo});
+            info->parent = pInfo;
+
+            std::string PSSID = spaceID.substr(0, spaceID.size() - keyLength);
+            return addToSpaceTree(PSSID, pInfo);
+        }
+    }
+
+    bool SDS_Retrieval_Client::addToSpaceTree(SemanticSpace &space) {
+        std::string spaceID = space.getCompleteSpaceID();
+        auto ret = impl_->semanticSpaceTree_.find(spaceID);
+        if(ret != impl_->semanticSpaceTree_.end()) {
+            ret->second->spaceName = space.SSName;
+            return addToSpaceTree(space.PSSID, ret->second);
+        } else {
+            SpaceInfo *info = new SpaceInfo();
+            info->spaceName = space.SSName;
+            info->parent = nullptr;
+            info->spaceID = spaceID;
+            impl_->semanticSpaceTree_.insert({spaceID, info});  
+            return addToSpaceTree(space.PSSID, info);
+        }
+    }
+
+    void SDS_Retrieval_Client::showSemanticSpace(std::string SSName) {
+        if(SSName == "*") {
+            if(impl_->semanticSpaceCache_.size() == 0) {
+                std::cout << "暂时没有语义空间信息..." << std::endl;
+            } else {
+               printSemanticSpaceWithTreeView();
+            }
+        } else {
+            auto ret = impl_->semanticSpaceCache_.find(SSName);
+            if(ret != impl_->semanticSpaceCache_.end()) {
+                printSemanticSpaceWithTreeView(ret->second.getCompleteSpaceID());
+            } else {
+                std::cout << "暂时没有创建该语义, 请预先创建..." << std::endl;
+            }   
+        }
+    } 
+
+    void SDS_Retrieval_Client::detailSemanticSpace(std::string SSName, std::string model) {
+        SemanticSpace space;
+        auto status = impl_->meta_client_->loadSemanticSpace(SSName, space);
+        if(status.ok()) {
+            impl_->semanticSpaceCache_[SSName] = space;
+
+            if(model == "tree") {
+                space.printWithTreeModel();
+            } else {
+                space.print();
+            }
+
+        } else {
+            std::cout << "暂时没有创建该语义, 请预先创建..." << std::endl;
         }
     }
 
@@ -328,6 +414,43 @@ namespace SDS_Retrieval {
     }
 
 
+    bool SDS_Retrieval_Client::searchDataFileBySemanticName(std::string SSName) {
+    
+        std::vector<string> times;
+        std::vector<string> varNames;
+        std::vector<FilePathList> fileList;
+
+        auto status = impl_->meta_client_->searchDataFile(SSName, times, varNames, fileList);
+        if(status.ok()) {
+            return true;
+        }
+        std::cout << "暂时没有检索到该语义空间文件信息..." << std::endl;
+        return true;
+    }
+
+    bool SDS_Retrieval_Client::searchDataBoxBySemanticName(std::string SSName) {
+
+    }
+
+
+    bool SDS_Retrieval_Client::showSearchResult(std::string spaceName, std::string spaceID, std::vector<FilePathList>& filePath) {
+        int totalFileNum = 0;
+        std::cout  << spaceName << " (" << spaceID << ")" << std::endl;
+
+        for(auto pathList: filePath) {
+            std::cout << "  ";
+            std::cout << "├─ " << pathList.dirPath << " (" << pathList.fileNames.size() << "个)" << std::endl;
+            totalFileNum += pathList.fileNames.size();
+            for(auto fileName: pathList.fileNames) {
+                std::cout << "  ";
+                std::cout << "  ";
+                std::cout << "├─ " << fileName << std::endl;
+            }
+        }
+        std::cout  << "本语义空间下共计检索出" << totalFileNum << "个文件" << std::endl;
+        return true;
+    }
+
     bool SDS_Retrieval_Client::getData(std::vector<std::string>& infos) {
 
     }
@@ -346,5 +469,49 @@ namespace SDS_Retrieval {
             std::cout << std::endl;
         }
     }
+
+    bool SDS_Retrieval_Client::printSemanticSpaceWithTreeView(std::string spaceID) {
+        auto ret = impl_->semanticSpaceTree_.find(spaceID);
+        if(ret == impl_->semanticSpaceTree_.end()) {
+            std::cout << "暂时没有语义空间信息..." << std::endl;
+            return false;
+        }
+        
+        printSemanticSpaceWithTreeView(ret->second, 0); 
+        return true;
+    }
+
+    bool SDS_Retrieval_Client::printSemanticSpaceWithTreeView(SpaceInfo* info, int level) {
+        if(info == nullptr) {
+            return false;
+        }
+
+        for(int i = 0; i < level; i++) {
+            std::cout << "  ";
+        }
+
+        if(info->spaceID == "001") {
+            if(info->spaceName == "") {
+                std::cout  << "缺省空间" << " (" << info->spaceID << ")" << std::endl;
+            } else {
+                std::cout  << info->spaceName << " (" << info->spaceID << ")" << std::endl;
+            }
+        } else {
+            if(info->spaceName == "") {
+                std::cout << "├─ " << "缺省空间" << " (" << info->spaceID << ")" << std::endl;
+            } else {
+                std::cout << "├─ " << info->spaceName << " (" << info->spaceID << ")" << std::endl;
+            }
+        }
+
+        for(auto child: info->children) {
+            printSemanticSpaceWithTreeView(child.second, level + 1);
+        }
+        return true;
+    }
+
+ 
+
+
 
 }

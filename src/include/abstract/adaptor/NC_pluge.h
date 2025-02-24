@@ -25,6 +25,10 @@ namespace SDS
             bool readVarDescList(int ncid, int gid, int groupNums, std::vector<VarDesc> &descList);
 
             bool readVarList(std::string path, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray);
+
+            bool readAttributes(int ncid, std::unordered_map<std::string, std::string> &attrs);
+        
+
     };
 
 }

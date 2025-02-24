@@ -33,8 +33,6 @@ namespace SDS {
         nc_type varType;
         int varNdims;
         int varDimids[NC_MAX_VAR_DIMS];
-    
-    
         if (nc_inq_var(ncid, varid, varName, &varType, &varNdims, varDimids, NULL) != NC_NOERR) {
             nc_close(ncid);
             return false;
@@ -177,10 +175,6 @@ namespace SDS {
         for(auto varDesc: descList) {
             if(varDesc.ncGroupID != -1) {
                 // todo: 如果存在子分组，应该如何操作，是否需要一个从子组中读取数据的方法
-
-
-
-
             } else {
                 int varid = varDesc.ncVarID;
                 if(varDesc.varType == "NC_BYTE") {
@@ -251,6 +245,11 @@ namespace SDS {
         }
         nc_close(ncid);
         return true;
+    }
+
+    bool NCPluge::readAttributes(int ncid, std::unordered_map<std::string, std::string> &attrs) {
+
+        
     }
 
 

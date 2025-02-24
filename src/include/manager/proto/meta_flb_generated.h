@@ -34,6 +34,9 @@ struct SSDescRequestBuilder;
 struct TSDescRequest;
 struct TSDescRequestBuilder;
 
+struct AttrRequest;
+struct AttrRequestBuilder;
+
 struct VarDescRequest;
 struct VarDescRequestBuilder;
 
@@ -66,6 +69,15 @@ struct ContentIndexSearchRequestBuilder;
 
 struct ContentIndexSearchReply;
 struct ContentIndexSearchReplyBuilder;
+
+struct DataFileSearchRequest;
+struct DataFileSearchRequestBuilder;
+
+struct FilePathListRequest;
+struct FilePathListRequestBuilder;
+
+struct DataFileSearchReply;
+struct DataFileSearchReplyBuilder;
 
 struct MetaClientConnectRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MetaClientConnectRequestBuilder Builder;
@@ -687,6 +699,71 @@ inline ::flatbuffers::Offset<TSDescRequest> CreateTSDescRequest(
   return builder_.Finish();
 }
 
+struct AttrRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef AttrRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ATTR_NAME = 4,
+    VT_ATTR_VAL = 6
+  };
+  const ::flatbuffers::String *attr_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ATTR_NAME);
+  }
+  const ::flatbuffers::String *attr_val() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ATTR_VAL);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ATTR_NAME) &&
+           verifier.VerifyString(attr_name()) &&
+           VerifyOffset(verifier, VT_ATTR_VAL) &&
+           verifier.VerifyString(attr_val()) &&
+           verifier.EndTable();
+  }
+};
+
+struct AttrRequestBuilder {
+  typedef AttrRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_attr_name(::flatbuffers::Offset<::flatbuffers::String> attr_name) {
+    fbb_.AddOffset(AttrRequest::VT_ATTR_NAME, attr_name);
+  }
+  void add_attr_val(::flatbuffers::Offset<::flatbuffers::String> attr_val) {
+    fbb_.AddOffset(AttrRequest::VT_ATTR_VAL, attr_val);
+  }
+  explicit AttrRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<AttrRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<AttrRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<AttrRequest> CreateAttrRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> attr_name = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> attr_val = 0) {
+  AttrRequestBuilder builder_(_fbb);
+  builder_.add_attr_val(attr_val);
+  builder_.add_attr_name(attr_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<AttrRequest> CreateAttrRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *attr_name = nullptr,
+    const char *attr_val = nullptr) {
+  auto attr_name__ = attr_name ? _fbb.CreateString(attr_name) : 0;
+  auto attr_val__ = attr_val ? _fbb.CreateString(attr_val) : 0;
+  return CreateAttrRequest(
+      _fbb,
+      attr_name__,
+      attr_val__);
+}
+
 struct VarDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VarDescRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -696,7 +773,9 @@ struct VarDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_RES_RATION = 10,
     VT_SHAPE = 12,
     VT_NC_VAR_ID = 14,
-    VT_NC_GROUP_ID = 16
+    VT_NC_GROUP_ID = 16,
+    VT_GROUP_PATH = 18,
+    VT_ATTRS = 20
   };
   const ::flatbuffers::String *var_name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VAR_NAME);
@@ -719,6 +798,12 @@ struct VarDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t nc_group_id() const {
     return GetField<int32_t>(VT_NC_GROUP_ID, 0);
   }
+  const ::flatbuffers::String *group_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GROUP_PATH);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>> *attrs() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>> *>(VT_ATTRS);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VAR_NAME) &&
@@ -731,6 +816,11 @@ struct VarDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyVector(shape()) &&
            VerifyField<int32_t>(verifier, VT_NC_VAR_ID, 4) &&
            VerifyField<int32_t>(verifier, VT_NC_GROUP_ID, 4) &&
+           VerifyOffset(verifier, VT_GROUP_PATH) &&
+           verifier.VerifyString(group_path()) &&
+           VerifyOffset(verifier, VT_ATTRS) &&
+           verifier.VerifyVector(attrs()) &&
+           verifier.VerifyVectorOfTables(attrs()) &&
            verifier.EndTable();
   }
 };
@@ -760,6 +850,12 @@ struct VarDescRequestBuilder {
   void add_nc_group_id(int32_t nc_group_id) {
     fbb_.AddElement<int32_t>(VarDescRequest::VT_NC_GROUP_ID, nc_group_id, 0);
   }
+  void add_group_path(::flatbuffers::Offset<::flatbuffers::String> group_path) {
+    fbb_.AddOffset(VarDescRequest::VT_GROUP_PATH, group_path);
+  }
+  void add_attrs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>>> attrs) {
+    fbb_.AddOffset(VarDescRequest::VT_ATTRS, attrs);
+  }
   explicit VarDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -779,9 +875,13 @@ inline ::flatbuffers::Offset<VarDescRequest> CreateVarDescRequest(
     double res_ration = 0.0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> shape = 0,
     int32_t nc_var_id = 0,
-    int32_t nc_group_id = 0) {
+    int32_t nc_group_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> group_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>>> attrs = 0) {
   VarDescRequestBuilder builder_(_fbb);
   builder_.add_res_ration(res_ration);
+  builder_.add_attrs(attrs);
+  builder_.add_group_path(group_path);
   builder_.add_nc_group_id(nc_group_id);
   builder_.add_nc_var_id(nc_var_id);
   builder_.add_shape(shape);
@@ -799,10 +899,14 @@ inline ::flatbuffers::Offset<VarDescRequest> CreateVarDescRequestDirect(
     double res_ration = 0.0,
     const std::vector<uint64_t> *shape = nullptr,
     int32_t nc_var_id = 0,
-    int32_t nc_group_id = 0) {
+    int32_t nc_group_id = 0,
+    const char *group_path = nullptr,
+    const std::vector<::flatbuffers::Offset<AttrRequest>> *attrs = nullptr) {
   auto var_name__ = var_name ? _fbb.CreateString(var_name) : 0;
   auto var_type__ = var_type ? _fbb.CreateString(var_type) : 0;
   auto shape__ = shape ? _fbb.CreateVector<uint64_t>(*shape) : 0;
+  auto group_path__ = group_path ? _fbb.CreateString(group_path) : 0;
+  auto attrs__ = attrs ? _fbb.CreateVector<::flatbuffers::Offset<AttrRequest>>(*attrs) : 0;
   return CreateVarDescRequest(
       _fbb,
       var_name__,
@@ -811,7 +915,9 @@ inline ::flatbuffers::Offset<VarDescRequest> CreateVarDescRequestDirect(
       res_ration,
       shape__,
       nc_var_id,
-      nc_group_id);
+      nc_group_id,
+      group_path__,
+      attrs__);
 }
 
 struct VLDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -819,7 +925,8 @@ struct VLDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_GROUP_NAME = 4,
     VT_GROUP_LEN = 6,
-    VT_VARS = 8
+    VT_VARS = 8,
+    VT_ATTRS = 10
   };
   const ::flatbuffers::String *group_name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_GROUP_NAME);
@@ -830,6 +937,9 @@ struct VLDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>> *vars() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>> *>(VT_VARS);
   }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>> *attrs() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>> *>(VT_ATTRS);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_GROUP_NAME) &&
@@ -838,6 +948,9 @@ struct VLDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_VARS) &&
            verifier.VerifyVector(vars()) &&
            verifier.VerifyVectorOfTables(vars()) &&
+           VerifyOffset(verifier, VT_ATTRS) &&
+           verifier.VerifyVector(attrs()) &&
+           verifier.VerifyVectorOfTables(attrs()) &&
            verifier.EndTable();
   }
 };
@@ -855,6 +968,9 @@ struct VLDescRequestBuilder {
   void add_vars(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>>> vars) {
     fbb_.AddOffset(VLDescRequest::VT_VARS, vars);
   }
+  void add_attrs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>>> attrs) {
+    fbb_.AddOffset(VLDescRequest::VT_ATTRS, attrs);
+  }
   explicit VLDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -870,8 +986,10 @@ inline ::flatbuffers::Offset<VLDescRequest> CreateVLDescRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> group_name = 0,
     int32_t group_len = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>>> vars = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarDescRequest>>> vars = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<AttrRequest>>> attrs = 0) {
   VLDescRequestBuilder builder_(_fbb);
+  builder_.add_attrs(attrs);
   builder_.add_vars(vars);
   builder_.add_group_len(group_len);
   builder_.add_group_name(group_name);
@@ -882,14 +1000,17 @@ inline ::flatbuffers::Offset<VLDescRequest> CreateVLDescRequestDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *group_name = nullptr,
     int32_t group_len = 0,
-    const std::vector<::flatbuffers::Offset<VarDescRequest>> *vars = nullptr) {
+    const std::vector<::flatbuffers::Offset<VarDescRequest>> *vars = nullptr,
+    const std::vector<::flatbuffers::Offset<AttrRequest>> *attrs = nullptr) {
   auto group_name__ = group_name ? _fbb.CreateString(group_name) : 0;
   auto vars__ = vars ? _fbb.CreateVector<::flatbuffers::Offset<VarDescRequest>>(*vars) : 0;
+  auto attrs__ = attrs ? _fbb.CreateVector<::flatbuffers::Offset<AttrRequest>>(*attrs) : 0;
   return CreateVLDescRequest(
       _fbb,
       group_name__,
       group_len,
-      vars__);
+      vars__,
+      attrs__);
 }
 
 struct ContentDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1682,6 +1803,205 @@ inline ::flatbuffers::Offset<ContentIndexSearchReply> CreateContentIndexSearchRe
       space_id__,
       time_id__,
       var_id__);
+}
+
+struct DataFileSearchRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DataFileSearchRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SEMANTIC_NAME = 4,
+    VT_TIMES = 6,
+    VT_VAR_NAMES = 8
+  };
+  const ::flatbuffers::String *semantic_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SEMANTIC_NAME);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *times() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_TIMES);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *var_names() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VAR_NAMES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SEMANTIC_NAME) &&
+           verifier.VerifyString(semantic_name()) &&
+           VerifyOffset(verifier, VT_TIMES) &&
+           verifier.VerifyVector(times()) &&
+           verifier.VerifyVectorOfStrings(times()) &&
+           VerifyOffset(verifier, VT_VAR_NAMES) &&
+           verifier.VerifyVector(var_names()) &&
+           verifier.VerifyVectorOfStrings(var_names()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DataFileSearchRequestBuilder {
+  typedef DataFileSearchRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_semantic_name(::flatbuffers::Offset<::flatbuffers::String> semantic_name) {
+    fbb_.AddOffset(DataFileSearchRequest::VT_SEMANTIC_NAME, semantic_name);
+  }
+  void add_times(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> times) {
+    fbb_.AddOffset(DataFileSearchRequest::VT_TIMES, times);
+  }
+  void add_var_names(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> var_names) {
+    fbb_.AddOffset(DataFileSearchRequest::VT_VAR_NAMES, var_names);
+  }
+  explicit DataFileSearchRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DataFileSearchRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DataFileSearchRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DataFileSearchRequest> CreateDataFileSearchRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> semantic_name = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> times = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> var_names = 0) {
+  DataFileSearchRequestBuilder builder_(_fbb);
+  builder_.add_var_names(var_names);
+  builder_.add_times(times);
+  builder_.add_semantic_name(semantic_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DataFileSearchRequest> CreateDataFileSearchRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *semantic_name = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *times = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *var_names = nullptr) {
+  auto semantic_name__ = semantic_name ? _fbb.CreateString(semantic_name) : 0;
+  auto times__ = times ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*times) : 0;
+  auto var_names__ = var_names ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*var_names) : 0;
+  return CreateDataFileSearchRequest(
+      _fbb,
+      semantic_name__,
+      times__,
+      var_names__);
+}
+
+struct FilePathListRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef FilePathListRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ROOT_PATH = 4,
+    VT_FILE_PATH = 6
+  };
+  const ::flatbuffers::String *root_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ROOT_PATH);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *file_path() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_FILE_PATH);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_ROOT_PATH) &&
+           verifier.VerifyString(root_path()) &&
+           VerifyOffset(verifier, VT_FILE_PATH) &&
+           verifier.VerifyVector(file_path()) &&
+           verifier.VerifyVectorOfStrings(file_path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct FilePathListRequestBuilder {
+  typedef FilePathListRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_root_path(::flatbuffers::Offset<::flatbuffers::String> root_path) {
+    fbb_.AddOffset(FilePathListRequest::VT_ROOT_PATH, root_path);
+  }
+  void add_file_path(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> file_path) {
+    fbb_.AddOffset(FilePathListRequest::VT_FILE_PATH, file_path);
+  }
+  explicit FilePathListRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<FilePathListRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<FilePathListRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<FilePathListRequest> CreateFilePathListRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> root_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> file_path = 0) {
+  FilePathListRequestBuilder builder_(_fbb);
+  builder_.add_file_path(file_path);
+  builder_.add_root_path(root_path);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<FilePathListRequest> CreateFilePathListRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *root_path = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *file_path = nullptr) {
+  auto root_path__ = root_path ? _fbb.CreateString(root_path) : 0;
+  auto file_path__ = file_path ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*file_path) : 0;
+  return CreateFilePathListRequest(
+      _fbb,
+      root_path__,
+      file_path__);
+}
+
+struct DataFileSearchReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DataFileSearchReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FILE_PATH_LISTS = 4
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>> *file_path_lists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>> *>(VT_FILE_PATH_LISTS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_FILE_PATH_LISTS) &&
+           verifier.VerifyVector(file_path_lists()) &&
+           verifier.VerifyVectorOfTables(file_path_lists()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DataFileSearchReplyBuilder {
+  typedef DataFileSearchReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_file_path_lists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>>> file_path_lists) {
+    fbb_.AddOffset(DataFileSearchReply::VT_FILE_PATH_LISTS, file_path_lists);
+  }
+  explicit DataFileSearchReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DataFileSearchReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DataFileSearchReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DataFileSearchReply> CreateDataFileSearchReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>>> file_path_lists = 0) {
+  DataFileSearchReplyBuilder builder_(_fbb);
+  builder_.add_file_path_lists(file_path_lists);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DataFileSearchReply> CreateDataFileSearchReplyDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<FilePathListRequest>> *file_path_lists = nullptr) {
+  auto file_path_lists__ = file_path_lists ? _fbb.CreateVector<::flatbuffers::Offset<FilePathListRequest>>(*file_path_lists) : 0;
+  return CreateDataFileSearchReply(
+      _fbb,
+      file_path_lists__);
 }
 
 #endif  // FLATBUFFERS_GENERATED_METAFLB_H_

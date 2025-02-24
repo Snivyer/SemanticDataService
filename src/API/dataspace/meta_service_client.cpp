@@ -149,6 +149,16 @@ namespace SDS {
         return Status::OK();
     }
 
+    arrow::Status MetaServiceClient::searchDataFile(std::string spaceName, std::vector<std::string> &times,
+        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
+            int client = impl_->getMetaConn();
+            RETURN_NOT_OK(SendSearchDataFileRequest(client, spaceName, times, varNames));
+            std::vector<uint8_t> buffer;
+            RETURN_NOT_OK(messageReceive(client, MessageTypeDataFileSearchReply, &buffer));
+            RETURN_NOT_OK(ReadSearchDataFileReply(buffer.data(), fileList));
+            return Status::OK();
+    }
+
   
 
 }

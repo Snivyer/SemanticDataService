@@ -50,7 +50,6 @@ namespace SDS {
             } else { 
                 return false;
             }
-
             if(isSame) {
                 break;
             }
@@ -106,7 +105,6 @@ namespace SDS {
     }
 
     bool LocalAdaptor::getVarDescListFromNC(std::string path, VLDesc &vlDesc) {
-        
         // step1: open NetCDF文件
         int ncid;
         auto pluge = PlugeFactory::getNCPluge();
@@ -127,7 +125,7 @@ namespace SDS {
             pluge->readVarDescList(ncid, gid, groupNum, vlDesc.desc);
         }
 
-        vlDesc.groupName = "default";
+        vlDesc.groupName = splitString(path, '.')[0];
         vlDesc.groupLen =  vlDesc.desc.size();
         for(int i = 0; i < vlDesc.groupLen; i++) {
             vlDesc.varID.insert({vlDesc.desc[i].varName, i});
@@ -139,13 +137,18 @@ namespace SDS {
     }
 
     bool LocalAdaptor::getVarDescListFromHDF(std::string path, VLDesc &vlDesc) {
-
         // step1: open HDF5文件
         auto pluge = PlugeFactory::getHDFPluge();
         H5::Group rootGroup = pluge->open(path);
 
         // step2: read varDesc, defalut to exist many group in HDF5
-        return pluge->readVLDescList(rootGroup, "/", 0, vlDesc);
+        pluge->readVLDescList(rootGroup, "/", 0, vlDesc);
+
+        vlDesc.groupName = splitString(path, '_')[4];
+        vlDesc.groupLen = vlDesc.desc.size();
+        pluge->readAttributes(rootGroup, vlDesc.attrs);
+        vlDesc.attrLen = vlDesc.attrs.size();
+        return true;
     }
 
 }

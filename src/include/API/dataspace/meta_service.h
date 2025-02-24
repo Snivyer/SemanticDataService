@@ -38,6 +38,9 @@ namespace SDS {
             // search the content index to get content ID
             bool searchContentIndex(std::vector<std::string> geoNames, std::vector<std::string> times, std::vector<std::string> varNames, 
                                     ContentID& cntID, std::string varGroupName = "default");
+
+            bool searchDataFile(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames,
+                                 std::vector<FilePathList> &fileList);
             
             ContentDesc& getContentDesc(ContentID &cntID);
            

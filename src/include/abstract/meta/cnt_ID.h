@@ -20,6 +20,7 @@ namespace SDS {
         size_t getBestStoID();
         bool operator==(const ContentID &cntID) const;
         void print() const;
+        void printWithTreeModel() const;
     
         std::string getSpaceID() const;
         void setSpaceID(const std::string ID);

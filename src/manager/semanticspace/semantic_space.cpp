@@ -156,8 +156,7 @@ namespace SDS
     }
 
 
-    bool SemanticSpaceManager::createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName) {
-
+    bool SemanticSpaceManager::createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath) {
         // create a new data box 
         ContentID cntID;
         ContentDesc cntDesc;
@@ -169,7 +168,7 @@ namespace SDS
         auto TSRet = createTimeIndex(adaptor, space, dirPath, cntID, cntDesc.tsDesc);
 
         // create a var index
-        auto VLRet = createVarIndex(adaptor, space, dirPath, cntID, cntDesc.vlDesc, varGroupName);
+        auto VLRet = createVarIndex(adaptor, space, dirPath, cntID, cntDesc.vlDesc);
 
         if(TSRet && VLRet) {
             cntDesc.setSpaceDesc(space->ssDesc);
@@ -216,16 +215,13 @@ namespace SDS
     }
 
     bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath, 
-                                                ContentID &cntID, VLDesc &vlDesc, std::string groupName) {
+                                                ContentID &cntID, VLDesc &vlDesc) {
         
         // choose the adimistrator code as the search term
         VarListNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);
-
         if(_metaManager->extractVLDesc(vlDesc, dirPath)) {
-            groupName = vlDesc.groupName;
-            if(_varIndex->insert(groupName, node)) {
-                vlDesc.groupLen = vlDesc.desc.size();
+            if(_varIndex->insert(vlDesc.groupName, node)) {
                 for(auto item : vlDesc.desc) {
                     node->insertVarList(item.varName);
                 }
@@ -233,7 +229,7 @@ namespace SDS
                 cntID.setVarID(node->getVarListID());
                 return true;
             } else {
-                _varIndex->search(groupName, node);
+                _varIndex->search(vlDesc.groupName, node);
                 cntID.setVarID(node->getVarListID());
                 return true;
             }

@@ -11,16 +11,26 @@ using arrow::Status;
 
 namespace SDS_Retrieval {
 
+
+    struct SpaceInfo {
+        SpaceInfo* parent;
+        std::string spaceID;
+        std::string spaceName;    
+        std::unordered_map<std::string, SpaceInfo*> children;
+    };
+
+
     class SDS_Retrieval_Client {
         public:
             static std::shared_ptr<SDS_Retrieval_Client> createClient();
 
             /*connect_related*/ 
-
             Status connectDBService(const std::string& dbSocketName, const std::string& ManagerSocketName);
             Status disconnectDBService();
             Status connectMetaService(const std::string& metaSocketName, const std::string& ManagerSocketName);
             Status disconnectMetaService();
+
+            /*server_related*/
             int runServer();
 
             /*operations_related*/ 
@@ -41,6 +51,7 @@ namespace SDS_Retrieval {
 
             // show content metadata
             void showContentInfo(std::vector<std::string>& infos);
+            void detailContentInfo(std::vector<std::string>& infos);
 
             // get data from the data box
             bool getData(std::vector<std::string>& infos);
@@ -52,6 +63,8 @@ namespace SDS_Retrieval {
             int  printError(bool flag, std::string code);
             void printOpTypeError(std::string op);
             void exitSys();
+
+            /*help_related*/
             void menu();
             
 
@@ -61,17 +74,20 @@ namespace SDS_Retrieval {
             explicit SDS_Retrieval_Client(std::shared_ptr<Impl> impl);
 
             /* semantic space related*/
-            // parse the semantic space information
-            std::vector<std::string> parseSpaceInfo(std::string admin);
-
+      
             // create semantic space 
             bool createSemanticSpace(std::string SSName, std::vector<std::string> geoNames);
 
             // load semantic space
             bool loadSemanticSpace(std::string SSName);
 
+            void cacheSemanticSpace(SemanticSpace &space); 
+            bool addToSpaceTree(SemanticSpace &space);
+            bool addToSpaceTree(std::string PSSID, SpaceInfo* info, int keyLength = 3);
+        
             // show semantic space
-            void showSemanticSpace();
+            void showSemanticSpace(std::string SSName = "*");
+            void detailSemanticSpace(std::string SSName, std::string model = "table");
 
             /* storage space related*/
             // create storage space
@@ -80,8 +96,22 @@ namespace SDS_Retrieval {
             // show storage space
             void showStorageSpace();
 
+
+            /*search related*/
+            bool searchDataFileBySemanticName(std::string SSName);
+            bool searchDataBoxBySemanticName(std::string SSName);
+
+            /*show search result*/
+            bool showSearchResult(std::string spaceName, std::string spaceID, std::vector<FilePathList>& filePath);
+
             /* databox related*/
             bool showDBInfo();
+
+            /*present related*/
+            bool printSemanticSpaceWithTreeView(std::string spaceID = "001");
+            bool printSemanticSpaceWithTreeView(SpaceInfo* info, int level = 0);
+
+
     };
 }
 

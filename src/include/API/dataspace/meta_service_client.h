@@ -36,6 +36,12 @@ namespace SDS
        
         arrow::Status searchContentIndex(std::vector<std::string> &geoNames, std::vector<std::string> &times,
                                         std::vector<std::string> &varNames, ContentID &cntID, std::string groupName = "default");
+
+
+        arrow::Status searchDataFile(std::string spaceName, std::vector<std::string> &times,
+                                        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList);
+            
+            
         
         private:
             class Impl;

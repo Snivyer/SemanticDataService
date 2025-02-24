@@ -198,17 +198,36 @@ namespace SDS {
 
             // Serialize Var Description
             auto groupNamef = fbb.CreateString(cntDescVec[i].vlDesc.groupName);
+            std::vector<flatbuffers::Offset<AttrRequest>> globalAttrsfVec;
+            for(auto item : cntDescVec[i].vlDesc.attrs) {
+                auto attrNamef = fbb.CreateString(item.first);
+                auto attrValf = fbb.CreateString(item.second);
+                auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
+                globalAttrsfVec.push_back(attrf);
+            }
+            auto globalAttrsfVecf = fbb.CreateVector(globalAttrsfVec);
+
             std::vector<flatbuffers::Offset<VarDescRequest>> varDescfVec;
             for(auto item : cntDescVec[i].vlDesc.desc) {
                 auto varNamef = fbb.CreateString(item.varName);
                 auto varTypef = fbb.CreateString(item.varType);
                 auto shapeVecf = fbb.CreateVector(item.shape);
+                auto groupPath = fbb.CreateString(item.groupPath);
+                std::vector<flatbuffers::Offset<AttrRequest>> attrsfVec;
+                for(auto item : cntDescVec[i].vlDesc.attrs) {
+                    auto attrNamef = fbb.CreateString(item.first);
+                    auto attrValf = fbb.CreateString(item.second);
+                    auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
+                    attrsfVec.push_back(attrf);
+                }
+                auto attrsfVecf = fbb.CreateVector(attrsfVec);
                 auto varDescf = CreateVarDescRequest(fbb, varNamef, varTypef, item.varLen,
-                                                        item.resRation, shapeVecf, item.ncVarID, item.ncGroupID);
+                                                        item.resRation, shapeVecf, item.ncVarID,
+                                                        item.ncGroupID, groupPath, attrsfVecf);
                 varDescfVec.push_back(varDescf);
             }
             auto varDescfVecf = fbb.CreateVector(varDescfVec);
-            auto vlDescf = CreateVLDescRequest(fbb, groupNamef, cntDescVec[i].vlDesc.groupLen, varDescfVecf);
+            auto vlDescf = CreateVLDescRequest(fbb, groupNamef, cntDescVec[i].vlDesc.groupLen, varDescfVecf, globalAttrsfVecf);
 
             auto cntDescf = CreateContentDescRequest(fbb, SSDescf, tsDescf, vlDescf);
             cntDescfVec.push_back(cntDescf);
@@ -276,8 +295,15 @@ namespace SDS {
                                     cntDescVecf->Get(i)->tsdesc()->count());
 
             // Deserialize var Desc
+            std::unordered_map<std::string, std::string> globalAttrs;
+            for(int k = 0; k < cntDescVecf->Get(i)->vldesc()->attrs()->size(); k++) {
+                std::string attrName = cntDescVecf->Get(i)->vldesc()->attrs()->Get(k)->attr_name()->str();
+                std::string attrVal = cntDescVecf->Get(i)->vldesc()->attrs()->Get(k)->attr_val()->str();
+                globalAttrs.insert({attrName, attrVal});
+            }
+
             cntDesc.setVarListDesc(cntDescVecf->Get(i)->vldesc()->group_name()->str(), 
-                                    cntDescVecf->Get(i)->vldesc()->group_len());
+                                    cntDescVecf->Get(i)->vldesc()->group_len(), globalAttrs);
             
             std::vector<VarDesc> varDesc;
             for(int j = 0; j < cntDescVecf->Get(i)->vldesc()->vars()->size(); j++) {
@@ -287,13 +313,22 @@ namespace SDS {
                     shape.push_back(cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->shape()->Get(k));
                 }
 
+                std::unordered_map<std::string, std::string> attrs;
+                for(int k = 0; k < cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->attrs()->size(); k++) {
+                    std::string attrName = cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_name()->str();
+                    std::string attrVal = cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_val()->str();
+                    attrs.insert({attrName, attrVal});
+                }
+
                 desc.setVarDesc(cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_name()->str(),
                                 cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_len(),
                                 cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->res_ration(),
                                 cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_type()->str(),
                                 shape,
                                 cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_group_id(),
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_var_id());
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_var_id(),
+                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->group_path()->str(),
+                                attrs);
                varDesc.push_back(desc);   
             }
 
@@ -507,6 +542,84 @@ namespace SDS {
         timeID = message->time_id()->str();
         varID = message->var_id()->str();
         return Status::OK(); 
+    }
+
+    Status SendSearchDataFileRequest(int sock, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames) {
+        ARROW_LOG(INFO) <<  "Send data file search request:";
+        flatbuffers::FlatBufferBuilder fbb;
+        auto SSNamef = fbb.CreateString(SSName);
+        std::vector<flatbuffers::Offset<flatbuffers::String>> timesf;
+        std::vector<flatbuffers::Offset<flatbuffers::String>> varNamesf;
+
+        for(auto time: times) {
+            auto timef = fbb.CreateString(time);
+            timesf.push_back(timef);
+        }
+
+        for(auto name: varNames) {
+            auto namef = fbb.CreateString(name);
+            varNamesf.push_back(namef);
+        }
+
+        auto timeVector = fbb.CreateVector(timesf);
+        auto varNameVector = fbb.CreateVector(varNamesf);
+        auto message = CreateDataFileSearchRequest(fbb, SSNamef, timeVector, varNameVector);
+        return messageSend(sock, MessageTypeDataFileSearchRequest, &fbb, message);
+    }
+
+
+    Status ReadSearchDataFileRequest(uint8_t* data, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<DataFileSearchRequest>(data);
+        SSName = message->semantic_name()->str();
+        auto timeVector = message->times();
+        auto varVector = message->var_names();
+
+        for(int i = 0; i < timeVector->size(); i++) {
+            times.push_back(timeVector->Get(i)->str());
+        }
+
+        for(int i = 0; i < varVector->size(); i++) {
+            varNames.push_back(varVector->Get(i)->str());
+        }
+
+        return Status::OK();
+
+    }
+
+    Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath) {
+        flatbuffers::FlatBufferBuilder fbb;
+        std::vector<flatbuffers::Offset<FilePathListRequest>> filePathf;
+        for(auto item: filePath) {
+            auto dirPathf = fbb.CreateString(item.dirPath);
+            std::vector<flatbuffers::Offset<flatbuffers::String>> pathfVector;
+            for(auto path :item.fileNames) {
+                auto pathf = fbb.CreateString(path);
+                pathfVector.push_back(pathf);
+            }
+            auto pathfVectorf = fbb.CreateVector(pathfVector);
+            auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, pathfVectorf);
+            filePathf.push_back(filePathListf);
+        }
+        auto filePathVectorf = fbb.CreateVector(filePathf);
+        auto message = CreateDataFileSearchReply(fbb, filePathVectorf);
+        return messageSend(sock, MessageTypeDataFileSearchReply, &fbb, message);
+    }
+
+    Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<DataFileSearchReply>(data);
+        auto filePathVector = message->file_path_lists();
+        for(int i = 0; i < filePathVector->size(); i++) {
+            FilePathList pathList;
+            pathList.dirPath = filePathVector->Get(i)->root_path()->c_str();
+            auto pathVector = filePathVector->Get(i)->file_path();
+            for(int j = 0; j < pathVector->size(); j++) {
+                pathList.fileNames.push_back(pathVector->Get(j)->c_str());
+            }
+            filePath.push_back(pathList);
+        }
+        return Status::OK();
     }
 
 }

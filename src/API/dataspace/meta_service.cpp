@@ -254,6 +254,19 @@ namespace SDS {
         impl_->addMetaIndex(cntID, cntDesc);
     }
 
+    
+    bool MetaService::searchDataFile(std::string SSName, std::vector<std::string> &times, 
+                                        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
+
+        // 获取存储空间
+
+        // 根据时间，截取对应的文件列表，
+
+        // 根据变量，筛选文件
+       
+
+    }
+
     ContentDesc& MetaService::getContentDesc(ContentID &cntID) {
 
         ContentDesc cntDesc;
@@ -384,6 +397,17 @@ namespace SDS {
                 HANDLE_SIGPIPE(SendSearchContentIndexReply(client->fd, cntID.getSpaceID(), cntID.getTimeID(), cntID.getVarID()), client->fd);
 
             } break;
+            case MessageTypeDataFileSearchRequest: {
+                std::string SSName;
+                std::vector<std::string> times;
+                std::vector<std::string> varNames;
+                std::vector<FilePathList> fileList;
+
+                RETURN_NOT_OK(ReadSearchDataFileRequest(input, SSName, times, varNames));
+                // search data file by semantic name
+                HANDLE_SIGPIPE(SendSearchDataFileReply(client->fd, fileList), client->fd);
+            } break;
+
             default:
                 ARROW_CHECK(0);
         }

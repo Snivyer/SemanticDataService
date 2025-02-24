@@ -49,6 +49,11 @@ table TSDescRequest {
     count:int;
 }
 
+table AttrRequest {
+    attr_name:string;
+    attr_val:string;
+}
+
 table VarDescRequest {
     var_name:string;
     var_type:string;
@@ -57,12 +62,15 @@ table VarDescRequest {
     shape:[ulong];
     nc_var_id:int;
     nc_group_id:int;
+    group_path:string;
+    attrs:[AttrRequest];
 }
 
 table VLDescRequest {
     group_name: string;
     group_len: int;
     vars:[VarDescRequest];
+    attrs:[AttrRequest];
 }
 
 table ContentDescRequest{
@@ -126,6 +134,21 @@ table ContentIndexSearchReply {
     space_id:string;
     time_id:string;
     var_id:string;
+}
+
+table DataFileSearchRequest {
+    semantic_name:string;
+    times:[string];
+    var_names:[string];
+}
+
+table FilePathListRequest {
+    root_path:string;
+    file_path:[string];
+}
+
+table DataFileSearchReply {
+    file_path_lists:[FilePathListRequest];
 }
 
 

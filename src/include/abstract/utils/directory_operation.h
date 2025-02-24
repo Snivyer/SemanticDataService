@@ -16,6 +16,5 @@ namespace SDS {
     std::vector<std::string> getFileName(std::string dirName,bool subdir = true);
     bool getFilePathList(std::string dirName, std::vector<FilePathList> &list, bool subdir = true);
     std::string readFileExtension(std::string fileName);
-
 }
 

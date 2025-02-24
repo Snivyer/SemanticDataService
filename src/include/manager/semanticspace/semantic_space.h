@@ -27,7 +27,7 @@ namespace SDS
         remove
     };
 
-    struct SemanticSpace {
+    struct  SemanticSpace {
         size_t spaceID; 
         SSDesc ssDesc;          
         std::string SSName;         
@@ -78,8 +78,18 @@ namespace SDS
                 item.second.print();
             }
             std::cout << "---------------------------------" << std::endl;
-            
         }
+
+        void printWithTreeModel() {
+            std::cout << SSName.data() << "(" + getCompleteSpaceID() << ")" << std::endl;
+            for(auto item : databoxsIndex) {
+                item.first.printWithTreeModel();
+                item.second.printWithTreeModel();
+            }
+
+        }
+
+        
 
     };
 
@@ -108,7 +118,7 @@ namespace SDS
         SemanticSpace* getSpaceByID(std::string spaceID);
 
         // add a data box index into the semantic space
-        bool createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath, std::string varGroupName = "default");
+        bool createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath);
 
         // auto refer to databox from children space
         void autoReferDataBox(SemanticSpace* space);
@@ -134,7 +144,7 @@ namespace SDS
 
         // create var index 
         bool createVarIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath, 
-            ContentID &cntID, VLDesc &desc, std::string varGroupName = "default");
+            ContentID &cntID, VLDesc &desc);
 
 
 

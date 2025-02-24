@@ -39,6 +39,8 @@ namespace SDS {
     const int64_t MessageTypeDataSearchReply                 = 14;
     const int64_t MessageTypeSemanticSpaceLoadRequest        = 15;
     const int64_t MessageTypeSemanticSpaceLoadReply          = 16;
+    const int64_t MessageTypeDataFileSearchRequest           = 17;
+    const int64_t MessageTypeDataFileSearchReply             = 18;
 
 
 
@@ -80,6 +82,13 @@ namespace SDS {
     Status ReadSearchContentIndexRequest(uint8_t* data, std::vector<std::string> &geoNames, std::vector<std::string> &times, std::vector<std::string> &varNames, std::string &groupName);
     Status SendSearchContentIndexReply(int sock, std::string spaceID, std::string timeID, std::string varID);
     Status ReadSearchContentIndexReply(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID);
+
+    /* search data file message functions*/
+    Status SendSearchDataFileRequest(int sock, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
+    Status ReadSearchDataFileRequest(uint8_t* data, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
+    Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath);
+    Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath);
+
 
 
 };
