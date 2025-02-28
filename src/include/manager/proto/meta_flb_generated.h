@@ -13,6 +13,9 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
               FLATBUFFERS_VERSION_REVISION == 25,
              "Non-compatible flatbuffers version included");
 
+struct StatusReply;
+struct StatusReplyBuilder;
+
 struct MetaClientConnectRequest;
 struct MetaClientConnectRequestBuilder;
 
@@ -73,11 +76,55 @@ struct ContentIndexSearchReplyBuilder;
 struct DataFileSearchRequest;
 struct DataFileSearchRequestBuilder;
 
+struct StoreSiteRequest;
+struct StoreSiteRequestBuilder;
+
 struct FilePathListRequest;
 struct FilePathListRequestBuilder;
 
 struct DataFileSearchReply;
 struct DataFileSearchReplyBuilder;
+
+struct StatusReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StatusReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_STATUS = 4
+  };
+  bool status() const {
+    return GetField<uint8_t>(VT_STATUS, 0) != 0;
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_STATUS, 1) &&
+           verifier.EndTable();
+  }
+};
+
+struct StatusReplyBuilder {
+  typedef StatusReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_status(bool status) {
+    fbb_.AddElement<uint8_t>(StatusReply::VT_STATUS, static_cast<uint8_t>(status), 0);
+  }
+  explicit StatusReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StatusReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StatusReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StatusReply> CreateStatusReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    bool status = false) {
+  StatusReplyBuilder builder_(_fbb);
+  builder_.add_status(status);
+  return builder_.Finish();
+}
 
 struct MetaClientConnectRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MetaClientConnectRequestBuilder Builder;
@@ -1886,25 +1933,118 @@ inline ::flatbuffers::Offset<DataFileSearchRequest> CreateDataFileSearchRequestD
       var_names__);
 }
 
-struct FilePathListRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FilePathListRequestBuilder Builder;
+struct StoreSiteRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StoreSiteRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ROOT_PATH = 4,
-    VT_FILE_PATH = 6
+    VT_SITE_NAME = 4,
+    VT_SITE_VAL = 6,
+    VT_SUB_SITES = 8
   };
-  const ::flatbuffers::String *root_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ROOT_PATH);
+  const ::flatbuffers::String *site_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SITE_NAME);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *file_path() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_FILE_PATH);
+  const ::flatbuffers::String *site_val() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SITE_VAL);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>> *sub_sites() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>> *>(VT_SUB_SITES);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_ROOT_PATH) &&
-           verifier.VerifyString(root_path()) &&
-           VerifyOffset(verifier, VT_FILE_PATH) &&
-           verifier.VerifyVector(file_path()) &&
-           verifier.VerifyVectorOfStrings(file_path()) &&
+           VerifyOffset(verifier, VT_SITE_NAME) &&
+           verifier.VerifyString(site_name()) &&
+           VerifyOffset(verifier, VT_SITE_VAL) &&
+           verifier.VerifyString(site_val()) &&
+           VerifyOffset(verifier, VT_SUB_SITES) &&
+           verifier.VerifyVector(sub_sites()) &&
+           verifier.VerifyVectorOfTables(sub_sites()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StoreSiteRequestBuilder {
+  typedef StoreSiteRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_site_name(::flatbuffers::Offset<::flatbuffers::String> site_name) {
+    fbb_.AddOffset(StoreSiteRequest::VT_SITE_NAME, site_name);
+  }
+  void add_site_val(::flatbuffers::Offset<::flatbuffers::String> site_val) {
+    fbb_.AddOffset(StoreSiteRequest::VT_SITE_VAL, site_val);
+  }
+  void add_sub_sites(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>>> sub_sites) {
+    fbb_.AddOffset(StoreSiteRequest::VT_SUB_SITES, sub_sites);
+  }
+  explicit StoreSiteRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StoreSiteRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StoreSiteRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StoreSiteRequest> CreateStoreSiteRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> site_name = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> site_val = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>>> sub_sites = 0) {
+  StoreSiteRequestBuilder builder_(_fbb);
+  builder_.add_sub_sites(sub_sites);
+  builder_.add_site_val(site_val);
+  builder_.add_site_name(site_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StoreSiteRequest> CreateStoreSiteRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *site_name = nullptr,
+    const char *site_val = nullptr,
+    const std::vector<::flatbuffers::Offset<StoreSiteRequest>> *sub_sites = nullptr) {
+  auto site_name__ = site_name ? _fbb.CreateString(site_name) : 0;
+  auto site_val__ = site_val ? _fbb.CreateString(site_val) : 0;
+  auto sub_sites__ = sub_sites ? _fbb.CreateVector<::flatbuffers::Offset<StoreSiteRequest>>(*sub_sites) : 0;
+  return CreateStoreSiteRequest(
+      _fbb,
+      site_name__,
+      site_val__,
+      sub_sites__);
+}
+
+struct FilePathListRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef FilePathListRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DIR_PATH = 4,
+    VT_SITES = 6,
+    VT_SITE_PATH = 8,
+    VT_FILE_NAME = 10
+  };
+  const ::flatbuffers::String *dir_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_DIR_PATH);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>> *sites() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>> *>(VT_SITES);
+  }
+  const ::flatbuffers::String *site_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SITE_PATH);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *file_name() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_FILE_NAME);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_DIR_PATH) &&
+           verifier.VerifyString(dir_path()) &&
+           VerifyOffset(verifier, VT_SITES) &&
+           verifier.VerifyVector(sites()) &&
+           verifier.VerifyVectorOfTables(sites()) &&
+           VerifyOffset(verifier, VT_SITE_PATH) &&
+           verifier.VerifyString(site_path()) &&
+           VerifyOffset(verifier, VT_FILE_NAME) &&
+           verifier.VerifyVector(file_name()) &&
+           verifier.VerifyVectorOfStrings(file_name()) &&
            verifier.EndTable();
   }
 };
@@ -1913,11 +2053,17 @@ struct FilePathListRequestBuilder {
   typedef FilePathListRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_root_path(::flatbuffers::Offset<::flatbuffers::String> root_path) {
-    fbb_.AddOffset(FilePathListRequest::VT_ROOT_PATH, root_path);
+  void add_dir_path(::flatbuffers::Offset<::flatbuffers::String> dir_path) {
+    fbb_.AddOffset(FilePathListRequest::VT_DIR_PATH, dir_path);
   }
-  void add_file_path(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> file_path) {
-    fbb_.AddOffset(FilePathListRequest::VT_FILE_PATH, file_path);
+  void add_sites(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>>> sites) {
+    fbb_.AddOffset(FilePathListRequest::VT_SITES, sites);
+  }
+  void add_site_path(::flatbuffers::Offset<::flatbuffers::String> site_path) {
+    fbb_.AddOffset(FilePathListRequest::VT_SITE_PATH, site_path);
+  }
+  void add_file_name(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> file_name) {
+    fbb_.AddOffset(FilePathListRequest::VT_FILE_NAME, file_name);
   }
   explicit FilePathListRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1932,24 +2078,34 @@ struct FilePathListRequestBuilder {
 
 inline ::flatbuffers::Offset<FilePathListRequest> CreateFilePathListRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> root_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> file_path = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> dir_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<StoreSiteRequest>>> sites = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> site_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> file_name = 0) {
   FilePathListRequestBuilder builder_(_fbb);
-  builder_.add_file_path(file_path);
-  builder_.add_root_path(root_path);
+  builder_.add_file_name(file_name);
+  builder_.add_site_path(site_path);
+  builder_.add_sites(sites);
+  builder_.add_dir_path(dir_path);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<FilePathListRequest> CreateFilePathListRequestDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *root_path = nullptr,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *file_path = nullptr) {
-  auto root_path__ = root_path ? _fbb.CreateString(root_path) : 0;
-  auto file_path__ = file_path ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*file_path) : 0;
+    const char *dir_path = nullptr,
+    const std::vector<::flatbuffers::Offset<StoreSiteRequest>> *sites = nullptr,
+    const char *site_path = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *file_name = nullptr) {
+  auto dir_path__ = dir_path ? _fbb.CreateString(dir_path) : 0;
+  auto sites__ = sites ? _fbb.CreateVector<::flatbuffers::Offset<StoreSiteRequest>>(*sites) : 0;
+  auto site_path__ = site_path ? _fbb.CreateString(site_path) : 0;
+  auto file_name__ = file_name ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*file_name) : 0;
   return CreateFilePathListRequest(
       _fbb,
-      root_path__,
-      file_path__);
+      dir_path__,
+      sites__,
+      site_path__,
+      file_name__);
 }
 
 struct DataFileSearchReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

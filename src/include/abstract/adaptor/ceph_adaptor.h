@@ -13,7 +13,7 @@ namespace SDS
     class CephAdaptor : public Adaptor
     {
     public:
-        CephAdaptor(struct ConnectConfig &connConfig);
+        CephAdaptor(struct ConnectConfig &connConfig,  FilePathList *list);
 
 
         bool connect();

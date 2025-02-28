@@ -230,6 +230,58 @@ namespace SDS {
         return true;
     }
 
+    bool ContentMeta::haveVar(VLDesc &vlDesc, std::vector<std::string> &vars, searchLogical logic) {
+        if(logic == AND) {
+            for(auto varName : vars) {
+                if(vlDesc.varID.find(varName) == vlDesc.varID.end()) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            for(auto varName : vars) {
+                if(vlDesc.varID.find(varName) != vlDesc.varID.end()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    bool ContentMeta::haveTime(TSDesc &tsDesc, std::vector<std::string> &times, std::vector<time_t> &filteredTimes,  std::string fileMode) {
+        time_t startT, endT;
+        if(times.size() == 0) {
+            startT = mktime(&(tsDesc.startT));
+            endT = mktime(&(tsDesc.endT));
+        } else if (times.size() == 1) {
+            string_to_time(times[0], startT, fileMode);
+            endT = mktime(&(tsDesc.endT));   
+        } else if(times.size() == 2) {
+            string_to_time(times[0], startT, fileMode);
+            string_to_time(times[1], endT, fileMode);
+            time_t targetStartT = mktime(&(tsDesc.startT));
+            time_t targetEndT = mktime(&(tsDesc.endT));
+            if(startT < targetStartT ) {
+                startT = targetStartT;
+            }
+            if(endT > targetEndT) {
+                endT = targetEndT;
+            }
+        } else {
+            return false;
+        }   
+
+        if (startT > endT) {
+            return false;
+        }
+
+        time_t currentT = startT;
+        while(currentT <= endT) {
+            filteredTimes.push_back(currentT);
+            currentT += tsDesc.interval;
+        }
+        return true;
+    }
 
     bool ContentMeta::parseVLDesc(std::vector<ContentDesc> &cntDescSet) {
 
@@ -271,18 +323,16 @@ namespace SDS {
 
     }
     
-    bool ContentMeta::extractTSDesc(TSDesc &tsDesc, std::string dirName) {
-        std::vector<tm> tmList;
-        FilePathList pathList;
+    bool ContentMeta::extractTSDesc(TSDesc &tsDesc) {
         Adaptor* adaptor = getAdaptor();
-
         if(!adaptor) {
             return false;
         }
 
-        std::string dirPath = combinePath(adaptor->connConfig.rootPath, dirName);
-        if(adaptor->getFilePath(pathList, dirPath)) {
-            for(auto fileName : pathList.fileNames) {
+        std::vector<tm> tmList;
+        FilePathList *pathList = adaptor->getFilePathList();
+        if(pathList) {
+            for(auto fileName : pathList->fileNames) {
                 tm fileTm;
                 extractTimeInfo(fileName, fileTm);
                 tmList.push_back(fileTm);
@@ -292,20 +342,13 @@ namespace SDS {
                 std::sort(tmList.begin(), tmList.end(), compareTm);
                 tsDesc.startT = *tmList.begin();
                 tsDesc.endT = *(tmList.end() -1);
+                tsDesc.reportT = tsDesc.startT;
 
                 tm secondFileTm = *(tmList.begin() + 1);
                 tsDesc.interval = mktime(&(secondFileTm)) - mktime(&(tsDesc.startT));
                 tsDesc.count = tmList.size();
             } else {
                 tsDesc.count = 0;
-            }
-
-            // set the report Time by parse the directory name
-            tm reportTm;
-            if(extractTimeInfo(dirName, reportTm)) {
-                tsDesc.reportT = reportTm;
-            } else {
-                tsDesc.reportT = tsDesc.startT;
             }
             return true;
         }
@@ -371,17 +414,16 @@ namespace SDS {
         return true;
     }
 
-    bool ContentMeta::extractVLDesc(VLDesc &vlDesc, std::string dirName, bool isSame) {
+    bool ContentMeta::extractVLDesc(VLDesc &vlDesc, bool isSame) {
         Adaptor* adaptor;
         adaptor = getAdaptor();
         if(!adaptor) {
             return false;
         }
 
-        FilePathList pathList;
-        std::string dirPath = combinePath(adaptor->connConfig.rootPath, dirName);
-        if(adaptor->getFilePath(pathList, dirPath)) {
-            if(adaptor->getVarDescList(pathList, vlDesc, isSame)) {
+        FilePathList *pathList = adaptor->getFilePathList();
+        if(pathList) {
+            if(adaptor->getVarDescList(vlDesc, isSame)) {
                 return true;
             }
             return false;

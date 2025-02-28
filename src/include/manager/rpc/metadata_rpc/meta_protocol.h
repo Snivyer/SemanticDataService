@@ -22,7 +22,7 @@
 using arrow::Status;
 
 namespace SDS {
-
+    const int64_t MessageTypeErrorReply                      = 0;
     const int64_t MessageTypeMetaConnectRequest              = 1;
     const int64_t MessageTypeMetaConnectReply                = 2;
     const int64_t MessageTypeMetaDisconnectRequest           = 3;
@@ -41,7 +41,7 @@ namespace SDS {
     const int64_t MessageTypeSemanticSpaceLoadReply          = 16;
     const int64_t MessageTypeDataFileSearchRequest           = 17;
     const int64_t MessageTypeDataFileSearchReply             = 18;
-
+   
 
 
     /* connect message functions*/
@@ -49,6 +49,7 @@ namespace SDS {
     Status ReadMetaConnectRequest(uint8_t* data);
     Status SendMetaConnectReply(int sock, int64_t welcome);
     Status ReadMetaConnectReply(uint8_t* data, int64_t* welcome);
+    Status ReadErrorReply(uint8_t* data, bool &status);
 
     /* create semantic space message functions*/
     Status SendCreateSemanticSpaceRequest(int sock, std::string spaceName, std::vector<std::string> geoNames);
@@ -89,6 +90,10 @@ namespace SDS {
     Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath);
     Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath);
 
+    flatbuffers::Offset<StoreSiteRequest> CreateSiteRequest(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site);
+    Status ReadSiteRequest(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector);
 
+    
+    
 
 };

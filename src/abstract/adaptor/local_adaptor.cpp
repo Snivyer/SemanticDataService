@@ -3,8 +3,7 @@
 namespace SDS {
 
 
-    LocalAdaptor::LocalAdaptor(struct ConnectConfig &connConfig):Adaptor(connConfig) {
-        this->connConfig.setConfig(connConfig);
+    LocalAdaptor::LocalAdaptor(struct ConnectConfig &connConfig, FilePathList *list):Adaptor(connConfig, list) {
     }
 
     bool LocalAdaptor::connect() {
@@ -24,25 +23,30 @@ namespace SDS {
     }
 
 
-    bool LocalAdaptor::getFilePath(FilePathList &pathList, std::string dirPath) {
-        pathList.dirPath = dirPath;
+    bool LocalAdaptor::setFilePath(std::string path) {
+        pathList->extractStoreSiteDesc(path);
+        auto dirPath = combinePath(pathList->dirPath, pathList->sitePath);
         if(fs::exists(dirPath) && fs::is_directory(dirPath)) {
             for(auto& entry : fs::directory_iterator(dirPath)) {
                 if(fs::is_regular_file(entry.status())){
-                    pathList.fileNames.push_back(entry.path().filename());
+                   pathList->fileNames.push_back(entry.path().filename());
                 }
+            }
+            if(pathList->fileNames.size() > 0) {
+                pathList->fileType = readFileExtension(pathList->fileNames[0]);
             }
             return true;
         }   
         return false;
     }
 
-    bool LocalAdaptor::getVarDescList(FilePathList &pathList, VLDesc &vlDesc, bool isSame) {
-        vlDesc.desc.clear();
-        for(std::string filepath : pathList.fileNames) {
-            std::string path = combinePath(pathList.dirPath, filepath);
-            std::string fileType = readFileExtension(path);
 
+    bool LocalAdaptor::getVarDescList(VLDesc &vlDesc, bool isSame) {
+        vlDesc.desc.clear();
+        std::string dirPath = combinePath(pathList->dirPath, pathList->sitePath);
+        for(std::string fileName : pathList->fileNames) {
+            std::string path = combinePath(dirPath, fileName);
+            std::string fileType = readFileExtension(path);
             if(fileType == "nc") {
                 getVarDescListFromNC(path, vlDesc); 
             } else if (fileType == "HDF") { 
@@ -73,10 +77,10 @@ namespace SDS {
        
     }
 
-    bool LocalAdaptor::readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {
-        std::string dirPath = combinePath(connConfig.rootPath, pathList.dirPath);
-        for(std::string filepath : pathList.fileNames) {
-            std::string path = combinePath(dirPath, filepath);
+    bool LocalAdaptor::readVar(std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {
+        std::string dirPath = combinePath(pathList->dirPath, pathList->sitePath);
+        for(std::string fileName : pathList->fileNames) {
+            std::string path = combinePath(dirPath, fileName);
             std::string fileType = readFileExtension(path);
             arrow::ArrayVector dataArray;
             if(fileType == "nc") {

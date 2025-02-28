@@ -14,7 +14,7 @@ namespace SDS
     class LustreAdaptor : public Adaptor
     {
     public:
-        LustreAdaptor(struct ConnectConfig &connConfig);
+        LustreAdaptor(struct ConnectConfig &connConfig,  FilePathList *list);
 
 
         bool connect();

@@ -60,4 +60,43 @@ namespace SDS {
         return fileName.substr(pos + 1);
     }
 
+    bool copyFile(const std::string& sourcePath, const std::string& destinationPath) {
+        std::ifstream source(sourcePath, std::ios::binary);
+        std::ofstream destination(destinationPath, std::ios::binary);
+    
+        if (!source.is_open()) {
+            return false;
+        }
+    
+        if (!destination.is_open()) {
+            source.close();
+            return false;
+        }
+    
+        const size_t bufferSize = 8192;
+        char buffer[bufferSize];
+    
+        while (source.read(buffer, bufferSize) || source.gcount() > 0) {
+            destination.write(buffer, source.gcount());
+        }
+    
+        source.close();
+        destination.close();
+        return true;
+    }
+
+    bool copyFiles(const std::string& sourceDir, const std::vector<std::string>& filenames, const std::string& destinationDir) {
+
+        DIR *dir = opendir(destinationDir.c_str());
+        if (dir == nullptr) {
+            return false;
+        }
+        for (const std::string& filename : filenames) {
+            std::string sourcePath = sourceDir + "/" + filename;
+            std::string destinationPath = destinationDir + "/" + filename;
+            copyFile(sourcePath, destinationPath);
+        }
+        return true;
+    }
+
 }

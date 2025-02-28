@@ -14,6 +14,7 @@
 #include "abstract/adaptor/ceph_adaptor.h"
 #include "abstract/adaptor/lustre_adaptor.h"
 #include "abstract/adaptor/local_adaptor.h"
+#include  "abstract/utils/string_operation.h"
 
 
 
@@ -45,10 +46,11 @@ namespace SDS
   
         // bool fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count);
 
-
+        // caceh the storage adaptor
         void addAdaptor(size_t stoID, Adaptor* adaptor);
         Adaptor* getAdaptor(size_t stoID);
 
+        // cache the storage space
         void addSpace(size_t stoID, std::string spaceName, StorageSpace* space);
         StorageSpace* getSpaceByID(size_t stoID);
         StorageSpace* getSpaceByName(std::string spaceName);

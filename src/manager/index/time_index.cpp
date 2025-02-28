@@ -100,13 +100,13 @@ namespace SDS {
 
     bool TimeIndex::update(SearchTerm &oldTerm, SearchTerm 
                             &newTerm, ResultSet &result) {
-
-                            
+              
     }
 
     bool TimeIndex::persist(std::string fileName) {
 
     }
+
 
 
 

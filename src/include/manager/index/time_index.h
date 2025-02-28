@@ -116,22 +116,11 @@ namespace SDS
         bool search(time_t reportTime,  TimeSlotNode* &node);
         bool insert(time_t reportTime,  TimeSlotNode* &node);
 
-    
     private:
         std::vector<TimeSlotNode*>   timeSlotSet;
         std::unordered_map<time_t, std::vector<TimeSlotNode*>::iterator> timeSlotIndex;
         std::unordered_map<size_t, std::vector<TimeSlotNode*>::iterator> timeSlotIndexWithID;
-
-        
         bool getTerm(SearchTerm &term, time_t &reportTime);
         bool getResult(ResultSet &result, TimeSlotNode* &snode);
-
-     
-        
-        
-                        
-
     };
-
-
 }

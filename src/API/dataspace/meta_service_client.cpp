@@ -88,6 +88,14 @@ namespace SDS {
         int client = impl_->getMetaConn();
         RETURN_NOT_OK(SendLoadSemanticSpaceRequest(client, ssName));
         std::vector<uint8_t> buffer;
+        bool ret;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeErrorReply, &buffer));
+        RETURN_NOT_OK(ReadErrorReply(buffer.data(), ret)); 
+
+        if(ret == false) {
+            return arrow::Status::NotImplemented("Cannot find space...");
+        }
+
         RETURN_NOT_OK(messageReceive(client, MessageTypeSemanticSpaceLoadReply, &buffer));
         RETURN_NOT_OK(ReadLoadSemanticSpaceReply(buffer.data(), space));
         return Status::OK();

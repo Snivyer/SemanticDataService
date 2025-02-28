@@ -34,7 +34,15 @@ namespace SDS {
         return Status::OK();
     }
 
-     Status SendCreateSemanticSpaceRequest(int sock, std::string spaceName, std::vector<std::string> geoNames) {
+    Status ReadErrorReply(uint8_t* data, bool &status) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<StatusReply>(data);
+        status= message->status();
+        return Status::OK();
+    }
+
+
+    Status SendCreateSemanticSpaceRequest(int sock, std::string spaceName, std::vector<std::string> geoNames) {
         ARROW_LOG(INFO) <<  "Send create semantic space request, spaceName:" << spaceName;
 
         flatbuffers::FlatBufferBuilder fbb;
@@ -128,6 +136,18 @@ namespace SDS {
     }
 
     Status SendLoadSemanticSpaceReply(int sock, SemanticSpace* space) {
+        flatbuffers::FlatBufferBuilder fbb1;
+        bool status = true;
+        if(space == nullptr) {
+            ARROW_LOG(INFO) <<  "cannot find object semantic space...";
+            bool status = false;
+            auto message = CreateStatusReply(fbb1, status);
+            return messageSend(sock, MessageTypeErrorReply, &fbb1, message);
+        }
+
+        auto message = CreateStatusReply(fbb1, status);
+        messageSend(sock, MessageTypeErrorReply, &fbb1, message);
+
         flatbuffers::FlatBufferBuilder fbb;
         std::vector<ContentID> cntIDVec;
         std::vector<ContentDesc> cntDescVec;
@@ -233,8 +253,8 @@ namespace SDS {
             cntDescfVec.push_back(cntDescf);
         }
         auto cntDescfVecf = fbb.CreateVector(cntDescfVec);
-        auto message = CreateSemanticSpaceLoadReply(fbb, spaceInfof, cntIDfVecf, cntDescfVecf);
-        return messageSend(sock, MessageTypeSemanticSpaceLoadReply, &fbb, message);
+        auto message2 = CreateSemanticSpaceLoadReply(fbb, spaceInfof, cntIDfVecf, cntDescfVecf);
+        return messageSend(sock, MessageTypeSemanticSpaceLoadReply, &fbb, message2);
     }
 
     Status ReadLoadSemanticSpaceReply(uint8_t* data, SemanticSpace &space) {
@@ -587,23 +607,56 @@ namespace SDS {
 
     }
 
+
+    flatbuffers::Offset<StoreSiteRequest> CreateSiteRequest(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site) {
+        auto siteNamef = fbb.CreateString(site->siteName);
+        auto siteValf = fbb.CreateString(site->siteVal);
+        std::vector<flatbuffers::Offset<StoreSiteRequest>> childSitesVector;
+        for(auto childSite: site->subSites) {
+            auto childMessage = CreateSiteRequest(fbb, childSite);
+            childSitesVector.push_back(childMessage);
+        }
+        auto childSitesVectorf = fbb.CreateVector(childSitesVector);
+
+        return CreateStoreSiteRequest(fbb, siteNamef, siteValf, childSitesVectorf);
+    }
+
     Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath) {
         flatbuffers::FlatBufferBuilder fbb;
         std::vector<flatbuffers::Offset<FilePathListRequest>> filePathf;
         for(auto item: filePath) {
             auto dirPathf = fbb.CreateString(item.dirPath);
+            auto sitePathf = fbb.CreateString(item.sitePath);
             std::vector<flatbuffers::Offset<flatbuffers::String>> pathfVector;
             for(auto path :item.fileNames) {
                 auto pathf = fbb.CreateString(path);
                 pathfVector.push_back(pathf);
             }
             auto pathfVectorf = fbb.CreateVector(pathfVector);
-            auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, pathfVectorf);
+            std::vector<flatbuffers::Offset<StoreSiteRequest>> sitesVector;
+            for(auto site: item.sites) {
+                auto childSitef =  CreateSiteRequest(fbb, site);
+                sitesVector.push_back(childSitef);
+            }
+            auto sitesVectorf = fbb.CreateVector(sitesVector);
+            auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, sitesVectorf, sitePathf, pathfVectorf);
             filePathf.push_back(filePathListf);
         }
         auto filePathVectorf = fbb.CreateVector(filePathf);
         auto message = CreateDataFileSearchReply(fbb, filePathVectorf);
         return messageSend(sock, MessageTypeDataFileSearchReply, &fbb, message);
+    }
+
+    Status ReadSiteRequest(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector) { 
+        for(int i = 0; i < siteVectorf->size(); i++) {
+            StoreSite* site = new  StoreSite();
+            site->siteName = siteVectorf->Get(i)->site_name()->c_str();
+            site->siteVal = siteVectorf->Get(i)->site_val()->c_str(); 
+            auto childSites = siteVectorf->Get(i)->sub_sites();   
+            ReadSiteRequest(childSites, &(site->subSites));
+            siteVector->push_back(site);
+        }
+        return Status::OK();
     }
 
     Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath) {
@@ -612,11 +665,14 @@ namespace SDS {
         auto filePathVector = message->file_path_lists();
         for(int i = 0; i < filePathVector->size(); i++) {
             FilePathList pathList;
-            pathList.dirPath = filePathVector->Get(i)->root_path()->c_str();
-            auto pathVector = filePathVector->Get(i)->file_path();
+            pathList.dirPath = filePathVector->Get(i)->dir_path()->c_str();
+            pathList.sitePath = filePathVector->Get(i)->site_path()->c_str();
+            auto pathVector = filePathVector->Get(i)->file_name();
             for(int j = 0; j < pathVector->size(); j++) {
                 pathList.fileNames.push_back(pathVector->Get(j)->c_str());
             }
+            auto siteVector = filePathVector->Get(i)->sites();
+            ReadSiteRequest(siteVector, &(pathList.sites));
             filePath.push_back(pathList);
         }
         return Status::OK();

@@ -18,23 +18,18 @@ namespace SDS
     class LocalAdaptor : public Adaptor
     {
     public:
-        LocalAdaptor(struct ConnectConfig &connConfig);
-
+        LocalAdaptor(ConnectConfig &connConfig,  FilePathList *list);
         bool connect();
-
         size_t getSize();
-
         size_t getCapacity();
-
         std::string AllocateSpace(int spaceSize);
-
-        // get file path
-        bool getFilePath(FilePathList &pathList, std::string dirPath);
+        bool setFilePath(std::string path);
+        
 
         // 从NC文件中读取变量信息
-        bool getVarDescList(FilePathList &pathList, VLDesc &vlDesc, bool isSame = true);
+        bool getVarDescList(VLDesc &vlDesc, bool isSame = true);
 
-        bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2);
+        bool readVar(std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2);
 
         bool readVarList(std::string filePath, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray);
 
@@ -42,10 +37,9 @@ namespace SDS
         // virtual bool importFile();
 
         // 以NC文件的方式将数据写入存储系统中
-        bool importFile(struct SystemDesc &sysDesc, FilePathList pathList);
+        bool importFile(SystemDesc &sysDesc, FilePathList pathList);
 
     private:
-        struct ConnectConfig connConfig;
         bool getVarDescListFromNC(std::string path, VLDesc &vlDesc);
         bool getVarDescListFromHDF(std::string path, VLDesc &vlDesc);
 

@@ -5,8 +5,6 @@ namespace SDS_Retrieval {
     class SDS_Retrieval_Client::Impl {
         public:
 
-
-
             // semantic space cache
             std::unordered_map<std::string, SemanticSpace> semanticSpaceCache_;
             std::unordered_map<std::string, SpaceInfo*> semanticSpaceTree_;
@@ -16,12 +14,17 @@ namespace SDS_Retrieval {
 
             // databox cache
             std::unordered_map<SDS::ContentID, DataboxObject*, ContentIDHasher> databoxsCache_;
+
+
+            std::vector<FilePathList> resultCache_;
         
             // meta service client
-            std::shared_ptr< MetaServiceClient> meta_client_;
+            std::shared_ptr<MetaServiceClient> meta_client_;
             
             // databox client
             std::shared_ptr<DataBoxClient> db_client_;
+
+
             Impl() {}
             ~Impl() {}
 
@@ -65,14 +68,14 @@ namespace SDS_Retrieval {
         return Status::OK();
     }
 
-    void SDS_Retrieval_Client::menu() {
-        
+    void SDS_Retrieval_Client::menu() { 
         std::cout << "创建空间:create/cr + 行政区划名 + 存储系统 + 根路径" << std::endl;
         std::cout << "加载空间:load/lo + 空间名" << std::endl;
         std::cout << "导入数据:import/im + 行政区划名 + 文件目录路径" << std::endl;
         std::cout << "查询数据:search/sea + 行政区划名 + 时间段 + 变量列表" << std::endl;
         std::cout << "展示元数据:show/sh + 元数据关键字(如:semanticspace或storespace等)" << std::endl;
         std::cout << "详细展示元数据:detail/de +  元数据关键字(如:semanticspace或storespace等)" << std::endl;
+        std::cout << "导出数据:export/ex + 导入数据类型(如file, databox等)" << std::endl; 
         std::cout << "帮助:help/he" << std::endl;
         std::cout << "退出系统:quit/qu" << std::endl;
     }
@@ -101,7 +104,7 @@ namespace SDS_Retrieval {
 
             size_t size = infos.size();
             size_t inputInfoNum;
-            bool isSuccess; 
+            bool isSuccess = true; 
             std::string op = infos[0];
             transform(op.begin(), op.end(), op.begin(), ::tolower);
             if((op == "import") || (op == "im")) {
@@ -121,6 +124,9 @@ namespace SDS_Retrieval {
                 isSuccess = getData(infos);
             } else if ((op == "bind") || (op == "bi")) {
                 isSuccess = createByBucket(infos);
+            } else if (op == "export" || (op == "ex")) {
+                isSuccess = exportData(infos);
+
             } else if (op == "help" || op == "he") {
                 menu();
                 isSuccess = true;
@@ -142,34 +148,102 @@ namespace SDS_Retrieval {
     bool SDS_Retrieval_Client::searchData(std::vector<std::string>& infos) {
         std::string opType = infos[1];
         transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
-        bool flag = true;
-        if ((opType == "space") || (opType == "sp")) {
-            return searchDataBoxBySemanticName(infos[2]);
-        } else if ((opType == "time") || (opType == "ti")) {
-            // flag = searchDataByTimeInfo(infos);
-        } else if ((opType == "var") || (opType == "va")) {
-            // flag = searchDataByVarInfo(infos);
-        } else if ((opType == "path") || (opType == "pa")) {
-            // flag = searchDataByStorepath(infos);
-        } else {
-            if(infos.size() != 5) {
-                std::cout << "指令不符合规范！" << std::endl;
+        std::vector<std::string> times;
+        std::vector<std::string> varNames;
+        impl_->resultCache_.clear();
+
+        if ((opType == "space")) {
+            return searchDataFile(infos[2], times, varNames);
+        } else if (opType == "time") {
+            for(int i = 3; i < infos.size(); i++) {
+                times.push_back(infos[i]);
+            }
+            return searchDataFile(infos[2], times, varNames);
+        } else if (opType == "var") {
+            for(int i = 3; i < infos.size(); i++) {
+                varNames.push_back(infos[i]);
+            }
+            return searchDataFile(infos[2], times, varNames);
+        } else if (opType == "all") {
+            if(infos.size() > 5) {
+                for(int i = 5; i < infos.size(); i++) {
+                    varNames.push_back(infos[i]);
+                }
+                times.push_back(infos[3]);
+                times.push_back(infos[4]);
+            } else  {
+                printOpTypeError(opType);
                 return false;
             }
-           // flag = searchDataBySSTimeVarInfo(infos);
-        } 
-        return flag;
+            return searchDataFile(infos[2], times, varNames);
+        } else{
+            printOpTypeError(opType);
+            return false;
+        }
+    }
+
+    bool SDS_Retrieval_Client::searchDataBox(std::vector<std::string>& infos) {
+        std::string opType = infos[1];
+        transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
+        std::vector<std::string> times;
+        std::vector<std::string> varNames;
+        impl_->resultCache_.clear();
+
+        if ((opType == "space")) {
+            return searchDataBox(infos[2], times, varNames);
+        } else if (opType == "time") {
+            for(int i = 3; i < infos.size(); i++) {
+                times.push_back(infos[i]);
+            }
+            return searchDataFile(infos[2], times, varNames);
+        } else if (opType == "var") {
+            for(int i = 3; i < infos.size(); i++) {
+                varNames.push_back(infos[i]);
+            }
+            return searchDataFile(infos[2], times, varNames);
+        } else if (opType == "all") {
+            if(infos.size() > 5) {
+                for(int i = 5; i < infos.size(); i++) {
+                    varNames.push_back(infos[i]);
+                }
+                times.push_back(infos[3]);
+                times.push_back(infos[4]);
+            } else  {
+                printOpTypeError(opType);
+                return false;
+            }
+            return searchDataBox(infos[2], times, varNames);
+        } else{
+            printOpTypeError(opType);
+            return false;
+        }
     }
 
 
     bool SDS_Retrieval_Client::importData(std::vector<std::string>& infos) {
         std::string ssName = infos[1];
         std::string target_path = infos[2];
-        
         bool result;
         impl_->meta_client_->importDataFromLocal(ssName, ssName, target_path, result);
         return result;
     }
+
+    bool SDS_Retrieval_Client::exportData(std::vector<std::string>& infos) {
+        
+        std::string opType = infos[1];
+        transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
+        std::string destPath = infos[2];
+    
+        if ((opType == "file")) {
+            return exportFile(destPath);
+        } else if ((opType == "databox")) {
+
+        } else {
+            printOpTypeError(opType);
+            return false;
+        }
+    }
+
 
     bool SDS_Retrieval_Client::createByBucket(std::vector<std::string>& infos) {
         
@@ -189,7 +263,7 @@ namespace SDS_Retrieval {
         } else if ((opType == "time") || (opType == "ti")) {
             // printTimeInfo();
         } else if ((opType == "storespace") || (opType == "st")) {
-            showStorageSpace();
+            showStorageSpace(infos[2]);
         } else if ((opType == "groupbyvar") || (opType == "gr")) {
             // printVarGroupInfo();
         } else if ((opType == "indexbyvar") || (opType == "in")) {
@@ -216,7 +290,7 @@ namespace SDS_Retrieval {
         } else if ((opType == "time") || (opType == "ti")) {
             // printTimeInfo();
         } else if ((opType == "storespace") || (opType == "st")) {
-            showStorageSpace();
+            // showStorageSpace();
         } else if ((opType == "groupbyvar") || (opType == "gr")) {
             // printVarGroupInfo();
         } else if ((opType == "indexbyvar") || (opType == "in")) {
@@ -296,8 +370,13 @@ namespace SDS_Retrieval {
         SemanticSpace space;
         auto status = impl_->meta_client_->loadSemanticSpace(SSName, space);
         if(status.ok()) {
-            cacheSemanticSpace(space);
-            return true;
+            if(space.SSName == "") {
+                std::cout << "不存在指定语义空间，请提前创建..." << std::endl;
+                return false;
+            } else {
+                cacheSemanticSpace(space);
+                return true;
+            }
         }
         std::cout << "语义空间加载失败！" << std::endl;
         return false;
@@ -374,7 +453,6 @@ namespace SDS_Retrieval {
         auto status = impl_->meta_client_->loadSemanticSpace(SSName, space);
         if(status.ok()) {
             impl_->semanticSpaceCache_[SSName] = space;
-
             if(model == "tree") {
                 space.printWithTreeModel();
             } else {
@@ -402,7 +480,7 @@ namespace SDS_Retrieval {
         return false;
     }
 
-    void SDS_Retrieval_Client::showStorageSpace() {
+    void SDS_Retrieval_Client::showStorageSpace(std::string SSName) {
         if(impl_->storageSpaceCache_.size() == 0) {
             std::cout << "暂时没有存储空间信息..." << std::endl;
         }
@@ -411,41 +489,46 @@ namespace SDS_Retrieval {
             space.second.print();
             std::cout << std::endl;
         }
+
+        // if(SSName == "*") {
+        //     if(impl_->storageSpaceCache_.size() == 0) {
+        //         std::cout << "暂时没有存储空间信息..." << std::endl;
+        //     } else {
+        //         // printStorageSpaceWithTreeView();
+        //     }
+        // } else {
+        //     auto ret = impl_->storageSpaceCache_.find(SSName);
+        //     if(ret != impl_->storageSpaceCache_.end()) {
+        //         ret->second.print();
+        //     } else {
+        //         std::cout << "暂时没有创建该语义, 请预先创建..." << std::endl;
+        //     }   
+        // }
     }
 
 
-    bool SDS_Retrieval_Client::searchDataFileBySemanticName(std::string SSName) {
-    
-        std::vector<string> times;
-        std::vector<string> varNames;
-        std::vector<FilePathList> fileList;
-
-        auto status = impl_->meta_client_->searchDataFile(SSName, times, varNames, fileList);
+    bool SDS_Retrieval_Client::searchDataFile(std::string SSName, std::vector<std::string> &times,
+                                                 std::vector<std::string> &varNames) {
+        auto status = impl_->meta_client_->searchDataFile(SSName, times, varNames, impl_->resultCache_);
         if(status.ok()) {
-            return true;
+            return showSearchResult(SSName, SSName);
         }
         std::cout << "暂时没有检索到该语义空间文件信息..." << std::endl;
         return true;
     }
 
-    bool SDS_Retrieval_Client::searchDataBoxBySemanticName(std::string SSName) {
+    bool SDS_Retrieval_Client::searchDataBox(std::string SSName, std::vector<std::string> &times,
+                                                 std::vector<std::string> &varNames) {
+        
 
     }
 
-
-    bool SDS_Retrieval_Client::showSearchResult(std::string spaceName, std::string spaceID, std::vector<FilePathList>& filePath) {
+    bool SDS_Retrieval_Client::showSearchResult(std::string spaceName, std::string spaceID) {
         int totalFileNum = 0;
         std::cout  << spaceName << " (" << spaceID << ")" << std::endl;
-
-        for(auto pathList: filePath) {
-            std::cout << "  ";
-            std::cout << "├─ " << pathList.dirPath << " (" << pathList.fileNames.size() << "个)" << std::endl;
+        for(auto pathList: impl_->resultCache_) {
+            pathList.printWithTreeModel();
             totalFileNum += pathList.fileNames.size();
-            for(auto fileName: pathList.fileNames) {
-                std::cout << "  ";
-                std::cout << "  ";
-                std::cout << "├─ " << fileName << std::endl;
-            }
         }
         std::cout  << "本语义空间下共计检索出" << totalFileNum << "个文件" << std::endl;
         return true;
@@ -485,7 +568,6 @@ namespace SDS_Retrieval {
         if(info == nullptr) {
             return false;
         }
-
         for(int i = 0; i < level; i++) {
             std::cout << "  ";
         }
@@ -510,8 +592,12 @@ namespace SDS_Retrieval {
         return true;
     }
 
- 
 
-
+    bool SDS_Retrieval_Client::exportFile(std::string destPath) {
+        for(auto pathlist : impl_->resultCache_) {
+            copyFiles(pathlist.getCompletePath(), pathlist.fileNames, destPath);
+        }
+        return true;
+    }
 
 }

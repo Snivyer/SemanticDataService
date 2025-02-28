@@ -31,10 +31,16 @@ namespace SDS {
         }
     }
 
+    bool time_to_string(time_t &time, std::string &timeStr, std::string mode) {
+        struct tm tm;
+        localtime_r(&time, &tm);
+        tm_to_string(tm, timeStr, mode);
+    }
+
     bool tm_to_string(struct tm &tm, std::string &timeStr, std::string mode) {
         char buffer[32];
         if(mode == "nc") {
-            std::strftime(buffer, 32,  "%Y-%m-%d %H:%M:%S", &tm);
+            std::strftime(buffer, 32,  "%Y%m%dT%H%M%S", &tm);
         } else if (mode == "HDF") {
             std::strftime(buffer, 32,  "%Y-%m-%d", &tm);
         }

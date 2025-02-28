@@ -21,7 +21,7 @@ namespace SDS
     public:
   
         /*------提取元数据------*/
-        void extractStoreDesc(StoreTemplate &stoT, StoreDesc &desc);      
+        void extractStoreDesc(StoreTemplate &stoT, StoreDesc &desc);     
       
 
         /*------获取元数据------*/

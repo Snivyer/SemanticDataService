@@ -21,8 +21,12 @@
 
 namespace SDS
 {
-    
     namespace fs = std::experimental::filesystem;
+
+    enum searchLogical {
+        AND,
+        OR,
+    };
 
     // 内容元数据管理类
     class  ContentMeta: public Metadata
@@ -40,9 +44,8 @@ namespace SDS
 
         
         // extract the time slot desciption according to directory name
-        bool extractTSDesc(TSDesc &tsDesc, std::string dirName);
+        bool extractTSDesc(TSDesc &tsDesc);
  
-
         // extract the time slot description according to time vector
         bool extractTSDesc(TSDesc &tsDesc, std::vector<std::string> &times);
 
@@ -55,9 +58,7 @@ namespace SDS
                                 std::unordered_map<std::string, size_t> &varList);
         
         // extract the var list desciption by reading variable information from NetCDF 
-        bool extractVLDesc(VLDesc &vlDesc, std::string dirName, bool isSame = true);
-
-
+        bool extractVLDesc(VLDesc &vlDesc, bool isSame = true);
 
 
         /*------配置元数据存储------*/
@@ -105,6 +106,15 @@ namespace SDS
 
         bool parseVLDesc(std::vector<ContentDesc> &cntDescSet); 
 
+                
+        /*------查询元数据------*/
+        bool haveTime(TSDesc &tsDesc, std::vector<std::string> &times, std::vector<time_t> &filteredTimes, std::string fileMode = "nc");   
+
+        // Determine whether variable exists in the var list description
+        bool haveVar(VLDesc &vlDesc, std::vector<std::string> &vars, searchLogical logic = AND); 
+
+        
+
         
         /*------打印元数据------*/
         // print the semantic space description
@@ -115,8 +125,10 @@ namespace SDS
             
         // print the var list description
         void printVLDesc(VLDesc &vlDesc);
-            
 
+
+
+            
 
         /*------获取元数据------*/
 

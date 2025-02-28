@@ -7,6 +7,8 @@
 #pragma once
 #include "abstract/adaptor/pluge_factory.h"
 
+
+
 namespace SDS
 {
     using namespace arrow;
@@ -16,24 +18,29 @@ namespace SDS
     };
 
 
-    class Adaptor
-    {
+    class Adaptor {
     public:
         ConnectConfig connConfig;
-        Adaptor(ConnectConfig &config):connConfig(config) {}
+        FilePathList* pathList;
+
+        Adaptor(ConnectConfig &config, FilePathList *list): connConfig(config), pathList(list) {}
+        FilePathList* getFilePathList() { return pathList; }
 
         virtual bool connect() {};
         virtual size_t getSize() {};
         virtual size_t getCapacity() {};
         virtual std::string AllocateSpace(int spaceSize) {};
 
+        // get site information by parsing the file path
+        
+        virtual bool setFilePath(std::string path) {};
+
         // get file path
-        virtual bool getFilePath(FilePathList &pathList, std::string dirPath) {};
 
         // 从NC文件中读取变量信息
-        virtual bool getVarDescList(FilePathList &pathList,  VLDesc &VLDesc, bool isSame = true) {};
+        virtual bool getVarDescList(VLDesc &VLDesc, bool isSame = true) {};
 
-        virtual bool readVar(FilePathList &pathList, std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {};
+        virtual bool readVar(std::vector<VarDesc> &descList, std::vector<arrow::ArrayVector> &arrayVector2) {};
 
         virtual bool readVarList(std::string filePath, std::vector<VarDesc> &descList, arrow::ArrayVector &dataArray) {};
         // 以数据箱子的方式将数据写入到存储系统中

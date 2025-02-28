@@ -156,19 +156,24 @@ namespace SDS
     }
 
 
-    bool SemanticSpaceManager::createDataBoxIndex(Adaptor* adaptor, std::string spaceID, std::string dirPath) {
+    bool SemanticSpaceManager::createDataBoxIndex(std::string spaceID, size_t storageID, 
+                                                    Adaptor* adaptor, std::string dirPath) {
         // create a new data box 
         ContentID cntID;
         ContentDesc cntDesc;
         SemanticSpace* space = getSpaceByID(spaceID);
         cntID.setSpaceID(spaceID);
-        
+        cntID.addStoreID(storageID);
 
+
+        // create storage index 
+        adaptor->setFilePath(dirPath);
+      
         // create a time index
-        auto TSRet = createTimeIndex(adaptor, space, dirPath, cntID, cntDesc.tsDesc);
+        auto TSRet = createTimeIndex(adaptor, space, cntID, cntDesc.tsDesc);
 
         // create a var index
-        auto VLRet = createVarIndex(adaptor, space, dirPath, cntID, cntDesc.vlDesc);
+        auto VLRet = createVarIndex(adaptor, space, cntID, cntDesc.vlDesc);
 
         if(TSRet && VLRet) {
             cntDesc.setSpaceDesc(space->ssDesc);
@@ -187,12 +192,12 @@ namespace SDS
 
     }
 
-    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath,
+    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, SemanticSpace* space, 
                                                 ContentID &cntID, TSDesc &tsDesc) {
         
         TimeSlotNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);
-        if(_metaManager->extractTSDesc(tsDesc, dirPath)) {
+        if(_metaManager->extractTSDesc(tsDesc)) {
             time_t reportT = mktime(&(tsDesc.reportT));
     
             if( _timeIndex->insert(reportT, node)) {
@@ -204,7 +209,6 @@ namespace SDS
                     timeList->insertTimestamp(startTime);
                     startTime += tsDesc.interval;
                 }
-
                 node->insertTimeList(tsDesc.interval,timeList);
                 cntID.setTimeID(node->getTimeSlotID());
                 return true;
@@ -214,13 +218,13 @@ namespace SDS
         return false;
     }
 
-    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, SemanticSpace* space, std::string dirPath, 
+    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, SemanticSpace* space,
                                                 ContentID &cntID, VLDesc &vlDesc) {
         
         // choose the adimistrator code as the search term
         VarListNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);
-        if(_metaManager->extractVLDesc(vlDesc, dirPath)) {
+        if(_metaManager->extractVLDesc(vlDesc)) {
             if(_varIndex->insert(vlDesc.groupName, node)) {
                 for(auto item : vlDesc.desc) {
                     node->insertVarList(item.varName);

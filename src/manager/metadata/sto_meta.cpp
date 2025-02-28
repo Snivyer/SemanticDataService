@@ -9,7 +9,9 @@ namespace SDS
         desc.kind = stoT.kind;
         desc.writable = stoT.writable;
         desc.sysDesc.conConf = stoT.connConf;
+        desc.sysDesc.fileList.dirPath = stoT.connConf.rootPath;
     }
+
 
     StoreDesc StoreMeta::getStoreMeta(size_t StoreID) {
 

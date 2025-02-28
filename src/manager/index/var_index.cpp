@@ -39,7 +39,6 @@ namespace SDS
 
 
     bool VarIndex::search(std::string groupName, VarListNode *&nodeList) {
-        
         auto ret = varListIndex.find(groupName);
         if(ret != varListIndex.end()) {
             nodeList = *(ret->second);
@@ -48,6 +47,16 @@ namespace SDS
         return false;
     }
 
+    bool VarIndex:: hasVar(std::string varName) {
+        for(auto item : varListIndex) {
+            auto vlIndex = *(item.second);
+            auto ret = vlIndex->varIndex.find(varName);
+            if(ret != vlIndex->varIndex.end()) {
+                return true;
+            } 
+        }
+        return false;
+    }
 
     bool VarIndex::search(SearchTerm &term, ResultSet &result) {
         VarListNode* nodeList = nullptr;

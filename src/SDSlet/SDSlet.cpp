@@ -134,8 +134,9 @@ namespace SDSlet {
 
 
         ConnectConfig connConfig;
+        FilePathList filePath;
         connConfig.rootPath = "/";
-        Adaptor *adatpor = new LocalAdaptor(connConfig);
+        Adaptor *adatpor = new LocalAdaptor(connConfig, &filePath);
         impl_->setAdaptor(adatpor);
 
         /* init the data box store service */ 

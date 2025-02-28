@@ -12,6 +12,7 @@
 #include "abstract/meta/sto_meta_template.h"
 #include "abstract/meta/cnt_ID.h"
 #include "abstract/event/events.h"
+#include "abstract/utils/time_operation.h"
 #include "abstract/IO/io.h"
 #include "manager/metadata/metada_manager.h"
 #include "manager/semanticspace/semantic_space.h"
@@ -60,6 +61,7 @@ namespace SDS {
             bool addClientToSemanticSpaceEntry(SemanticSpaceEntry *entry, MetaClient* client);
             bool addClientToStorageSpaceEntry(StorageSpaceEntry *entry, MetaClient* client);
             bool createContentIndexInternal(std::string spaceID, size_t storageID, std::string dirName);
+
             
     };
 

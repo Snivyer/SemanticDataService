@@ -3,6 +3,7 @@
 #include "API/dataspace/meta_service_client.h"
 #include "manager/semanticspace/semantic_space.h"
 #include "manager/storagespace/storage_space.h"
+#include "abstract/utils/directory_operation.h"
 #include "abstract/meta/cnt_ID.h"
 #include <unordered_map>
 
@@ -46,8 +47,14 @@ namespace SDS_Retrieval {
             // data import
             bool importData(std::vector<std::string>& infos);
 
+            // data export
+            bool exportData(std::vector<std::string>& infos);
+
             // data retrieval
             bool searchData(std::vector<std::string>& infos);
+
+            // databox retrieval
+            bool searchDataBox(std::vector<std::string>& infos);
 
             // show content metadata
             void showContentInfo(std::vector<std::string>& infos);
@@ -94,15 +101,15 @@ namespace SDS_Retrieval {
             bool createStorageSpace(std::string spaceID, std::string SSName, StoreTemplate &temp);
 
             // show storage space
-            void showStorageSpace();
-
+            void showStorageSpace(std::string ssName);
 
             /*search related*/
-            bool searchDataFileBySemanticName(std::string SSName);
-            bool searchDataBoxBySemanticName(std::string SSName);
+            bool searchDataFile(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
+            bool searchDataBox(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
+            
 
             /*show search result*/
-            bool showSearchResult(std::string spaceName, std::string spaceID, std::vector<FilePathList>& filePath);
+            bool showSearchResult(std::string spaceName, std::string spaceID);
 
             /* databox related*/
             bool showDBInfo();
@@ -110,6 +117,14 @@ namespace SDS_Retrieval {
             /*present related*/
             bool printSemanticSpaceWithTreeView(std::string spaceID = "001");
             bool printSemanticSpaceWithTreeView(SpaceInfo* info, int level = 0);
+
+            // bool printStorageSpaceWithTreeView(std::string spaceID = "001");
+            // bool printStorageSpaceWithTreeView(SpaceInfo* info, int level = 0);
+
+            /*data export*/
+            bool exportFile(std::string destPath);
+
+
 
 
     };

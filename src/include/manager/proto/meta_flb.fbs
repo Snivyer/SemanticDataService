@@ -1,3 +1,8 @@
+
+table StatusReply {
+    status:bool;
+}
+
 table  MetaClientConnectRequest {
     fd:int;
 }
@@ -142,9 +147,17 @@ table DataFileSearchRequest {
     var_names:[string];
 }
 
+table StoreSiteRequest {
+    site_name:string;
+    site_val:string;
+    sub_sites:[StoreSiteRequest];
+}
+
 table FilePathListRequest {
-    root_path:string;
-    file_path:[string];
+    dir_path:string;
+    sites:[StoreSiteRequest];
+    site_path:string;
+    file_name:[string];
 }
 
 table DataFileSearchReply {

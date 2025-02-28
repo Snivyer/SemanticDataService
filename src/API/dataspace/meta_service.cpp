@@ -133,7 +133,6 @@ namespace SDS {
 
 
     StorageSpace* MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, MetaClient* client) {
-
         std::string SSName = storeInfo.SSName;
         auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(SSName) != 0) {
@@ -257,14 +256,48 @@ namespace SDS {
     
     bool MetaService::searchDataFile(std::string SSName, std::vector<std::string> &times, 
                                         std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
+        // step1: get semantic sapce by semantic name
+        auto semanticManager = impl_->getSemanticManager();  
+        ContentMeta* metaManager = semanticManager->getContentMeta(); 
+        SemanticSpace* space = semanticManager->getSpaceByName(SSName);
+        if(!space) {
+            return false;
+        }
 
-        // 获取存储空间
+        for(auto databox : space->databoxsIndex) {
+            // step2: determine if the corresponding variable exists in the variable descriptor
+            if(metaManager->haveVar(databox.second.vlDesc, varNames) == false) {
+                continue;
+            }       
+            
+            // step3: determine if the corresponding time exists in the time descriptor
+            std::vector<time_t> filteredTimes;
+             if(metaManager->haveTime(databox.second.tsDesc, times, filteredTimes) == false) {
+                continue;
+            }        
+            
+            size_t storageID = databox.first.getBestStoID();
+            Adaptor* adaptor = impl_->getStorageManager()->getAdaptor(storageID);
+            if(!adaptor) {
+                continue;
+            }
 
-        // 根据时间，截取对应的文件列表，
-
-        // 根据变量，筛选文件
-       
-
+            FilePathList* originList = adaptor->getFilePathList();
+            FilePathList pathList(originList);
+            for(auto time: filteredTimes) {
+                std::string fileName;
+                time_to_string(time, fileName, originList->fileType);
+                if(originList->fileType == "nc") {
+                    pathList.fileNames.push_back("ldasin." + fileName + ".nc");
+                } else if(originList->fileType == "HDF") {
+                    pathList.fileNames.push_back("FY3D_MERSI_GBAL_L2_CLM_MLT_GLL_" + fileName + "_POAD_5000M_MS.HDF");
+                } else {
+                    pathList.fileNames.push_back(fileName);
+                }
+            }
+            fileList.push_back(pathList);
+        }
+        return true;
     }
 
     ContentDesc& MetaService::getContentDesc(ContentID &cntID) {
@@ -404,6 +437,7 @@ namespace SDS {
                 std::vector<FilePathList> fileList;
 
                 RETURN_NOT_OK(ReadSearchDataFileRequest(input, SSName, times, varNames));
+                searchDataFile(SSName, times, varNames, fileList);
                 // search data file by semantic name
                 HANDLE_SIGPIPE(SendSearchDataFileReply(client->fd, fileList), client->fd);
             } break;
@@ -422,11 +456,14 @@ namespace SDS {
 
         auto semanticManger = impl_->getSemanticManager();
         auto storageManager = impl_->getStorageManager();
+        auto adaptor = storageManager->getAdaptor(storageID);
 
         // generate time index 
-        auto adaptor = storageManager->getAdaptor(storageID);
-        return semanticManger->createDataBoxIndex(adaptor, spaceID, dirName);
+        return semanticManger->createDataBoxIndex(spaceID, storageID, adaptor, dirName);
     }
+
+
+
 
 
 

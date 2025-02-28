@@ -3,7 +3,11 @@
 namespace SDS {
 
 
-    size_t ContentID::getBestStoID() {
+    void  ContentID::addStoreID(size_t stoID) {
+        storeIDs.push_back(stoID);
+    }
+
+    size_t ContentID::getBestStoID() const {
         if(storeIDs.empty()) {
             return 0;
         } else {

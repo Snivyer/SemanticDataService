@@ -27,7 +27,6 @@ namespace SDS {
     }
 
 
-
     Status ReadConnectRequest(uint8_t* data) {
         return Status::OK();
 

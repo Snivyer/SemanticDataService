@@ -19,11 +19,16 @@ namespace SDS
 {
 
   
-    // 变量列表节点
+    // variable list node
     struct VarListNode
     {
-        size_t varListID;                               
-        std::unordered_map<std::string, size_t> varIndex;
+                
+        /*  Name: varIndex
+            key: var name
+            value: var ID
+        */
+       std::unordered_map<std::string, size_t> varIndex;
+        size_t varListID; 
         size_t varNum;
 
         VarListNode() {
@@ -67,8 +72,12 @@ namespace SDS
         VarIndex();
         ~VarIndex();
 
+        /*  Name: varListIndex
+            key: groupName of var list
+            value: set of varListNode
+        */
+       std::unordered_map<std::string, std::vector<VarListNode*>::iterator> varListIndex;
         std::vector<VarListNode*> varListSet;
-        std::unordered_map<std::string, std::vector<VarListNode*>::iterator> varListIndex;
 
         bool search(SearchTerm &term, ResultSet &result);       // 查询节点
         bool insert(SearchTerm &term, ResultSet &result);       // 插入节点
@@ -77,6 +86,9 @@ namespace SDS
         bool persist(std::string fileName); 
         bool search(std::string groupName, VarListNode* &nodeList);       
         bool insert(std::string groupName, VarListNode* &nodeList);
+
+        /*var-realted search*/
+        bool hasVar(std::string varName);
 
     
     private:

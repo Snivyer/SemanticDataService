@@ -25,14 +25,9 @@ namespace SDS
     }
 
     // create storage space according to the storage template
-    size_t  StorageSpaceManager::createStorageSpace(StoreTemplate &stoT)
-    {
+    size_t  StorageSpaceManager::createStorageSpace(StoreTemplate &stoT) {
         // step1: generate the storage ID
         int stoID = generateStorageID();
-        // this->bindCntID(cntID, stoID);
-
-   
-        // 无需创建存储空间，直接返回
         if(stoT.kind == StoreSpaceKind::None) {
             return true;
         }
@@ -54,13 +49,12 @@ namespace SDS
            // this->adaptor = new LustreAdaptor(this->stoMeta->desc->sysDesc.conConf);
         }
         else {
-            Adaptor* adaptor = new LocalAdaptor(space->stoMeta.sysDesc.conConf);
+            Adaptor* adaptor = new LocalAdaptor(space->stoMeta.sysDesc.conConf, &(space->stoMeta.sysDesc.fileList));
             addAdaptor(stoID, adaptor);
         }
 
         // 如果需要预留空间，则需要申请
-        if(stoT.spaceSize > 0)
-        {
+        if(stoT.spaceSize > 0) {
             space->stoMeta.capacity = stoT.spaceSize;
             space->stoMeta.size = 0;
             reserveSpace(space, stoT.spaceSize);
