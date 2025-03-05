@@ -10,11 +10,10 @@
 #include "manager/semanticspace/semantic_space.h"
 #include "manager/metadata/sto_meta.h"
 #include "manager/metadata/cnt_meta.h"
-#include "abstract/adaptor/adaptor.h"
-#include "abstract/adaptor/ceph_adaptor.h"
-#include "abstract/adaptor/lustre_adaptor.h"
-#include "abstract/adaptor/local_adaptor.h"
-#include  "abstract/utils/string_operation.h"
+#include "abstract/adaptor/adaptor_factory.h"
+#include "abstract/utils/string_operation.h"
+#include "abstract/meta/sto_ID.h"
+#include "manager/index/site_index.h"
 
 
 
@@ -23,16 +22,25 @@ namespace SDS
    static size_t globalSpaceID = 0;
 
     struct StorageSpace {
-        size_t storageID;          // 存储空间ID
-        StoreDesc stoMeta;        // 存储元数据
+        size_t spaceID;
+        std::string SSName;
+        time_t createT;
+        size_t adaptorNum;
+        StoreDesc stoMeta;
+        std::unordered_map<StorageID, Adaptor*, StorageIDHasher> adaptorIndex;     
         SpaceStatus status;
 
         void print() {
             std::cout << "---------------------------------" << std::endl;
-            std::cout << "存储空间ID为:"  << storageID << std::endl;
+            std::cout << "存储空间ID为:"  << spaceID << std::endl;
             stoMeta.print();
             std::cout << "---------------------------------" << std::endl;
         }
+
+        void addAdaptor(StorageID &stoID, Adaptor* adaptor);
+        Adaptor* getAdaptor(StorageID &stoID);
+
+
     };
 
     class  StorageSpaceManager
@@ -42,13 +50,12 @@ namespace SDS
         ~StorageSpaceManager();
 
         // create storage space
-        size_t createStorageSpace(StoreTemplate &stoT);      
+        size_t createStorageSpace(StoreTemplate &stoT);   
+        
+        // create storage index according to given dir path 
+        bool createStoreTreeIndex(size_t stoID, std::string dirPath, StorageID &storeID);
   
         // bool fillDataBox(ContentDesc &cntDesc, size_t stoID, DataBox* db, size_t start, size_t count);
-
-        // caceh the storage adaptor
-        void addAdaptor(size_t stoID, Adaptor* adaptor);
-        Adaptor* getAdaptor(size_t stoID);
 
         // cache the storage space
         void addSpace(size_t stoID, std::string spaceName, StorageSpace* space);
@@ -57,14 +64,14 @@ namespace SDS
 
 
     private:
-        StoreMeta *storeMeta;
+        StoreMeta *storeMeta_;
         std::map<size_t, StorageSpace*> spaceIDMap_;
         std::map<std::string, StorageSpace*> spaceNameMap_;
         std::map<size_t, Adaptor*> adapatorMap_;
+        SiteIndex *siteIndex_;
 
 
         size_t generateStorageID();                 // 生成存储空间ID
-        void bindCntID(struct ContentID &cntID, size_t StoID);    // 绑定内容ID
         bool reserveSpace(StorageSpace *space, size_t spaceSize);
     };
 

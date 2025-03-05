@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "abstract/utils/string_operation.h"
 #include "arrow/util/logging.h"
+#include "abstract/meta/sto_ID.h"
 
 
 namespace SDS {
@@ -12,11 +13,11 @@ namespace SDS {
        // 内容ID描述符
     class ContentID {
     public: 
-        std::vector<size_t> storeIDs;  // 存储空间ID，支持多个存储位置，方便寻址
+        std::vector<StorageID> storeIDs;  // 存储空间ID，支持多个存储位置，方便寻址
         ContentID(const std::string spaceID ="", const std::string TimeID ="", const std::string varID ="");
         ContentID(std::vector<std::string> identify);
 
-        size_t getBestStoID() const;
+        StorageID getBestStoID() const;
         bool operator==(const ContentID &cntID) const;
         void print() const;
         void printWithTreeModel() const;
@@ -28,7 +29,7 @@ namespace SDS {
         std::string getVarID() const;
         void setVarID(const std::string ID);
 
-        void addStoreID(size_t stoID);
+        void addStoreID(StorageID &stoID);
 
 
     private:

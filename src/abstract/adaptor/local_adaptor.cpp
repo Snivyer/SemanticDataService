@@ -23,8 +23,12 @@ namespace SDS {
     }
 
 
-    bool LocalAdaptor::setFilePath(std::string path) {
-        pathList->extractStoreSiteDesc(path);
+    bool LocalAdaptor::setFilePath() {
+        if(pathList->dirPath.size() > 0) {
+            return true;
+        }
+
+        pathList->dirPath = connConfig.rootPath;
         auto dirPath = combinePath(pathList->dirPath, pathList->sitePath);
         if(fs::exists(dirPath) && fs::is_directory(dirPath)) {
             for(auto& entry : fs::directory_iterator(dirPath)) {
@@ -129,7 +133,10 @@ namespace SDS {
             pluge->readVarDescList(ncid, gid, groupNum, vlDesc.desc);
         }
 
-        vlDesc.groupName = splitString(path, '.')[0];
+        auto fileNames =  splitString(path, '/');
+        std::string fileName = fileNames[fileNames.size() - 1];
+        vlDesc.groupName = splitString(fileName, '.')[0];
+
         vlDesc.groupLen =  vlDesc.desc.size();
         for(int i = 0; i < vlDesc.groupLen; i++) {
             vlDesc.varID.insert({vlDesc.desc[i].varName, i});

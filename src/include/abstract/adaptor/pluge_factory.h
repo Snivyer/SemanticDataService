@@ -7,11 +7,9 @@
 namespace SDS
 {
     class PlugeFactory {
-        public:
-
-        static SDS::NCPluge* getNCPluge();
-        static SDS::HDFPluge* getHDFPluge(); 
+    public:
+            static SDS::NCPluge* getNCPluge();
+            static SDS::HDFPluge* getHDFPluge(); 
     };
-
 
 }

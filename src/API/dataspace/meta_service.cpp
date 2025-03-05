@@ -156,25 +156,20 @@ namespace SDS {
     }
 
     bool MetaService::createContentIndex(std::string SemanticSpaceName, std::string StoreSpaceName, std::string dirName) {
-
-        // get spaceID
         auto SemanticSpaceInfo = impl_->getSemanticSpaceInfo();
         if(SemanticSpaceInfo.count(SemanticSpaceName) == 0) {
             ARROW_LOG(DEBUG) << "Cannot Find Target Semantic Space Name.";
             return false;
         }
-
         std::string spaceID = SemanticSpaceInfo[SemanticSpaceName]->space->getCompleteSpaceID();
 
-        // get storageID
         auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(StoreSpaceName) == 0) {
             ARROW_LOG(DEBUG) << "Cannot Find Target Storage Space Name.";
             return false;
         }
-        size_t storageID = StorageSpaceInfo[StoreSpaceName]->space->storageID;
+        size_t storageID = StorageSpaceInfo[StoreSpaceName]->space->spaceID;
         return createContentIndexInternal(spaceID, storageID, dirName);
-
     }
 
     bool MetaService::searchContentIndex(std::vector<std::string> geoNames, std::vector<std::string> times, std::vector<std::string> varNames, 
@@ -276,8 +271,9 @@ namespace SDS {
                 continue;
             }        
             
-            size_t storageID = databox.first.getBestStoID();
-            Adaptor* adaptor = impl_->getStorageManager()->getAdaptor(storageID);
+            
+            StorageID storageID = databox.first.getBestStoID();
+            Adaptor* adaptor = impl_->getStorageManager()->getSpaceByID(std::stoi(storageID.getSpaceID()))->getAdaptor(storageID);
             if(!adaptor) {
                 continue;
             }
@@ -456,10 +452,12 @@ namespace SDS {
 
         auto semanticManger = impl_->getSemanticManager();
         auto storageManager = impl_->getStorageManager();
-        auto adaptor = storageManager->getAdaptor(storageID);
-
-        // generate time index 
-        return semanticManger->createDataBoxIndex(spaceID, storageID, adaptor, dirName);
+        
+        StorageID storeID;
+        if(storageManager->createStoreTreeIndex(storageID, dirName, storeID)) {
+            Adaptor* adaptor = storageManager->getSpaceByID(storageID)->getAdaptor(storeID);
+            return semanticManger->createDataBoxIndex(spaceID, storeID, adaptor);
+        }  
     }
 
 

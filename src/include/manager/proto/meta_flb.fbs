@@ -103,7 +103,6 @@ table StorageSpaceCreateRequest {
     space_id:string;
     user_name:string;
     conf_file:string;
-    pool_name:string;
     root_path:string;
 }
 
@@ -115,7 +114,6 @@ table StorageSpaceCreateReply {
     capacity:ulong;
     kind:string;
     root_path:string;
-    pool_name:string;
 }
 
 table ContentIndexCreateRequst {

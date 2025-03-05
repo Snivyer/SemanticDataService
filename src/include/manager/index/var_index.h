@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include "manager/index/index.h"
 #include "manager/metadata/cnt_meta.h"
+#include "abstract/utils/string_operation.h"
 
 
 namespace SDS
@@ -27,7 +28,7 @@ namespace SDS
             key: var name
             value: var ID
         */
-       std::unordered_map<std::string, size_t> varIndex;
+        std::unordered_map<std::string, size_t> varIndex;
         size_t varListID; 
         size_t varNum;
 
@@ -35,25 +36,24 @@ namespace SDS
             varNum = 0;
         }
 
-        std::string getVarListID() {
-            return std::to_string(varListID);
+        std::string getVarListID(int width = 3) {
+            return intToStringWithPadding(varListID, width);
         }
+            
 
-        std::string getCompleteVarID(std::string varName) {
 
+        std::string getCompleteVarID(std::string varName, int width = 3) {
             if(varNum == 0) {
                 return getVarListID();
             }
-
             auto ret = varIndex.find(varName);
             if(ret != varIndex.end()) {
-                return getVarListID() + std::to_string(ret->second);
+                return getVarListID(width) + intToStringWithPadding(varListID, width);
             }
-            return getVarListID();
+            return getVarListID(width);
         }
 
         void insertVarList(std::string varName) {
-
             auto ret = varIndex.find(varName);
             if(ret == varIndex.end()) {
                 varNum += 1;
@@ -76,7 +76,7 @@ namespace SDS
             key: groupName of var list
             value: set of varListNode
         */
-       std::unordered_map<std::string, std::vector<VarListNode*>::iterator> varListIndex;
+       std::unordered_map<std::string, VarListNode*> varListIndex;
         std::vector<VarListNode*> varListSet;
 
         bool search(SearchTerm &term, ResultSet &result);       // 查询节点

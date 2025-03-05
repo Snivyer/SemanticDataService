@@ -14,6 +14,7 @@
 #include "manager/index/index.h"
 #include "manager/metadata/cnt_meta.h"
 #include "abstract/utils/time_operation.h"
+#include "abstract/utils/string_operation.h"
 
 
 namespace SDS
@@ -38,12 +39,12 @@ namespace SDS
             return timeIntervalID;
         }
 
-        std::string getHemiTimeID(time_t t) {
+        std::string getHemiTimeID(time_t t, int width = 3) {
             int timeID = getTimeID(t);
             if(timeID == 0) {
-                return std::to_string(timeIntervalID);
+                return intToStringWithPadding(timeIntervalID, width);
             } else {
-                return std::to_string(timeIntervalID) + std::to_string(timeID);
+                return intToStringWithPadding(timeIntervalID, width) + intToStringWithPadding(timeID, width);
             }
         }
 
@@ -72,32 +73,17 @@ namespace SDS
             intervalNums = 0;
         }
 
-        std::string getTimeSlotID() {
-            return std::to_string(timeSlotID);
+        std::string getTimeSlotID(int width = 3) {
+            return intToStringWithPadding(timeSlotID, width);
         }
 
-        std::string getCompleteTimeID(long interval, time_t &t) {
-
-            if(intervalNums == 0) {
-                return getTimeSlotID();
-            }
-
+        std::string getCompleteTimeID(long interval, time_t t = 0) {
             auto ret = timeIntervalIndex.find(interval);
             if(ret != timeIntervalIndex.end()) {
                 return getTimeSlotID() + ret->second->getHemiTimeID(t);
             }
             return getTimeSlotID();
         }
-
-        void insertTimeList(time_t interval, TimeList* timeSlot) {
-            
-            auto ret = timeIntervalIndex.find(interval);
-            if(ret == timeIntervalIndex.end()) {
-                timeIntervalIndex.insert({interval, timeSlot});
-                intervalNums += 1;
-            }
-        }
-    
     };
 
 

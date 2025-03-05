@@ -156,8 +156,8 @@ namespace SDS
     }
 
 
-    bool SemanticSpaceManager::createDataBoxIndex(std::string spaceID, size_t storageID, 
-                                                    Adaptor* adaptor, std::string dirPath) {
+    bool SemanticSpaceManager::createDataBoxIndex(std::string spaceID, StorageID &storageID, Adaptor *adaptor) {
+        
         // create a new data box 
         ContentID cntID;
         ContentDesc cntDesc;
@@ -165,9 +165,8 @@ namespace SDS
         cntID.setSpaceID(spaceID);
         cntID.addStoreID(storageID);
 
-
         // create storage index 
-        adaptor->setFilePath(dirPath);
+        adaptor->setFilePath();
       
         // create a time index
         auto TSRet = createTimeIndex(adaptor, space, cntID, cntDesc.tsDesc);
@@ -180,7 +179,7 @@ namespace SDS
             
             // add the databox into the semantic space
             space->databoxsIndex.insert({cntID, cntDesc});
-            space->databoxNum += 1;
+            space->databoxNum = space->databoxsIndex.size();
 
             // add the databox into parent semantic space
             autoAddDataBox(space, cntID, cntDesc);
@@ -199,18 +198,23 @@ namespace SDS
         _metaManager->setAdaptor(adaptor);
         if(_metaManager->extractTSDesc(tsDesc)) {
             time_t reportT = mktime(&(tsDesc.reportT));
-    
             if( _timeIndex->insert(reportT, node)) {
-                TimeList *timeList = new TimeList();
-                time_t startTime = mktime(&(tsDesc.startT));
-                timeList->endTime = mktime(&(tsDesc.endT));
+                size_t intervalVal = (tsDesc.interval * tsDesc.count) / 3600;
 
-                for(int i = 0; i < tsDesc.count; i++) {
-                    timeList->insertTimestamp(startTime);
-                    startTime += tsDesc.interval;
+                auto ret = node->timeIntervalIndex.find(intervalVal);
+                if(ret == node->timeIntervalIndex.end()) {
+                    TimeList *timeList = new TimeList();
+                    time_t startTime = mktime(&(tsDesc.startT));
+                    timeList->endTime = mktime(&(tsDesc.endT));
+                    timeList->timeIntervalID = node->timeIntervalIndex.size() + 1;
+
+                    for(int i = 0; i < tsDesc.count; i++) {
+                        timeList->insertTimestamp(startTime);
+                        startTime += tsDesc.interval;
+                    }
+                    node->timeIntervalIndex.insert({intervalVal, timeList});
                 }
-                node->insertTimeList(tsDesc.interval,timeList);
-                cntID.setTimeID(node->getTimeSlotID());
+                cntID.setTimeID(node->getCompleteTimeID(intervalVal));
                 return true;
             }
         }
@@ -226,17 +230,16 @@ namespace SDS
         _metaManager->setAdaptor(adaptor);
         if(_metaManager->extractVLDesc(vlDesc)) {
             if(_varIndex->insert(vlDesc.groupName, node)) {
-                for(auto item : vlDesc.desc) {
-                    node->insertVarList(item.varName);
+                if(node->varIndex.size() == 0) {
+                    for(auto item : vlDesc.desc) {
+                        node->insertVarList(item.varName);
+                    }
+                    node->varNum = vlDesc.desc.size();
                 }
-                node->varNum = vlDesc.desc.size();
+
                 cntID.setVarID(node->getVarListID());
                 return true;
-            } else {
-                _varIndex->search(vlDesc.groupName, node);
-                cntID.setVarID(node->getVarListID());
-                return true;
-            }
+            } 
         }
         return false;
     }

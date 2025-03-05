@@ -33,7 +33,7 @@ namespace SDS
 
         // get site information by parsing the file path
         
-        virtual bool setFilePath(std::string path) {};
+        virtual bool setFilePath() {};
 
         // get file path
 

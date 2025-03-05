@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
 
 
@@ -21,5 +22,6 @@ namespace SDS {
     std::string combinePath(const std::string &base_path, const std::string &sub_path);
     std::string intToStringWithPadding(int value, int width);
     std::string removeTrailingZeros(const std::string input);
+    std::string toBinaryString(size_t value, size_t length = 6);
 }
  

@@ -13,8 +13,7 @@
 namespace SDS {
 
     // 存储系统类型
-    enum StoreSpaceKind 
-    {
+    enum StoreSpaceKind {
         Ceph,
         Lustre,
         BB,
@@ -22,15 +21,11 @@ namespace SDS {
         None,
     };
 
-
-
-
     // 存储站点信息
     struct StoreSite {
         std::string siteName;
         std::string siteVal;
         std::vector<StoreSite*> subSites;
-
         StoreSite* addChildSite(std::string siteName, std::string siteVal) {
             StoreSite* site = new StoreSite;
             site->siteName = siteName;
@@ -38,38 +33,37 @@ namespace SDS {
             subSites.push_back(site);
             return site;
         }
-
-
     };
-
-
 
     // 存储系统连接符
     struct ConnectConfig {
         std::string userName;
         std::string confFile;        
-        std::string poolName;
         std::string rootPath;
 
         void setConfig(ConnectConfig &config) {
             userName = config.userName;
             confFile = config.confFile;
-            poolName = config.poolName;
             rootPath = config.rootPath;
+        }
+
+        void print() {
+            std::cout << "空间路径" << "(" << rootPath << ")" << std::endl;
         }
     };
 
     // 文件路径列表
-    struct FilePathList
-    {
+    struct FilePathList {
         std::string dirPath;
         std::vector<StoreSite*> sites;
         std::string sitePath;
         std::vector<std::string> fileNames;
         std::string fileType;
 
-        FilePathList() {}
-        
+        FilePathList() {
+
+        }
+
         FilePathList(FilePathList *list) {
             dirPath = list->dirPath;
             sitePath = list->sitePath;
@@ -78,12 +72,22 @@ namespace SDS {
             }
         }
 
+        void setFilePathList(FilePathList &list) {
+            dirPath = list.dirPath;
+            sitePath = list.sitePath;
+            for(auto ptr: list.sites) {
+                sites.push_back(ptr);
+            }
+        }
+
+
         std::string getCompletePath() {
             std::string path = combinePath(dirPath, sitePath);
             return path;
         }
 
         bool extractStoreSiteDesc(std::string path) {
+            std::string originPath = path;
             std::vector<std::string> siteNames = splitString(path, '/');
             if(siteNames.size() == 0) {
                 return false;
@@ -93,7 +97,7 @@ namespace SDS {
             site->siteName = siteNames[0];
             site->siteVal = siteNames[0];
             sites.push_back(site);
-            sitePath = path;
+            sitePath = originPath;
             for(int i = 1; i < siteNames.size(); i++) {
                 site = site->addChildSite(siteNames[i], siteNames[i]);
             }
@@ -113,8 +117,8 @@ namespace SDS {
         }
 
         void printWithTreeModel() {
-            std::cout << "  "; 
-            std::cout << "├─ " << "根目录" << "(" + dirPath + ")" << std::endl;
+            // std::cout << "  "; 
+            // std::cout << "├─ " << "根目录" << "(" + dirPath + ")" << std::endl;
 
             int level = 2;
 
@@ -132,30 +136,18 @@ namespace SDS {
 
     };
 
-    // 存储描述符
-    struct SystemDesc
-    {
-        ConnectConfig conConf;
-        FilePathList  fileList;
-
-        void print() {
-            std::cout << "连接配置池名为:"  << conConf.poolName.data() << std::endl;
-            std::cout << "连接配置根路径为:"  << conConf.rootPath.data() << std::endl;
-        }
-    };
-
+ 
     // 存储元数据
-    struct StoreDesc
-    {
+    struct StoreDesc {
         std::string SSName;
         bool writable;
         size_t size;
         size_t capacity;
         StoreSpaceKind  kind;
-        SystemDesc sysDesc;
+        ConnectConfig conConf;
+
 
         StoreDesc():size(0),capacity(2) {};
-
         std::string getStoreKind() {
             switch(kind) {
                 case StoreSpaceKind::Ceph:
@@ -168,6 +160,21 @@ namespace SDS {
                     return "Local";
                 default:
                     return "None";
+            }
+        }
+
+        std::string getTypeID() {
+            switch(kind) {
+                case StoreSpaceKind::Ceph:
+                    return "100";
+                case StoreSpaceKind::Lustre:
+                    return "011";
+                case StoreSpaceKind::BB:
+                    return "010";
+                case StoreSpaceKind::Local:
+                    return "001";
+                default:
+                    return "000";
             }
         }
 
@@ -189,18 +196,17 @@ namespace SDS {
                     std::cout << "存储空间状态为:未知" << std::endl;
                     break;
             }
-            sysDesc.print();
+            conConf.print();
         }
 
         void printWithTreeModel() {
             std::cout << SSName.data() << "(" << getStoreKind() << ")" << std::endl;
-            sysDesc.fileList.printWithTreeModel();
+            conConf.print();
         }
     };
 
     // 存储模板
-    struct StoreTemplate
-    {
+    struct StoreTemplate {
         std::string SSName;
         bool writable;
         StoreSpaceKind kind;
@@ -211,7 +217,6 @@ namespace SDS {
             spaceSize = 100;
             writable = true;
             connConf.rootPath = "";
-            connConf.poolName = "";
             connConf.userName = "";
             connConf.confFile = "";
         }
@@ -232,7 +237,7 @@ namespace SDS {
 
         void setPath(std::string path) {
             if(kind == StoreSpaceKind::Ceph) {
-                connConf.poolName = path;
+                connConf.rootPath = path;
             } else if(kind == StoreSpaceKind::Lustre) {
                 connConf.rootPath = path;
             } else if(kind == StoreSpaceKind::Local) {

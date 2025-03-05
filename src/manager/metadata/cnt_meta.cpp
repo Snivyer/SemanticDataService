@@ -343,7 +343,6 @@ namespace SDS {
                 tsDesc.startT = *tmList.begin();
                 tsDesc.endT = *(tmList.end() -1);
                 tsDesc.reportT = tsDesc.startT;
-
                 tm secondFileTm = *(tmList.begin() + 1);
                 tsDesc.interval = mktime(&(secondFileTm)) - mktime(&(tsDesc.startT));
                 tsDesc.count = tmList.size();

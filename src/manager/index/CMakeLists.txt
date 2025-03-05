@@ -4,6 +4,7 @@ add_library(
     space_index.cpp
     time_index.cpp
     var_index.cpp
+    site_index.cpp
 )
 
 

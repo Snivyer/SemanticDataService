@@ -23,6 +23,7 @@ namespace SDS
         TimeSlot,
         Var,
         VarList,
+        Site,
     };
 
     // 索引根节点
@@ -35,8 +36,7 @@ namespace SDS
 
 
 
-    class BaseIndex
-    {
+    class BaseIndex {
     public:
         IndexEntrance _entrance;      // 索引入口
         virtual bool search(SearchTerm &term, ResultSet &result) = 0;       // 查询节点

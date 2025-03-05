@@ -8,8 +8,7 @@ namespace SDS
         desc.SSName = stoT.SSName;
         desc.kind = stoT.kind;
         desc.writable = stoT.writable;
-        desc.sysDesc.conConf = stoT.connConf;
-        desc.sysDesc.fileList.dirPath = stoT.connConf.rootPath;
+        desc.conConf = stoT.connConf;
     }
 
 

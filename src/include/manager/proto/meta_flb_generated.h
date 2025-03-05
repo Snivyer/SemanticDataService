@@ -1265,8 +1265,7 @@ struct StorageSpaceCreateRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers
     VT_SPACE_ID = 12,
     VT_USER_NAME = 14,
     VT_CONF_FILE = 16,
-    VT_POOL_NAME = 18,
-    VT_ROOT_PATH = 20
+    VT_ROOT_PATH = 18
   };
   const ::flatbuffers::String *space_name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SPACE_NAME);
@@ -1289,9 +1288,6 @@ struct StorageSpaceCreateRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers
   const ::flatbuffers::String *conf_file() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONF_FILE);
   }
-  const ::flatbuffers::String *pool_name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_POOL_NAME);
-  }
   const ::flatbuffers::String *root_path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_ROOT_PATH);
   }
@@ -1309,8 +1305,6 @@ struct StorageSpaceCreateRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers
            verifier.VerifyString(user_name()) &&
            VerifyOffset(verifier, VT_CONF_FILE) &&
            verifier.VerifyString(conf_file()) &&
-           VerifyOffset(verifier, VT_POOL_NAME) &&
-           verifier.VerifyString(pool_name()) &&
            VerifyOffset(verifier, VT_ROOT_PATH) &&
            verifier.VerifyString(root_path()) &&
            verifier.EndTable();
@@ -1342,9 +1336,6 @@ struct StorageSpaceCreateRequestBuilder {
   void add_conf_file(::flatbuffers::Offset<::flatbuffers::String> conf_file) {
     fbb_.AddOffset(StorageSpaceCreateRequest::VT_CONF_FILE, conf_file);
   }
-  void add_pool_name(::flatbuffers::Offset<::flatbuffers::String> pool_name) {
-    fbb_.AddOffset(StorageSpaceCreateRequest::VT_POOL_NAME, pool_name);
-  }
   void add_root_path(::flatbuffers::Offset<::flatbuffers::String> root_path) {
     fbb_.AddOffset(StorageSpaceCreateRequest::VT_ROOT_PATH, root_path);
   }
@@ -1368,12 +1359,10 @@ inline ::flatbuffers::Offset<StorageSpaceCreateRequest> CreateStorageSpaceCreate
     ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
     ::flatbuffers::Offset<::flatbuffers::String> user_name = 0,
     ::flatbuffers::Offset<::flatbuffers::String> conf_file = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> pool_name = 0,
     ::flatbuffers::Offset<::flatbuffers::String> root_path = 0) {
   StorageSpaceCreateRequestBuilder builder_(_fbb);
   builder_.add_space_size(space_size);
   builder_.add_root_path(root_path);
-  builder_.add_pool_name(pool_name);
   builder_.add_conf_file(conf_file);
   builder_.add_user_name(user_name);
   builder_.add_space_id(space_id);
@@ -1392,14 +1381,12 @@ inline ::flatbuffers::Offset<StorageSpaceCreateRequest> CreateStorageSpaceCreate
     const char *space_id = nullptr,
     const char *user_name = nullptr,
     const char *conf_file = nullptr,
-    const char *pool_name = nullptr,
     const char *root_path = nullptr) {
   auto space_name__ = space_name ? _fbb.CreateString(space_name) : 0;
   auto kind__ = kind ? _fbb.CreateString(kind) : 0;
   auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
   auto user_name__ = user_name ? _fbb.CreateString(user_name) : 0;
   auto conf_file__ = conf_file ? _fbb.CreateString(conf_file) : 0;
-  auto pool_name__ = pool_name ? _fbb.CreateString(pool_name) : 0;
   auto root_path__ = root_path ? _fbb.CreateString(root_path) : 0;
   return CreateStorageSpaceCreateRequest(
       _fbb,
@@ -1410,7 +1397,6 @@ inline ::flatbuffers::Offset<StorageSpaceCreateRequest> CreateStorageSpaceCreate
       space_id__,
       user_name__,
       conf_file__,
-      pool_name__,
       root_path__);
 }
 
@@ -1423,8 +1409,7 @@ struct StorageSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
     VT_SIZE = 10,
     VT_CAPACITY = 12,
     VT_KIND = 14,
-    VT_ROOT_PATH = 16,
-    VT_POOL_NAME = 18
+    VT_ROOT_PATH = 16
   };
   const ::flatbuffers::String *storage_id() const {
     return GetPointer<const ::flatbuffers::String *>(VT_STORAGE_ID);
@@ -1447,9 +1432,6 @@ struct StorageSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   const ::flatbuffers::String *root_path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_ROOT_PATH);
   }
-  const ::flatbuffers::String *pool_name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_POOL_NAME);
-  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_STORAGE_ID) &&
@@ -1463,8 +1445,6 @@ struct StorageSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
            verifier.VerifyString(kind()) &&
            VerifyOffset(verifier, VT_ROOT_PATH) &&
            verifier.VerifyString(root_path()) &&
-           VerifyOffset(verifier, VT_POOL_NAME) &&
-           verifier.VerifyString(pool_name()) &&
            verifier.EndTable();
   }
 };
@@ -1494,9 +1474,6 @@ struct StorageSpaceCreateReplyBuilder {
   void add_root_path(::flatbuffers::Offset<::flatbuffers::String> root_path) {
     fbb_.AddOffset(StorageSpaceCreateReply::VT_ROOT_PATH, root_path);
   }
-  void add_pool_name(::flatbuffers::Offset<::flatbuffers::String> pool_name) {
-    fbb_.AddOffset(StorageSpaceCreateReply::VT_POOL_NAME, pool_name);
-  }
   explicit StorageSpaceCreateReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1516,12 +1493,10 @@ inline ::flatbuffers::Offset<StorageSpaceCreateReply> CreateStorageSpaceCreateRe
     uint64_t size = 0,
     uint64_t capacity = 0,
     ::flatbuffers::Offset<::flatbuffers::String> kind = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> root_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> pool_name = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> root_path = 0) {
   StorageSpaceCreateReplyBuilder builder_(_fbb);
   builder_.add_capacity(capacity);
   builder_.add_size(size);
-  builder_.add_pool_name(pool_name);
   builder_.add_root_path(root_path);
   builder_.add_kind(kind);
   builder_.add_ssname(ssname);
@@ -1538,13 +1513,11 @@ inline ::flatbuffers::Offset<StorageSpaceCreateReply> CreateStorageSpaceCreateRe
     uint64_t size = 0,
     uint64_t capacity = 0,
     const char *kind = nullptr,
-    const char *root_path = nullptr,
-    const char *pool_name = nullptr) {
+    const char *root_path = nullptr) {
   auto storage_id__ = storage_id ? _fbb.CreateString(storage_id) : 0;
   auto ssname__ = ssname ? _fbb.CreateString(ssname) : 0;
   auto kind__ = kind ? _fbb.CreateString(kind) : 0;
   auto root_path__ = root_path ? _fbb.CreateString(root_path) : 0;
-  auto pool_name__ = pool_name ? _fbb.CreateString(pool_name) : 0;
   return CreateStorageSpaceCreateReply(
       _fbb,
       storage_id__,
@@ -1553,8 +1526,7 @@ inline ::flatbuffers::Offset<StorageSpaceCreateReply> CreateStorageSpaceCreateRe
       size,
       capacity,
       kind__,
-      root_path__,
-      pool_name__);
+      root_path__);
 }
 
 struct ContentIndexCreateRequst FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

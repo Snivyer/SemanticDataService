@@ -23,7 +23,7 @@ namespace SDS
         size_t getSize();
         size_t getCapacity();
         std::string AllocateSpace(int spaceSize);
-        bool setFilePath(std::string path);
+        bool setFilePath();
         
 
         // 从NC文件中读取变量信息

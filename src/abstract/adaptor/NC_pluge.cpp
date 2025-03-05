@@ -145,6 +145,7 @@ namespace SDS {
                 descList.emplace_back(varDesc);
             }        
         }
+        return true;
     }
 
     bool NCPluge::readVarDescList(int ncid, int gid, int groupNums, std::vector<VarDesc> &descList) {

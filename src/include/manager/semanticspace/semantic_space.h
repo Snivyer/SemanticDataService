@@ -118,7 +118,7 @@ namespace SDS
         SemanticSpace* getSpaceByID(std::string spaceID);
 
         // add a data box index into the semantic space
-        bool createDataBoxIndex(std::string spaceID, size_t storageID, Adaptor *adaptor, std::string dirPath);
+        bool createDataBoxIndex(std::string spaceID, StorageID &storageID, Adaptor *adaptor);
 
         // auto refer to databox from children space
         void autoReferDataBox(SemanticSpace* space);
