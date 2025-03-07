@@ -104,8 +104,8 @@ namespace SDS
 
     private:
         std::vector<TimeSlotNode*>   timeSlotSet;
-        std::unordered_map<time_t, std::vector<TimeSlotNode*>::iterator> timeSlotIndex;
-        std::unordered_map<size_t, std::vector<TimeSlotNode*>::iterator> timeSlotIndexWithID;
+        std::unordered_map<time_t, TimeSlotNode*> timeSlotIndex;
+        std::unordered_map<size_t, TimeSlotNode*> timeSlotIndexWithID;
         bool getTerm(SearchTerm &term, time_t &reportTime);
         bool getResult(ResultSet &result, TimeSlotNode* &snode);
     };

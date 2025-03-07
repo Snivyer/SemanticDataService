@@ -144,8 +144,6 @@ namespace SDS {
                 shape.push_back(std::stoi(shapeStr));
             }
         }
-
-
     };
 
 

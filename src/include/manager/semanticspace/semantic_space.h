@@ -86,11 +86,7 @@ namespace SDS
                 item.first.printWithTreeModel();
                 item.second.printWithTreeModel();
             }
-
         }
-
-        
-
     };
 
    
@@ -100,13 +96,9 @@ namespace SDS
         SemanticSpaceManager(); 
         ~SemanticSpaceManager();
 
-
-
         // create the semantic space whose level number depends on the number of geoNames
         std::string createSemanticSpace(std::string SSName, std::vector<std::string> &GeoNames);
         void printSpaceDesc(SemanticSpace *space);
-
-
 
         ContentMeta* getContentMeta();
         SpaceIndex* getSpaceIndex();

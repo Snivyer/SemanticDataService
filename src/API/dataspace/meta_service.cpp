@@ -151,7 +151,14 @@ namespace SDS {
             addClientToStorageSpaceEntry(entry, client);
             return space;
         }
+        return nullptr;
+    }
 
+    StorageSpace*  MetaService::loadStorageSpace(std::string SSName) {
+        auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
+        if(StorageSpaceInfo.count(SSName) != 0) {
+           return StorageSpaceInfo[SSName]->space;
+        } 
         return nullptr;
     }
 
@@ -162,7 +169,6 @@ namespace SDS {
             return false;
         }
         std::string spaceID = SemanticSpaceInfo[SemanticSpaceName]->space->getCompleteSpaceID();
-
         auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(StoreSpaceName) == 0) {
             ARROW_LOG(DEBUG) << "Cannot Find Target Storage Space Name.";
@@ -395,6 +401,12 @@ namespace SDS {
                 RETURN_NOT_OK(ReadLoadSemanticSpaceRequest(input, SSName));
                 SemanticSpace* space = loadSemanticSpace(SSName);
                 HANDLE_SIGPIPE(SendLoadSemanticSpaceReply(client->fd, space), client->fd);
+            } break;
+            case MessageTypeStorageSpaceLoadRequest: {
+                std::string SSName;
+                RETURN_NOT_OK(ReadLoadStorageSpaceRequest(input, SSName));
+                StorageSpace* space = loadStorageSpace(SSName);
+                HANDLE_SIGPIPE(SendLoadStorageSpaceReply(client->fd, space), client->fd);
             } break;
             case MessageTypeStorageSpaceCreateRequest: {
                 std::string kind;

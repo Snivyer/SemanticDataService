@@ -30,8 +30,6 @@ namespace SDS
         virtual size_t getSize() {};
         virtual size_t getCapacity() {};
         virtual std::string AllocateSpace(int spaceSize) {};
-
-        // get site information by parsing the file path
         
         virtual bool setFilePath() {};
 
@@ -48,6 +46,8 @@ namespace SDS
 
         // 以NC文件的方式将数据写入存储系统中
         virtual bool importFile(struct SystemDesc &sysDesc, FilePathList pathList) {};
+      
+        
 
     };
 

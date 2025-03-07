@@ -23,7 +23,6 @@ namespace SDS
 
     struct StorageSpace {
         size_t spaceID;
-        std::string SSName;
         time_t createT;
         size_t adaptorNum;
         StoreDesc stoMeta;
@@ -37,10 +36,16 @@ namespace SDS
             std::cout << "---------------------------------" << std::endl;
         }
 
+        void printWithTreeModel() {
+            std::cout << stoMeta.SSName.data() << "(" + intToStringWithPadding(spaceID, 3) << ")" << std::endl;
+            for(auto item : adaptorIndex) {
+                item.first.printWithTreeModel();
+                item.second->pathList->printWithTreeModel();
+            }
+        }
+
         void addAdaptor(StorageID &stoID, Adaptor* adaptor);
         Adaptor* getAdaptor(StorageID &stoID);
-
-
     };
 
     class  StorageSpaceManager

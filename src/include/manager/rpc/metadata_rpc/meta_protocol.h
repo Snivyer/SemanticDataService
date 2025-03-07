@@ -41,8 +41,8 @@ namespace SDS {
     const int64_t MessageTypeSemanticSpaceLoadReply          = 16;
     const int64_t MessageTypeDataFileSearchRequest           = 17;
     const int64_t MessageTypeDataFileSearchReply             = 18;
-   
-
+    const int64_t MessageTypeStorageSpaceLoadRequest         = 19;
+    const int64_t MessageTypeStorageSpaceLoadReply           = 20;
 
     /* connect message functions*/
     Status SendMetaConnectRequest(int sock);
@@ -71,13 +71,19 @@ namespace SDS {
     Status SendCreateStorageSpaceReply(int sock, StorageSpace* space);
     Status ReadCreateStorageSpaceReply(uint8_t* data, StorageSpace &space);
 
+
+    /*load semantic space message functions*/
+    Status SendLoadStorageSpaceRequest(int sock, std::string spaceName);
+    Status ReadLoadStorageSpaceRequest(uint8_t* data, std::string &spaceName);
+    Status SendLoadStorageSpaceReply(int sock, StorageSpace* space);
+    Status ReadLoadStorageSpaceReply(uint8_t* data, StorageSpace &space);
+
     /* create content index message functions*/
     Status SendCreateContentIndexRequest(int sock, std::string semanticSpaceName, std::string storageSpaceName, std::string dirPath);
     Status ReadCreateContentIndexRequest(uint8_t* data, std::string &semanticSpaceName, std::string &storageSpaceName, std::string &dirPath);
     Status SendCreateContentIndexReply(int sock, bool result);
     Status ReadCreateContentIndexReply(uint8_t* data, bool &result);
      
-
     /* search content index message functions*/
     Status SendSearchContentIndexRequest(int sock, std::vector<std::string> &geoNames, std::vector<std::string> &times, std::vector<std::string> &varNames, std::string &groupName);
     Status ReadSearchContentIndexRequest(uint8_t* data, std::vector<std::string> &geoNames, std::vector<std::string> &times, std::vector<std::string> &varNames, std::string &groupName);
@@ -92,8 +98,5 @@ namespace SDS {
 
     flatbuffers::Offset<StoreSiteRequest> CreateSiteRequest(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site);
     Status ReadSiteRequest(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector);
-
-    
-    
 
 };

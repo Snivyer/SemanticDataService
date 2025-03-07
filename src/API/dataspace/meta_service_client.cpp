@@ -101,6 +101,23 @@ namespace SDS {
         return Status::OK();
     }
 
+    arrow::Status MetaServiceClient::loadStorageSpace(std::string ssName, StorageSpace &space) {
+        int client = impl_->getMetaConn();
+        RETURN_NOT_OK(SendLoadStorageSpaceRequest(client, ssName));
+        std::vector<uint8_t> buffer;
+        bool ret;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeErrorReply, &buffer));
+        RETURN_NOT_OK(ReadErrorReply(buffer.data(), ret)); 
+
+        if(ret == false) {
+            return arrow::Status::NotImplemented("Cannot find space...");
+        }
+
+        RETURN_NOT_OK(messageReceive(client, MessageTypeStorageSpaceLoadReply, &buffer));
+        RETURN_NOT_OK(ReadLoadStorageSpaceReply(buffer.data(), space));
+        return Status::OK();
+    }
+
     arrow::Status MetaServiceClient::createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space) {
         std::string kindStr;
         if(temp.kind == StoreSpaceKind::Ceph) {

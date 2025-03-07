@@ -398,25 +398,8 @@ namespace SDS {
         auto storageIDf = fbb.CreateString(std::to_string(space->spaceID));
         auto ssNamef = fbb.CreateString(space->stoMeta.SSName);
         auto rootPathf = fbb.CreateString(space->stoMeta.conConf.rootPath);
-        flatbuffers::Offset<flatbuffers::String> kindf;
-
-        switch(space->stoMeta.kind) {
-            case StoreSpaceKind::BB:
-                kindf = fbb.CreateString("BB");
-                break;
-            case StoreSpaceKind::Ceph:
-                kindf = fbb.CreateString("Ceph");
-                break;
-            case StoreSpaceKind::Lustre:
-                kindf = fbb.CreateString("Lustre");
-                break;
-            case StoreSpaceKind::Local:
-                kindf = fbb.CreateString("Local");
-                break;
-            default: 
-                kindf = fbb.CreateString("None");
-                break;
-        }
+        std::string kind = space->stoMeta.getStoreKind();
+        auto kindf = fbb.CreateString(kind);
         auto message = CreateStorageSpaceCreateReply(fbb, storageIDf, ssNamef, space->stoMeta.writable,
                                                     space->stoMeta.size, space->stoMeta.capacity, kindf, rootPathf);
         return messageSend(sock, MessageTypeStorageSpaceCreateReply, &fbb, message);
@@ -431,20 +414,124 @@ namespace SDS {
         space.stoMeta.size = message->size();
         space.stoMeta.capacity = message->capacity();
         space.stoMeta.conConf.rootPath = message->root_path()->str();
-
-        if(message->kind()->str() == "BB") {
-            space.stoMeta.kind = StoreSpaceKind::BB;
-        } else if(message->kind()->str() == "Ceph") {
-            space.stoMeta.kind = StoreSpaceKind::Ceph;
-        } else if(message->kind()->str() == "Lustre") {
-            space.stoMeta.kind = StoreSpaceKind::Lustre;
-        } else if(message->kind()->str() == "Local") {
-            space.stoMeta.kind = StoreSpaceKind::Local;
-        } else {
-            space.stoMeta.kind = StoreSpaceKind::None;
-        }
+        space.stoMeta.setStoreKind(message->kind()->str());
         return Status::OK();   
     }
+
+    Status SendLoadStorageSpaceRequest(int sock, std::string spaceName) {
+        ARROW_LOG(INFO) <<  "Send load storage space request, storageName:" << spaceName;
+        flatbuffers::FlatBufferBuilder fbb;
+        auto spaceNamef = fbb.CreateString(spaceName);
+        auto message = CreateStorageSpaceLoadRequest(fbb, spaceNamef);
+        return messageSend(sock, MessageTypeStorageSpaceLoadRequest, &fbb, message);
+    }
+
+
+    Status ReadLoadStorageSpaceRequest(uint8_t* data, std::string &spaceName) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<StorageSpaceLoadRequest>(data);
+        spaceName = message->space_name()->str();
+        return Status::OK();
+    }
+
+
+    Status SendLoadStorageSpaceReply(int sock, StorageSpace* space) {
+        flatbuffers::FlatBufferBuilder fbb1;
+        bool status = true;
+        if(space == nullptr) {
+            ARROW_LOG(INFO) <<  "cannot find object storage space...";
+            bool status = false;
+            auto message = CreateStatusReply(fbb1, status);
+            return messageSend(sock, MessageTypeErrorReply, &fbb1, message);
+        }
+
+        auto message = CreateStatusReply(fbb1, status);
+        messageSend(sock, MessageTypeErrorReply, &fbb1, message);
+        
+        
+        flatbuffers::FlatBufferBuilder fbb;
+        auto storageIDf = fbb.CreateString(std::to_string(space->spaceID));
+        auto ssNamef = fbb.CreateString(space->stoMeta.SSName);
+        auto rootPathf = fbb.CreateString(space->stoMeta.conConf.rootPath);
+        std::string kind = space->stoMeta.getStoreKind();
+        auto kindf = fbb.CreateString(kind);
+        auto storagespacef = CreateStorageSpaceCreateReply(fbb, storageIDf, ssNamef, space->stoMeta.writable,
+                                                    space->stoMeta.size, space->stoMeta.capacity, kindf, rootPathf);
+        
+        // Serialize storageID and filePathList
+        std::vector<flatbuffers::Offset<StorageIDRequest>> stoIDfVec;
+        std::vector<flatbuffers::Offset<FilePathListRequest>> filePathListVec;
+
+        for(auto item: space->adaptorIndex) {
+            auto spaceIDf = fbb.CreateString(item.first.getSpaceID());
+            auto typeIDf = fbb.CreateString(item.first.getTypeID());
+            auto siteIDf = fbb.CreateString(item.first.getSiteID());
+            auto storeIDf = CreateStorageIDRequest(fbb, spaceIDf, typeIDf, siteIDf);
+            stoIDfVec.push_back(storeIDf);
+
+            auto dirPathf = fbb.CreateString(item.second->pathList->dirPath);
+            auto sitePathf = fbb.CreateString(item.second->pathList->sitePath);
+            std::vector<flatbuffers::Offset<flatbuffers::String>> pathfVector;
+            for(auto path :item.second->pathList->fileNames) {
+                auto pathf = fbb.CreateString(path);
+                pathfVector.push_back(pathf);
+            }
+            auto pathfVectorf = fbb.CreateVector(pathfVector);
+            std::vector<flatbuffers::Offset<StoreSiteRequest>> sitesVector;
+            for(auto site: item.second->pathList->sites) {
+                auto childSitef =  CreateSiteRequest(fbb, site);
+                sitesVector.push_back(childSitef);
+            }
+            auto sitesVectorf = fbb.CreateVector(sitesVector);
+            auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, sitesVectorf, sitePathf, pathfVectorf);
+            filePathListVec.push_back(filePathListf);
+        }
+
+        auto stoIDfVecf = fbb.CreateVector(stoIDfVec);
+        auto filePathListVecf = fbb.CreateVector(filePathListVec);
+        auto message2 = CreateStorageSpaceLoadReply(fbb, storagespacef, stoIDfVecf, filePathListVecf);
+        return messageSend(sock, MessageTypeStorageSpaceLoadReply, &fbb, message2);
+
+    }
+
+
+    Status ReadLoadStorageSpaceReply(uint8_t* data, StorageSpace &space) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<StorageSpaceLoadReply>(data);
+        space.spaceID = std::atoi(message->storagespace()->storage_id()->str().c_str());
+        space.stoMeta.SSName = message->storagespace()->ssname()->str();
+        space.stoMeta.writable = message->storagespace()->writable();
+        space.stoMeta.size = message->storagespace()->size();
+        space.stoMeta.capacity = message->storagespace()->capacity();
+        space.stoMeta.conConf.rootPath = message->storagespace()->root_path()->str();
+        space.stoMeta.setStoreKind(message->storagespace()->kind()->str());
+
+        auto storeIDs = message->sto_ids();
+        auto pathList = message->file_path_list();
+
+        for(int i = 0; i < storeIDs->size(); i++) {
+            StorageID stoID;
+            stoID.setSpaceID(message->sto_ids()->Get(i)->space_id()->c_str());
+            stoID.setTypeID(message->sto_ids()->Get(i)->type_id()->c_str());
+            stoID.setSiteID(message->sto_ids()->Get(i)->site_id()->c_str());
+
+            FilePathList* pathList = new FilePathList();
+            pathList->dirPath = message->file_path_list()->Get(i)->dir_path()->c_str();
+            pathList->sitePath = message->file_path_list()->Get(i)->site_path()->c_str();
+            auto pathVector = message->file_path_list()->Get(i)->file_name();
+            for(int j = 0; j < pathVector->size(); j++) {
+                pathList->fileNames.push_back(pathVector->Get(j)->c_str());
+            }
+            auto siteVector = message->file_path_list()->Get(i)->sites();
+            ReadSiteRequest(siteVector, &(pathList->sites));
+
+            Adaptor* adaptor = new Adaptor(space.stoMeta.conConf, pathList);
+            space.adaptorIndex.insert({stoID, adaptor});
+        }
+        return Status::OK();
+    }
+
+
     
     Status SendCreateContentIndexRequest(int sock, std::string semanticSpaceName, std::string storageSpaceName, std::string dirPath) {
  

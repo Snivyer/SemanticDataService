@@ -28,6 +28,8 @@ namespace SDS
         arrow::Status createSemanticSpace(std::string ssName, std::vector<std::string> &geoNames, SemanticSpace &space);
         
         arrow::Status loadSemanticSpace(std::string ssName, SemanticSpace &space);
+
+        arrow::Status loadStorageSpace(std::string ssName, StorageSpace &space);
     
 
         arrow::Status createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space);

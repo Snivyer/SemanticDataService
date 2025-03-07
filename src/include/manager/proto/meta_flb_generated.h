@@ -85,6 +85,15 @@ struct FilePathListRequestBuilder;
 struct DataFileSearchReply;
 struct DataFileSearchReplyBuilder;
 
+struct StorageSpaceLoadRequest;
+struct StorageSpaceLoadRequestBuilder;
+
+struct StorageIDRequest;
+struct StorageIDRequestBuilder;
+
+struct StorageSpaceLoadReply;
+struct StorageSpaceLoadReplyBuilder;
+
 struct StatusReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StatusReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -2130,6 +2139,216 @@ inline ::flatbuffers::Offset<DataFileSearchReply> CreateDataFileSearchReplyDirec
   return CreateDataFileSearchReply(
       _fbb,
       file_path_lists__);
+}
+
+struct StorageSpaceLoadRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StorageSpaceLoadRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_NAME = 4
+  };
+  const ::flatbuffers::String *space_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_NAME);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_NAME) &&
+           verifier.VerifyString(space_name()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StorageSpaceLoadRequestBuilder {
+  typedef StorageSpaceLoadRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_name(::flatbuffers::Offset<::flatbuffers::String> space_name) {
+    fbb_.AddOffset(StorageSpaceLoadRequest::VT_SPACE_NAME, space_name);
+  }
+  explicit StorageSpaceLoadRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StorageSpaceLoadRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StorageSpaceLoadRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StorageSpaceLoadRequest> CreateStorageSpaceLoadRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_name = 0) {
+  StorageSpaceLoadRequestBuilder builder_(_fbb);
+  builder_.add_space_name(space_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StorageSpaceLoadRequest> CreateStorageSpaceLoadRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_name = nullptr) {
+  auto space_name__ = space_name ? _fbb.CreateString(space_name) : 0;
+  return CreateStorageSpaceLoadRequest(
+      _fbb,
+      space_name__);
+}
+
+struct StorageIDRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StorageIDRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SPACE_ID = 4,
+    VT_TYPE_ID = 6,
+    VT_SITE_ID = 8
+  };
+  const ::flatbuffers::String *space_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
+  }
+  const ::flatbuffers::String *type_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TYPE_ID);
+  }
+  const ::flatbuffers::String *site_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SITE_ID);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SPACE_ID) &&
+           verifier.VerifyString(space_id()) &&
+           VerifyOffset(verifier, VT_TYPE_ID) &&
+           verifier.VerifyString(type_id()) &&
+           VerifyOffset(verifier, VT_SITE_ID) &&
+           verifier.VerifyString(site_id()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StorageIDRequestBuilder {
+  typedef StorageIDRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
+    fbb_.AddOffset(StorageIDRequest::VT_SPACE_ID, space_id);
+  }
+  void add_type_id(::flatbuffers::Offset<::flatbuffers::String> type_id) {
+    fbb_.AddOffset(StorageIDRequest::VT_TYPE_ID, type_id);
+  }
+  void add_site_id(::flatbuffers::Offset<::flatbuffers::String> site_id) {
+    fbb_.AddOffset(StorageIDRequest::VT_SITE_ID, site_id);
+  }
+  explicit StorageIDRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StorageIDRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StorageIDRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StorageIDRequest> CreateStorageIDRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> type_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> site_id = 0) {
+  StorageIDRequestBuilder builder_(_fbb);
+  builder_.add_site_id(site_id);
+  builder_.add_type_id(type_id);
+  builder_.add_space_id(space_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StorageIDRequest> CreateStorageIDRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *space_id = nullptr,
+    const char *type_id = nullptr,
+    const char *site_id = nullptr) {
+  auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
+  auto type_id__ = type_id ? _fbb.CreateString(type_id) : 0;
+  auto site_id__ = site_id ? _fbb.CreateString(site_id) : 0;
+  return CreateStorageIDRequest(
+      _fbb,
+      space_id__,
+      type_id__,
+      site_id__);
+}
+
+struct StorageSpaceLoadReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StorageSpaceLoadReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_STORAGESPACE = 4,
+    VT_STO_IDS = 6,
+    VT_FILE_PATH_LIST = 8
+  };
+  const StorageSpaceCreateReply *storagespace() const {
+    return GetPointer<const StorageSpaceCreateReply *>(VT_STORAGESPACE);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<StorageIDRequest>> *sto_ids() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<StorageIDRequest>> *>(VT_STO_IDS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>> *file_path_list() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>> *>(VT_FILE_PATH_LIST);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_STORAGESPACE) &&
+           verifier.VerifyTable(storagespace()) &&
+           VerifyOffset(verifier, VT_STO_IDS) &&
+           verifier.VerifyVector(sto_ids()) &&
+           verifier.VerifyVectorOfTables(sto_ids()) &&
+           VerifyOffset(verifier, VT_FILE_PATH_LIST) &&
+           verifier.VerifyVector(file_path_list()) &&
+           verifier.VerifyVectorOfTables(file_path_list()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StorageSpaceLoadReplyBuilder {
+  typedef StorageSpaceLoadReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_storagespace(::flatbuffers::Offset<StorageSpaceCreateReply> storagespace) {
+    fbb_.AddOffset(StorageSpaceLoadReply::VT_STORAGESPACE, storagespace);
+  }
+  void add_sto_ids(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<StorageIDRequest>>> sto_ids) {
+    fbb_.AddOffset(StorageSpaceLoadReply::VT_STO_IDS, sto_ids);
+  }
+  void add_file_path_list(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>>> file_path_list) {
+    fbb_.AddOffset(StorageSpaceLoadReply::VT_FILE_PATH_LIST, file_path_list);
+  }
+  explicit StorageSpaceLoadReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StorageSpaceLoadReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StorageSpaceLoadReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StorageSpaceLoadReply> CreateStorageSpaceLoadReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<StorageSpaceCreateReply> storagespace = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<StorageIDRequest>>> sto_ids = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>>> file_path_list = 0) {
+  StorageSpaceLoadReplyBuilder builder_(_fbb);
+  builder_.add_file_path_list(file_path_list);
+  builder_.add_sto_ids(sto_ids);
+  builder_.add_storagespace(storagespace);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StorageSpaceLoadReply> CreateStorageSpaceLoadReplyDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<StorageSpaceCreateReply> storagespace = 0,
+    const std::vector<::flatbuffers::Offset<StorageIDRequest>> *sto_ids = nullptr,
+    const std::vector<::flatbuffers::Offset<FilePathListRequest>> *file_path_list = nullptr) {
+  auto sto_ids__ = sto_ids ? _fbb.CreateVector<::flatbuffers::Offset<StorageIDRequest>>(*sto_ids) : 0;
+  auto file_path_list__ = file_path_list ? _fbb.CreateVector<::flatbuffers::Offset<FilePathListRequest>>(*file_path_list) : 0;
+  return CreateStorageSpaceLoadReply(
+      _fbb,
+      storagespace,
+      sto_ids__,
+      file_path_list__);
 }
 
 #endif  // FLATBUFFERS_GENERATED_METAFLB_H_

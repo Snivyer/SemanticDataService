@@ -19,7 +19,7 @@ namespace SDS
         int stepCount;
         int varCount;
         int varLen;
-        std::vector<VarDesc> varList;
+        VLDesc vlDesc;
         bool filled;
 
         void print() {
@@ -31,8 +31,6 @@ namespace SDS
                 std::cout << var.varName << std::endl;
             }
         }
-
-
     } DBMeta; 
 
     class  DataboxObject {
@@ -43,7 +41,6 @@ namespace SDS
 
    
             DBMeta& getDBMeta();
-            void setDataPath(FilePathList &dataPath);
             arrow::Status fillData(Adaptor *adaptor);
             arrow::Status removeData();
             void print();
@@ -54,7 +51,6 @@ namespace SDS
         private:
             std::vector<std::shared_ptr<arrow::RecordBatch>> batchs_;
             DBMeta meta_;
-            FilePathList dataPath_;
             std::shared_ptr<arrow::Schema> schema_;
             std::shared_ptr<arrow::Schema> makeSchema(std::vector<VarDesc> &descList);
  

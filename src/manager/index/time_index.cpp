@@ -37,7 +37,6 @@ namespace SDS {
     }
         
     bool TimeIndex::search(SearchTerm &term, ResultSet &result) {
-
         TimeSlotNode* resultNode = nullptr;
         result.push_back(resultNode);
         time_t reportTime;
@@ -45,7 +44,6 @@ namespace SDS {
         if(this->getTerm(term, reportTime) == false) {
             return false;
         }
-
         return search(reportTime, resultNode);
     }
 
@@ -54,7 +52,7 @@ namespace SDS {
         if(ret == timeSlotIndex.end()) {
             return false;
         }
-        node = *(ret->second);
+        node = ret->second;
         return true;
     }
 
@@ -76,7 +74,7 @@ namespace SDS {
     bool TimeIndex::insert(time_t reportTime, TimeSlotNode* &node) {
         auto ret = timeSlotIndex.find(reportTime);
         if(ret != timeSlotIndex.end()) {
-            node = *(ret->second);
+            node = ret->second;
             return true;
         }
 
@@ -86,8 +84,8 @@ namespace SDS {
         node->timeSlotID = timeSlotSet.size();
 
         // secondly, insert into timeSlotIndex
-        timeSlotIndex.insert({reportTime,  (timeSlotSet.end()-1) });
-        timeSlotIndexWithID.insert({node->timeSlotID,  (timeSlotSet.end()-1)});
+        timeSlotIndex.insert({reportTime, node});
+        timeSlotIndexWithID.insert({node->timeSlotID, node});
         return true;
     }
     

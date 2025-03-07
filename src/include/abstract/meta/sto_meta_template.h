@@ -121,7 +121,6 @@ namespace SDS {
             // std::cout << "├─ " << "根目录" << "(" + dirPath + ")" << std::endl;
 
             int level = 2;
-
             for(auto site : sites) {
                 printWithTreeModel(site, level);
             }
@@ -146,8 +145,22 @@ namespace SDS {
         StoreSpaceKind  kind;
         ConnectConfig conConf;
 
-
         StoreDesc():size(0),capacity(2) {};
+
+        void setStoreKind(std::string kindStr) {
+            if(kindStr == "Ceph") {
+                kind = StoreSpaceKind::Ceph;
+            } else if(kindStr == "Lustre") {
+                kind = StoreSpaceKind::Lustre;
+            } else if (kindStr == "BB") {
+                kind = StoreSpaceKind::BB;
+            } else if (kindStr == "Local") {
+                kind = StoreSpaceKind::Local;
+            } else {
+                kind = StoreSpaceKind::None;
+            }
+        }
+
         std::string getStoreKind() {
             switch(kind) {
                 case StoreSpaceKind::Ceph:

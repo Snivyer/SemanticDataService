@@ -20,7 +20,7 @@ namespace SDS {
 
     std::vector<std::string> splitString(const std::string &string, const char delimiter = '-');
     std::string combinePath(const std::string &base_path, const std::string &sub_path);
-    std::string intToStringWithPadding(int value, int width);
+    std::string intToStringWithPadding(int value, int width = 3);
     std::string removeTrailingZeros(const std::string input);
     std::string toBinaryString(size_t value, size_t length = 6);
 }

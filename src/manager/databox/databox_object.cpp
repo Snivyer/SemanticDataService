@@ -10,9 +10,6 @@ namespace SDS {
 
     }
 
-    void DataboxObject::setDataPath(FilePathList &dataPath) {
-        dataPath_ = dataPath;
-    }
 
     std::shared_ptr<arrow::Schema> DataboxObject::makeSchema(std::vector<VarDesc> &descList) {
 
@@ -52,35 +49,37 @@ namespace SDS {
 
         // fill the data recordbatch 
         // todo: 这个需要重新改一下，今天先不改了，2-18
-        // adaptor->getVarDescList(dataPath_, meta_.varList);
+        adaptor->getVarDescList(meta_.vlDesc);
 
         if(meta_.varList.size() == 0) {
             return arrow::Status::UnknownError("test");
         }
 
         std::shared_ptr<arrow::Schema> schema;
+        FilePathList* list = adaptor->pathList;
+        std::string dirPath = list->getCompletePath();
 
-        for(std::string filepath : dataPath_.fileNames) {
-            std::string path = combinePath(dataPath_.dirPath, filepath);
+        for(std::string filepath : list->fileNames) {
+            std::string path = combinePath(dirPath, filepath);
             std::shared_ptr<arrow::RecordBatch> batch;
             arrow::ArrayVector arrayData;
 
             if(schema.get() == nullptr) {
-                schema = makeSchema(meta_.varList);
+                schema = makeSchema(meta_.vlDesc.desc);
             }
-            adaptor->readVarList(path, meta_.varList, arrayData);
+            adaptor->readVarList(path, meta_.vlDesc.desc, arrayData);
 
-            batch = arrow::RecordBatch::Make(schema, meta_.varList[0].varLen, arrayData);
+            batch = arrow::RecordBatch::Make(schema, meta_.vlDesc.desc[0].varLen, arrayData);
             batchs_.push_back(batch);
         }
 
         // fill the metadata
         meta_.stepCount = batchs_.size();
-        meta_.varCount = meta_.varList.size();
-        meta_.varLen = meta_.varList[0].varLen;
+        meta_.varCount = meta_.vlDesc.desc.size();
+        meta_.varLen = meta_.vlDesc.desc[0].varLen;
 
         meta_.filled = true;
-        schema_ = makeSchema(meta_.varList);
+        schema_ = makeSchema(meta_.vlDesc.desc);
         return arrow::Status::OK();
     }
 

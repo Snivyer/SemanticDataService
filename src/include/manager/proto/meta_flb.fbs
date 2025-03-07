@@ -92,7 +92,6 @@ table SemanticSpaceLoadReply {
     semanticspace:SemanticSpaceCreateReply;
     cnt_ids:[ContentIDRequest];
     cnt_descs:[ContentDescRequest];
-
 }
 
 table StorageSpaceCreateRequest {
@@ -160,6 +159,22 @@ table FilePathListRequest {
 
 table DataFileSearchReply {
     file_path_lists:[FilePathListRequest];
+}
+
+table StorageSpaceLoadRequest {
+    space_name:string;
+}
+
+table StorageIDRequest {
+    space_id: string;
+    type_id:  string;
+    site_id:  string;
+}
+
+table StorageSpaceLoadReply {
+    storagespace:StorageSpaceCreateReply;
+    sto_ids:[StorageIDRequest];
+    file_path_list:[FilePathListRequest];
 }
 
 

@@ -147,7 +147,9 @@ namespace SDS {
         SiteNode *pNode = node;
 
         for(int i = 0; i < siteNames.size(); i++) {
-            if(insert(siteNames[i], node, pNode) == false) {
+            if(insert(siteNames[i], node, pNode) ) {
+                pNode = node;
+            } else {
                 result.push_back(node);
                 return false;
             }

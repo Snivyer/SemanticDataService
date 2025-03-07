@@ -11,6 +11,7 @@ namespace SDS_Retrieval {
             
             // storage space cache
             std::unordered_map<std::string, StorageSpace> storageSpaceCache_;
+            std::unordered_map<std::string, SpaceInfo*> storageSpaceTree_;
 
             // databox cache
             std::unordered_map<SDS::ContentID, DataboxObject*, ContentIDHasher> databoxsCache_;
@@ -261,9 +262,14 @@ namespace SDS_Retrieval {
                 showSemanticSpace();
             }
         } else if ((opType == "time") || (opType == "ti")) {
-            // printTimeInfo();
+
         } else if ((opType == "storespace") || (opType == "st")) {
-            showStorageSpace(infos[2]);
+            if(infos.size() == 3) {
+                showStorageSpace(infos[2]);
+            } else {
+                showStorageSpace();
+            }
+           
         } else if ((opType == "groupbyvar") || (opType == "gr")) {
             // printVarGroupInfo();
         } else if ((opType == "indexbyvar") || (opType == "in")) {
@@ -290,7 +296,11 @@ namespace SDS_Retrieval {
         } else if ((opType == "time") || (opType == "ti")) {
             // printTimeInfo();
         } else if ((opType == "storespace") || (opType == "st")) {
-            // showStorageSpace();
+            if(infos.size() == 4) {
+                detailStorageSpace(spaceName, infos[3]);
+            } else {
+                detailStorageSpace(spaceName);
+            }
         } else if ((opType == "groupbyvar") || (opType == "gr")) {
             // printVarGroupInfo();
         } else if ((opType == "indexbyvar") || (opType == "in")) {
@@ -382,16 +392,17 @@ namespace SDS_Retrieval {
         return false;
     }
 
+
     void SDS_Retrieval_Client::cacheSemanticSpace(SemanticSpace &space) {
         // insert space cahce
         std::string SSName = space.SSName;
         impl_->semanticSpaceCache_[SSName] = space;
 
         // insert space tree
-        addToSpaceTree(space);
+        addToSemanticSpaceTree(space);
     }
 
-    bool SDS_Retrieval_Client::addToSpaceTree(std::string spaceID, SpaceInfo* info, int keyLength) {
+    bool SDS_Retrieval_Client::addToSemanticSpaceTree(std::string spaceID, SpaceInfo* info, int keyLength) {
         if(spaceID.size() == 0) {
             return true;
         }
@@ -411,23 +422,23 @@ namespace SDS_Retrieval {
             info->parent = pInfo;
 
             std::string PSSID = spaceID.substr(0, spaceID.size() - keyLength);
-            return addToSpaceTree(PSSID, pInfo);
+            return addToSemanticSpaceTree(PSSID, pInfo);
         }
     }
 
-    bool SDS_Retrieval_Client::addToSpaceTree(SemanticSpace &space) {
+    bool SDS_Retrieval_Client::addToSemanticSpaceTree(SemanticSpace &space) {
         std::string spaceID = space.getCompleteSpaceID();
         auto ret = impl_->semanticSpaceTree_.find(spaceID);
         if(ret != impl_->semanticSpaceTree_.end()) {
             ret->second->spaceName = space.SSName;
-            return addToSpaceTree(space.PSSID, ret->second);
+            return addToSemanticSpaceTree(space.PSSID, ret->second);
         } else {
             SpaceInfo *info = new SpaceInfo();
             info->spaceName = space.SSName;
             info->parent = nullptr;
             info->spaceID = spaceID;
             impl_->semanticSpaceTree_.insert({spaceID, info});  
-            return addToSpaceTree(space.PSSID, info);
+            return addToSemanticSpaceTree(space.PSSID, info);
         }
     }
 
@@ -460,7 +471,7 @@ namespace SDS_Retrieval {
             }
 
         } else {
-            std::cout << "暂时没有创建该语义, 请预先创建..." << std::endl;
+            std::cout << "暂时没有创建该语义空间, 请预先创建..." << std::endl;
         }
     }
 
@@ -474,38 +485,111 @@ namespace SDS_Retrieval {
         auto status = impl_->meta_client_->createStorageSpace(spaceID, SSName, temp, space);
         if(status.ok()) {
             impl_->storageSpaceCache_[SSName] = space;
+            cacheStorageSpace(space);
             return true;
         }
         std::cout << "存储空间创建失败！" << std::endl;
         return false;
     }
 
-    void SDS_Retrieval_Client::showStorageSpace(std::string SSName) {
-        if(impl_->storageSpaceCache_.size() == 0) {
-            std::cout << "暂时没有存储空间信息..." << std::endl;
+    bool SDS_Retrieval_Client::loadStorageSpace(std::string SSName) {
+        StorageSpace space;
+        auto status = impl_->meta_client_->loadStorageSpace(SSName, space);
+        if(status.ok()) {
+            if(space.stoMeta.SSName == "") {
+                std::cout << "不存在指定存储空间，请提前创建..." << std::endl;
+                return false;
+            } else {
+                cacheStorageSpace(space);
+                return true;
+            }
         }
-
-        for(auto space: impl_->storageSpaceCache_) {
-            space.second.print();
-            std::cout << std::endl;
-        }
-
-        // if(SSName == "*") {
-        //     if(impl_->storageSpaceCache_.size() == 0) {
-        //         std::cout << "暂时没有存储空间信息..." << std::endl;
-        //     } else {
-        //         // printStorageSpaceWithTreeView();
-        //     }
-        // } else {
-        //     auto ret = impl_->storageSpaceCache_.find(SSName);
-        //     if(ret != impl_->storageSpaceCache_.end()) {
-        //         ret->second.print();
-        //     } else {
-        //         std::cout << "暂时没有创建该语义, 请预先创建..." << std::endl;
-        //     }   
-        // }
+        std::cout << "语义空间加载失败！" << std::endl;
+        return false;
     }
 
+    void SDS_Retrieval_Client::cacheStorageSpace(StorageSpace &space) {
+        // insert space cahce
+        std::string SSName = space.stoMeta.SSName;
+        impl_->storageSpaceCache_[SSName] = space;
+
+        // insert space tree
+        addToStorageSpaceTree(space);
+    }
+
+    bool SDS_Retrieval_Client::addToStorageSpaceTree(std::string spaceID, SpaceInfo* info, int keyLength) {
+        if(spaceID.size() == 0) {
+            return true;
+        }
+
+        auto ret = impl_->storageSpaceTree_.find(spaceID);
+        if(ret != impl_->storageSpaceTree_.end()) {
+            ret->second->children.insert({info->spaceID, info});
+            info->parent = ret->second;
+            return true;
+        } else {
+            SpaceInfo *pInfo = new SpaceInfo();
+            pInfo->spaceName = "";
+            pInfo->parent = nullptr;
+            pInfo->spaceID = spaceID;
+            pInfo->children.insert({info->spaceID, info});
+            impl_->storageSpaceTree_.insert({spaceID, pInfo});
+            info->parent = pInfo;
+            std::string PSSID = "";
+            return addToStorageSpaceTree(PSSID, pInfo);
+        }
+    }
+
+    bool SDS_Retrieval_Client::addToStorageSpaceTree(StorageSpace &space) {
+        std::string spaceID = intToStringWithPadding(space.spaceID);
+        auto ret = impl_->storageSpaceTree_.find(spaceID);
+        if(ret != impl_->storageSpaceTree_.end()) {
+            ret->second->spaceName = space.stoMeta.SSName;
+            return addToStorageSpaceTree(0, ret->second);
+        } else {
+            SpaceInfo *info = new SpaceInfo();
+            info->spaceName = space.stoMeta.SSName;
+            info->parent = nullptr;
+            info->spaceID = spaceID;
+            impl_->storageSpaceTree_.insert({spaceID, info});  
+
+            std::string pID = "0";
+            return addToStorageSpaceTree(pID, info);
+        }
+    }
+
+    void SDS_Retrieval_Client::showStorageSpace(std::string SSName) {
+        if(SSName == "*") {
+            if(impl_->storageSpaceCache_.size() == 0) {
+                std::cout << "暂时没有存储空间信息..." << std::endl;
+            } else {
+               printStorageSpaceWithTreeView();
+            }
+        } else {
+            auto ret = impl_->storageSpaceCache_.find(SSName);
+            if(ret != impl_->storageSpaceCache_.end()) {
+                printStorageSpaceWithTreeView(intToStringWithPadding( ret->second.spaceID));
+            } else {
+                std::cout << "暂时没有创建该存储空间, 请预先创建..." << std::endl;
+            }   
+        }
+    } 
+
+    void SDS_Retrieval_Client::detailStorageSpace(std::string SSName, std::string model) {
+        StorageSpace space;
+        auto status = impl_->meta_client_->loadStorageSpace(SSName, space);
+        if(status.ok()) {
+            impl_->storageSpaceCache_[SSName] = space;
+            if(model == "tree") {
+                space.printWithTreeModel();
+            } else {
+                space.print();
+            }
+
+        } else {
+            std::cout << "暂时没有创建该存储空间, 请预先创建..." << std::endl;
+        }
+    }
 
     bool SDS_Retrieval_Client::searchDataFile(std::string SSName, std::vector<std::string> &times,
                                                  std::vector<std::string> &varNames) {
@@ -592,6 +676,45 @@ namespace SDS_Retrieval {
         return true;
     }
 
+    bool SDS_Retrieval_Client::printStorageSpaceWithTreeView(std::string spaceID) {
+        auto ret = impl_->storageSpaceTree_.find(spaceID);
+        if(ret == impl_->storageSpaceTree_.end()) {
+            std::cout << "暂时没有语义空间信息..." << std::endl;
+            return false;
+        }
+        
+        printStorageSpaceWithTreeView(ret->second, 0); 
+        return true;
+
+    }
+
+    bool SDS_Retrieval_Client::printStorageSpaceWithTreeView(SpaceInfo* info, int level) {
+        if(info == nullptr) {
+            return false;
+        }
+        for(int i = 0; i < level; i++) {
+            std::cout << "  ";
+        }
+
+        if(info->spaceID == "0") {
+            if(info->spaceName == "") {
+                std::cout  << "Local" << " (" << info->spaceID << ")" << std::endl;
+            } else {
+                std::cout  << info->spaceName << " (" << info->spaceID << ")" << std::endl;
+            }
+        } else {
+            if(info->spaceName == "") {
+                std::cout << "├─ " << "缺省空间" << " (" << info->spaceID << ")" << std::endl;
+            } else {
+                std::cout << "├─ " << info->spaceName << " (" << info->spaceID << ")" << std::endl;
+            }
+        }
+
+        for(auto child: info->children) {
+            printStorageSpaceWithTreeView(child.second, level + 1);
+        }
+        return true;
+    }
 
     bool SDS_Retrieval_Client::exportFile(std::string destPath) {
         for(auto pathlist : impl_->resultCache_) {

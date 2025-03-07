@@ -130,7 +130,6 @@ namespace SDS {
             return true;
         }
 
-
         // create the databox entry
         DataBoxTableEntry* entry = new DataBoxTableEntry;
         entry->cntID = cntID;
@@ -140,7 +139,7 @@ namespace SDS {
 
         // create the actual databox 
         DataboxObject *dbObject = new DataboxObject; 
-        dbObject->setDataPath(filePath);
+   //     dbObject->setDataPath(filePath);
         dbObject->fillData(impl_->getAdptor());
         entry->ptr= dbObject;
         entry->state = DATABOX_FILLED;

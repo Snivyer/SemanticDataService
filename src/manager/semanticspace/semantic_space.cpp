@@ -193,7 +193,6 @@ namespace SDS
 
     bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, SemanticSpace* space, 
                                                 ContentID &cntID, TSDesc &tsDesc) {
-        
         TimeSlotNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);
         if(_metaManager->extractTSDesc(tsDesc)) {
@@ -218,13 +217,11 @@ namespace SDS
                 return true;
             }
         }
-
         return false;
     }
 
     bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, SemanticSpace* space,
                                                 ContentID &cntID, VLDesc &vlDesc) {
-        
         // choose the adimistrator code as the search term
         VarListNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);
