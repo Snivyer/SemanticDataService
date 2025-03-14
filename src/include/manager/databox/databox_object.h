@@ -12,10 +12,10 @@ using namespace arrow;
 
 
 
-namespace SDS
-{
+namespace SDS{
 
     typedef struct {
+        size_t id;
         int stepCount;
         int varCount;
         int varLen;
@@ -27,7 +27,7 @@ namespace SDS
             std::cout << "Var count:" << varCount << std::endl;
             std::cout << "Var grid size:" << varLen << std::endl;
 
-            for(auto var : varList) {
+            for(auto var : vlDesc.desc) {
                 std::cout << var.varName << std::endl;
             }
         }
@@ -41,7 +41,7 @@ namespace SDS
 
    
             DBMeta& getDBMeta();
-            arrow::Status fillData(Adaptor *adaptor);
+            arrow::Status fillData(Adaptor *adaptor, ContentDesc &cntDesc, size_t dbID);
             arrow::Status removeData();
             void print();
             std::shared_ptr<arrow::Schema> getSchema();

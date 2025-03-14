@@ -1,3 +1,5 @@
+include "meta_flb.fbs";
+
 table  ClientConnectRequest {
     fd:int;
 }
@@ -7,23 +9,27 @@ table ClientConnectReply {
 }
 
 table DBCreateRequest {
-    space_id:string;
-    time_id:string;
-    var_id:string;
-    path:string;
+   cnt_id:ContentIDRequest;
+   cnt_desc:ContentDescRequest;
+   sto_desc:StoreDescRequest;
+   file_path_list:FilePathListRequest;
+}
+
+table DataBoxMetaRequest {
+    id: int;
+    step_count: int;
+    var_count: int;
+    var_len: int;
+    vldesc: VLDescRequest;
+    filled: bool;
 }
 
 table DBCreateReply {
-    step_count:ulong;
-    var_count:ulong;
-    var_len:ulong;
-    var_name:[string];
+    db_meta: DataBoxMetaRequest;
 }
 
 table DBgetRequest {
-    space_id:string;
-    time_id:string;
-    var_id:string;
+    cnt_id:ContentIDRequest;
     timeout:long;
 }
 
@@ -33,9 +39,7 @@ table DBgetReply {
 }
 
 table DBcontainRequest {
-    space_id:string;
-    time_id:string;
-    var_id:string;
+    cnt_id:ContentIDRequest;
 }
 
 table DBcontainReply {
@@ -43,9 +47,7 @@ table DBcontainReply {
 }
 
 table DBReleaseRequest {
-    space_id:string;
-    time_id:string;
-    var_id:string;
+    cnt_id:ContentIDRequest;
 }
 
 table DBReleaseReply {
@@ -53,13 +55,19 @@ table DBReleaseReply {
 }
 
 table DBDeleteRequest {
-    space_id:string;
-    time_id:string;
-    var_id:string;
+    cnt_id:ContentIDRequest;
 }
 
 table DBDeleteReply {
     is_delete:bool;
+}
+
+table GetContentIDRequest {
+    db_id:ulong;
+}
+
+table GetContentIDReply {
+    cnt_id:ContentIDRequest;
 }
 
 

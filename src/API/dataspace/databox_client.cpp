@@ -15,6 +15,8 @@ namespace SDS {
             // A hash table of the databox IDs that are currently being used by this client
             std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher> dbInUse;
 
+            std::unordered_map<size_t, ContentID> dbIndex;
+
         public:
             Impl() {}
             ~Impl() {}
@@ -45,6 +47,11 @@ namespace SDS {
             std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher>& getDBInUse() {
                 return this->dbInUse;
             }
+
+            std::unordered_map<size_t, ContentID> getDBIndex() {
+                return this->dbIndex;
+            }
+            
 
     };
 
@@ -92,22 +99,20 @@ namespace SDS {
     }
 
 
-    arrow::Status DataBoxClient::createDB(ContentID &cntID, std::string dataPath) {
+    arrow::Status DataBoxClient::createDB(ContentID &cntID, ContentDesc &cntDesc,
+                                            StoreDesc &stoDesc, FilePathList &fileList, DBMeta& dbMeta) {
         int client = impl_->getStoreConn();
-    
-        RETURN_NOT_OK(SendCreateRequest(client, cntID.getSpaceID(),
-                                        cntID.getTimeID(), cntID.getVarID(), dataPath));
+        RETURN_NOT_OK(SendCreateRequest(client, cntID, cntDesc, stoDesc, fileList));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeCreateReply, &buffer));
-
-        DBMeta dbMeta;
         RETURN_NOT_OK(ReadCreateReply(buffer.data(), dbMeta));
 
         if(dbMeta.varCount > 0) {
             dbMeta.filled = true;
-            dbMeta.print();
         } 
-        return Status::OK();
+        return Status::OK();                                      
+
+
     }
 
     arrow::Status DataBoxClient::getDB(ContentID &cntID, int64_t timeout, DataboxObject *object) {
@@ -126,8 +131,7 @@ namespace SDS {
 
         // get databox object from the databox store
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendGetRequest(client, cntID.getSpaceID(),
-                                        cntID.getTimeID(), cntID.getVarID(), timeout));
+        RETURN_NOT_OK(SendGetRequest(client, cntID, timeout));
 
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeGetReply, &buffer));
@@ -143,11 +147,33 @@ namespace SDS {
         }
     }
 
+    arrow::Status DataBoxClient::getDB(size_t dbID, int64_t timeout, DataboxObject *object) {
+        
+        // std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher> useEntry = impl_->getDBInUse();
+        // auto dbEntry = useEntry.find(cntID);
+        // if(dbEntry != useEntry.end()) {
+        //     ARROW_CHECK(dbEntry->second->isSeal) << "Client called get on an unsealed object that it created";
+            
+        //     // get databox object directly from local
+        //     object = dbEntry->second->object;
+        //     // increament the count of the number of instance of this object
+        //     dbEntry->second->count += 1;   
+        //     return Status::OK();
+        // }
+
+        ContentID cntID;
+        auto ret = this->getContentID(dbID, cntID);
+        if(ret.ok()) {
+            return this->getDB(cntID, timeout, object);
+        } else {
+            return Status::NotImplemented("There is not databox that you want, try again!");
+        }
+    }
+
     arrow::Status DataBoxClient::containDB(ContentID &cntID, bool &is_contain) {
         int client = impl_->getStoreConn();
     
-        RETURN_NOT_OK(SendContainRequest(client, cntID.getSpaceID(),
-                                        cntID.getTimeID(), cntID.getVarID()));
+        RETURN_NOT_OK(SendContainRequest(client, cntID));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeContaineReply, &buffer));
 
@@ -158,8 +184,7 @@ namespace SDS {
     arrow::Status DataBoxClient::releaseDB(ContentID &cntID, bool &is_release) {
 
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendReleaseRequest(client, cntID.getSpaceID(),
-                                        cntID.getTimeID(), cntID.getVarID()));
+        RETURN_NOT_OK(SendReleaseRequest(client, cntID));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeReleaseReply, &buffer));
 
@@ -168,17 +193,33 @@ namespace SDS {
     }
 
     arrow::Status DataBoxClient::deleteDB(ContentID &cntID, bool &is_delete) {
-
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendDeleteRequest(client, cntID.getSpaceID(),
-                                        cntID.getTimeID(), cntID.getVarID()));
+        RETURN_NOT_OK(SendDeleteRequest(client, cntID));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeDeleteReply, &buffer));
 
         RETURN_NOT_OK(ReadDeleteReply(buffer.data(), is_delete));
         return Status::OK();
+    }
+
+    arrow::Status DataBoxClient::getContentID(size_t dbID, ContentID &cntID) {
+        auto ret = impl_->getDBIndex().find(dbID);
+        if(ret != impl_->getDBIndex().end()) {
+            cntID.setSpaceID(ret->second.getSpaceID());
+            cntID.setTimeID(ret->second.getTimeID());
+            cntID.setVarID(ret->second.getVarID());
+            return Status::OK();
+        }
+
+        int client = impl_->getStoreConn();
+        RETURN_NOT_OK(SendGetContentIDRequest(client, dbID));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeGetContentIDReply, &buffer));
+        RETURN_NOT_OK(ReadGetContentIDReply(buffer.data(), cntID));
+        return Status::OK();
 
     }
+
 
 
 }

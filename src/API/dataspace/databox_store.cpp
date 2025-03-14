@@ -16,33 +16,20 @@ namespace SDS {
             std::unordered_map<ContentID, std::vector<GetRequest*>, 
                                 ContentIDHasher> databoxGetRequest;
             
-            Adaptor* adaptor_;
             std::shared_ptr<BasicMetaServer> rpcServer_;
             std::deque<std::shared_ptr<BasicDataServer>> sendPool_;
-            std::shared_ptr<MetaService> metaService_;
+            
 
             
 
         public:
+            std::shared_ptr<MetaServiceClient> metaclient_;
             Impl(std::shared_ptr<EventLoop> loop, int64_t systemMemory, 
-                                Adaptor *adaptor,  std::shared_ptr<BasicMetaServer> rpcServer) {
+                                std::shared_ptr<BasicMetaServer> rpcServer) {
                 loop_ = std::move(loop);
                 storeInfo.memoryCapacity = systemMemory;
-                adaptor_ = adaptor;
                 rpcServer_ = rpcServer;
-            }
-
-            ContentDesc& getMetaIndex(ContentID &cntID) {
-                return metaService_->getContentDesc(cntID);
-            }
-
-
-            void setAdaptor(Adaptor *adaptor) {
-                adaptor_ = adaptor;
-            }
-
-            Adaptor* getAdptor() {
-                return adaptor_;
+                metaclient_ = MetaServiceClient::createClient();
             }
 
             DataBoxStoreInfo& getStoreInfo() {
@@ -70,18 +57,28 @@ namespace SDS {
                 return this->inputBuffer;
             }
 
-            void insertDBObjectEntry(const ContentID &cntID, DataBoxTableEntry *entry)
-            {
+            void insertDBObjectEntry(const ContentID &cntID, DataBoxTableEntry *entry) {
                 storeInfo.databoxs.insert({cntID, entry});
+                storeInfo.dbID2CntID.insert({entry->dbID, cntID});
             }
 
             DataBoxTableEntry* getDBObjectEntry(const ContentID &cntID) {
                 auto ret =  storeInfo.databoxs.find(cntID);
-
                 if(ret != storeInfo.databoxs.end()) {
                     return ret->second;
                 }
                 return nullptr;
+            }
+
+            bool getContentIDByDBID(size_t dbID, ContentID &cntID) {
+                auto ret = storeInfo.dbID2CntID.find(dbID);
+                if(ret != storeInfo.dbID2CntID.end()) {
+                    cntID.setSpaceID(ret->second.getSpaceID());
+                    cntID.setTimeID(ret->second.getTimeID());
+                    cntID.setVarID(ret->second.getVarID());
+                    return true;
+                }
+                return false;
             }
 
             std::shared_ptr<BasicDataServer> rentSender() {
@@ -100,10 +97,6 @@ namespace SDS {
                 sendPool_.push_back(server);
             }
 
-            void setMetaServer(std::shared_ptr<MetaService> metaService) {
-                metaService_ = metaService;
-            }
-
             ~Impl() {}
     };
 
@@ -112,9 +105,9 @@ namespace SDS {
     }
 
 
-    std::shared_ptr<DataBoxStore> DataBoxStore::createStore(std::shared_ptr<EventLoop> loop, int64_t systemMemory, Adaptor *adaptor, std::shared_ptr<BasicMetaServer> rpcServer) {
+    std::shared_ptr<DataBoxStore> DataBoxStore::createStore(std::shared_ptr<EventLoop> loop, int64_t systemMemory, std::shared_ptr<BasicMetaServer> rpcServer) {
     
-        std::shared_ptr<Impl> impl = std::make_shared<Impl>(loop, systemMemory, adaptor, rpcServer);
+        std::shared_ptr<Impl> impl = std::make_shared<Impl>(loop, systemMemory, rpcServer);
         std::shared_ptr<DataBoxStore> dbStore(new DataBoxStore(impl)); 
         return dbStore;
     }
@@ -123,7 +116,8 @@ namespace SDS {
 
 
     
-    bool DataBoxStore::createDB(const ContentID &cntID, FilePathList &filePath, Client* client) {
+    bool DataBoxStore::createDB(const ContentID &cntID, ContentDesc &cntDesc,
+                                        StoreDesc &stoDesc, FilePathList &filePath, Client* client) {
 
         // There is already an object with the same ID in the databox store
         if(impl_->getStoreInfo().databoxs.count(cntID) != 0) {
@@ -131,17 +125,20 @@ namespace SDS {
         }
 
         // create the databox entry
+        globalDataBoxID += 1;
         DataBoxTableEntry* entry = new DataBoxTableEntry;
         entry->cntID = cntID;
+        entry->dbID = globalDataBoxID;
         entry->state = DATABOX_CREATED;
         entry->ptr = nullptr;
     
 
         // create the actual databox 
         DataboxObject *dbObject = new DataboxObject; 
-   //     dbObject->setDataPath(filePath);
-        dbObject->fillData(impl_->getAdptor());
+        Adaptor* adaptor = AdaptorFactory::getAdaptor(stoDesc.kind, stoDesc.conConf, &filePath);
+        dbObject->fillData(adaptor, cntDesc, entry->dbID);
         entry->ptr= dbObject;
+
         entry->state = DATABOX_FILLED;
 
         // insert entry into store info
@@ -360,11 +357,7 @@ namespace SDS {
         assert(s.ok() || s.IsIOError());
 
         uint8_t* input = impl_->getInputBuffer().data();
-        ContentID cntID;
-        std::string spaceID;
-        std::string timeID;
-        std::string varID;
-
+    
         // Process the different types of requests.
         switch (type) {
             case MessageTypeConnectRequest: {
@@ -376,64 +369,44 @@ namespace SDS {
                 disconnectClient(client);
                 break;
             case MessageTypeCreateRequest: {
-                std::string dataPath;
-                RETURN_NOT_OK(ReadCreateRequest(input, spaceID, timeID, varID, dataPath));
-                cntID.setSpaceID(spaceID);
-                cntID.setTimeID(timeID);
-                cntID.setVarID(varID);
-
-
-
-                std::vector<FilePathList> pathListVector;
-                getFilePathList(dataPath, pathListVector);
-
-                if(pathListVector.size() > 0) {
-                    createDB(cntID, pathListVector[0], client);
-                    {
-                        auto dbMeta = impl_->getDBObjectEntry(cntID)->ptr->getDBMeta();
-                        HANDLE_SIGPIPE(SendCreateReply(client->fd, dbMeta), client->fd);
-                    }
+                ContentID cntID;
+                ContentDesc cntDesc;
+                StoreDesc stoDesc;
+                FilePathList pathList;
+                RETURN_NOT_OK(ReadCreateRequest(input, cntID, cntDesc, stoDesc, pathList));
+                createDB(cntID, cntDesc, stoDesc, pathList, client);
+                {
+                    auto dbMeta = impl_->getDBObjectEntry(cntID)->ptr->getDBMeta();
+                    HANDLE_SIGPIPE(SendCreateReply(client->fd, dbMeta), client->fd);
                 }
             } break;
             case MessageTypeGetRequest: {
                 int64_t timeout;
-                RETURN_NOT_OK(ReadGetRequest(input, spaceID, timeID, varID, timeout));
-                cntID.setSpaceID(spaceID);
-                cntID.setTimeID(timeID);
-                cntID.setVarID(varID);
-
+                ContentID cntID;
+                RETURN_NOT_OK(ReadGetRequest(input, cntID, timeout));
                 std::vector<ContentID> ids;
                 ids.push_back(cntID);
                 getDB(client, ids, timeout);
             } break;
             case MessageTypeContaineRequest: {
-                RETURN_NOT_OK(ReadContainRequest(input, spaceID, timeID, varID));
-                cntID.setSpaceID(spaceID);
-                cntID.setTimeID(timeID);
-                cntID.setVarID(varID);
-
+                ContentID cntID;
+                RETURN_NOT_OK(ReadContainRequest(input, cntID));
                 bool ret = containDB(cntID);
                 {
                     HANDLE_SIGPIPE(SendContainReply(client->fd, ret), client->fd);
                 }
             } break;
             case MessageTypeReleaseRequest: {
-                RETURN_NOT_OK(ReadReleaseRequest(input, spaceID, timeID, varID));
-                cntID.setSpaceID(spaceID);
-                cntID.setTimeID(timeID);
-                cntID.setVarID(varID);
-
+                ContentID cntID;
+                RETURN_NOT_OK(ReadReleaseRequest(input, cntID));
                 bool ret = releaseDB(cntID, client);
                 {
                     HANDLE_SIGPIPE(SendReleaseReply(client->fd, ret), client->fd);
                 }
             } break;
             case MessageTypeDeleteRequest: {
-                RETURN_NOT_OK(ReadDeleteRequest(input, spaceID, timeID, varID));
-                cntID.setSpaceID(spaceID);
-                cntID.setTimeID(timeID);
-                cntID.setVarID(varID);
-
+                ContentID cntID;
+                RETURN_NOT_OK(ReadDeleteRequest(input, cntID));
                 std::vector<ContentID> ids;
                 ids.push_back(cntID);
                 bool ret = deleteDB(ids);
@@ -441,7 +414,16 @@ namespace SDS {
                     HANDLE_SIGPIPE(SendDeleteReply(client->fd, ret), client->fd);
                 }
             } break;
-      
+            case MessageTypeGetContentIDRequest: {
+                ContentID cntID;
+                size_t dbID;
+                RETURN_NOT_OK(ReadGetContentIDRequest(input, dbID));
+                bool ret = getContentIDByDBID(dbID, cntID);
+                {
+                    HANDLE_SIGPIPE(SendGetContentIDReply(client->fd, cntID), client->fd);
+                }
+
+            } break;
             default:
                 ARROW_CHECK(0);
         }
@@ -453,13 +435,26 @@ namespace SDS {
         impl_->returnSender(server);
     }
 
-    void DataBoxStore::setMetaServer(std::shared_ptr<MetaService> metaService) {
-        impl_->setMetaServer(metaService);
-    }
-
     void DataBoxStore::runServer() {
         impl_->getLoop()->run();
     }
 
+    void DataBoxStore::connectToMetaService() {
+        impl_->metaclient_ = MetaServiceClient::createClient();
+        Status ret = impl_->metaclient_->connect("/tmp/meta", "");
+        if(ret.ok()) {
+            ARROW_LOG(INFO) <<  "meta client connect success!  \n";
+        } 
+    }
 
+    void DataBoxStore::DataBoxStore::disconnectToMetaService() {
+        Status ret = impl_->metaclient_->disconnect();
+        if(ret.ok()) {
+            ARROW_LOG(INFO) <<  "meta client disconnect success!  \n";
+        } 
+    }
+
+    bool DataBoxStore::getContentIDByDBID(size_t dbID, ContentID &cntID) {
+        return impl_->getContentIDByDBID(dbID, cntID);
+    }
 }

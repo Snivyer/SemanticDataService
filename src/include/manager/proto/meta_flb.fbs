@@ -78,7 +78,7 @@ table VLDescRequest {
     attrs:[AttrRequest];
 }
 
-table ContentDescRequest{
+table ContentDescRequest {
     ssdesc:SSDescRequest;
     tsdesc:TSDescRequest;
     vldesc:VLDescRequest;
@@ -105,6 +105,15 @@ table StorageSpaceCreateRequest {
     root_path:string;
 }
 
+table StoreDescRequest {
+    ssname:string;
+    writable:bool;
+    size:ulong;
+    capacity:ulong;
+    kind:string;
+    root_path:string;
+}
+
 table StorageSpaceCreateReply {
     storage_id:string;
     ssname:string;
@@ -123,19 +132,6 @@ table ContentIndexCreateRequst {
 
 table ContentIndexReply {
     result:bool;
-}
-
-table ContentIndexSearchRequest {
-    geo_names:[string];
-    times:[string];
-    var_names:[string];
-    group_name:string;
-}
-
-table ContentIndexSearchReply {
-    space_id:string;
-    time_id:string;
-    var_id:string;
 }
 
 table DataFileSearchRequest {
@@ -158,6 +154,11 @@ table FilePathListRequest {
 }
 
 table DataFileSearchReply {
+    file_path_lists:[FilePathListRequest];
+}
+
+table DataBoxSearchReply {
+    databox_id: [ulong];
     file_path_lists:[FilePathListRequest];
 }
 

@@ -130,6 +130,7 @@ namespace SDS_Retrieval {
 
             /*data export*/
             bool exportFile(std::string destPath);
+            bool exportDataBox(size_t dbID);
 
 
 

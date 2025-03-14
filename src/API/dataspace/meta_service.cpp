@@ -23,12 +23,21 @@ namespace SDS {
             // metadata index
             std::unordered_map<ContentID, ContentDesc, ContentIDHasher> metaIndex_;
 
-           
+            
         public:
+            // databox store client
+            std::shared_ptr<DataBoxClient> dbClient_;
+
             Impl(std::shared_ptr<EventLoop> loop) {
                 loop_ = std::move(loop);
                 semanticManager_ = std::make_shared<SemanticSpaceManager>();
                 storageManager_ = std::make_shared<StorageSpaceManager>();
+                dbClient_ = DataBoxClient::createClient();
+               
+            }
+
+            std::shared_ptr<DataBoxClient> getDBClient() {
+                return this->dbClient_;
             }
 
             std::shared_ptr<EventLoop> getLoop() {
@@ -178,85 +187,63 @@ namespace SDS {
         return createContentIndexInternal(spaceID, storageID, dirName);
     }
 
-    bool MetaService::searchContentIndex(std::vector<std::string> geoNames, std::vector<std::string> times, std::vector<std::string> varNames, 
-                            ContentID& cntID, std::string varGroupName) {
+    bool MetaService::searchDataBox(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames,
+                            std::vector<FilePathList> &fileList, std::vector<size_t> &dbIDs) {
+     
         
-        std::string spaceID;
-        std::string timeID;
-        std::string varID;   
+        std::vector<ContentID> cntIDs;
+        std::vector<ContentDesc> cntDescs;
+        std::vector<StoreDesc> storeDescs;
+        auto ret = searchData(SSName, times, varNames, fileList, cntIDs, cntDescs, storeDescs, false);
 
-        auto semanticManager = impl_->getSemanticManager();
-        auto storageManager = impl_->getStorageManager();
-
-        // extract content description
-        ContentDesc cntDesc;
-        auto metaManager = semanticManager->getContentMeta();
-       
-
-        // firstly, get spaceID by search space index
-        if(metaManager->extractSSDesc(cntDesc.ssDesc, geoNames) == false) {
-            ARROW_LOG(DEBUG) << "cannot find the actual geoName";
+        if(ret == false) {
             return false;
         }
 
-        auto spaceIndex = semanticManager->getSpaceIndex();
-        SpaceNode* spaceNode = nullptr;
-        spaceIndex->search(cntDesc.ssDesc.adCode, spaceNode);
-
-        if(!spaceNode) {
-            ARROW_LOG(DEBUG) << "There is no object space in space index.";
-        } 
-        spaceID = spaceNode->getCompleteSpaceID();
-        auto semanticSpace = semanticManager->getSpaceByID(spaceID);
-
-        // secondly, get timeID by search space index
-        auto timeIndex = semanticManager->getTimeIndex();
-        TimeSlotNode* timeSlotNode = nullptr;
-
-        if(metaManager->extractTSDesc(cntDesc.tsDesc, times)) {
-            // user have set the required time
-            time_t reportT = mktime(&(cntDesc.tsDesc.reportT));
-            timeIndex->search(reportT, timeSlotNode);  
-
-            if(timeSlotNode) {
-                timeID = timeSlotNode->getTimeSlotID();
-            }
-        } else {
-            // inherit the time ID under the object semanticSpace
-            // timeID = semanticSpace->cntID.getTimeID();
-            // cntDesc.copyTimeSlotDesc(semanticSpace->cntDesc);
+        // start to create box
+        impl_->dbClient_->connect("/tmp/store", "");
+        for(int i = 0; i < cntIDs.size(); i++) {
+            
+            // todo: 这里可以加一个缓存
+            DBMeta dbMeta;
+            auto ret = impl_->dbClient_->createDB(cntIDs[i], cntDescs[i], storeDescs[i], fileList[i], dbMeta);
+            if(ret.ok()) {
+                ARROW_LOG(INFO) <<  "databox create success, databox ID is " << dbMeta.id;
+                dbIDs.push_back(dbMeta.id);
+            }     
         }
-
-        // thirdly, get varID by search var index 
-        auto varIndex = semanticManager->getVarIndex();
-        VarListNode* varListNode = nullptr;
-        varIndex->search(varGroupName, varListNode);
-
-        if(varListNode) {
-            auto varList = varListNode->varIndex;
-            if(metaManager->extractVLDesc(cntDesc.vlDesc, varNames, varList)) {
-                // user have set required var
-                varID = varListNode->getVarListID();
-            } else {
-                // inherit the var ID under the object semanticSpace
-                // varID = semanticSpace->cntID.getVarID();
-                // cntDesc.copyVarListDesc(semanticSpace->cntDesc);
-        
-            }
-        }
-
-        // finally, clean up
-        cntID.setSpaceID(spaceID);
-        cntID.setTimeID(timeID);
-        cntID.setVarID(varID);
-        // todo: 这里需要修改一下
-        // cntID.storeIDs.push_back(semanticSpace->cntID.getBestStoID());
-        impl_->addMetaIndex(cntID, cntDesc);
+        return true;
     }
 
-    
     bool MetaService::searchDataFile(std::string SSName, std::vector<std::string> &times, 
-                                        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
+        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
+        std::vector<ContentID> cntIDs;
+        std::vector<ContentDesc> cntDescs;
+        std::vector<StoreDesc> storeDescs;
+        return searchData(SSName, times, varNames, fileList, cntIDs, cntDescs, storeDescs);
+    }
+
+    void MetaService::connectToDataBoxService() {
+        impl_->dbClient_ = DataBoxClient::createClient();
+        auto ret = impl_->dbClient_->connect("/tmp/store", "");
+        if(ret.ok()) {
+            ARROW_LOG(INFO) <<  "db client connect success! \n";
+        }
+    }
+
+    void MetaService::disconnectToDataBoxService() {
+        auto ret = impl_->dbClient_->disconnect();
+        if(ret.ok()) {
+            ARROW_LOG(INFO) <<  "db client disconnect success! \n";
+        }
+    }
+
+
+
+    bool MetaService::searchData(std::string SSName, std::vector<std::string> &times, 
+        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
+        std::vector<ContentID> &cntIDs, std::vector<ContentDesc> &cntDescs, std::vector<StoreDesc> &storeDescs, bool isFile) {
+        
         // step1: get semantic sapce by semantic name
         auto semanticManager = impl_->getSemanticManager();  
         ContentMeta* metaManager = semanticManager->getContentMeta(); 
@@ -297,21 +284,25 @@ namespace SDS {
                     pathList.fileNames.push_back(fileName);
                 }
             }
-            fileList.push_back(pathList);
+
+            if(!isFile) {
+                // step4: save databoxx info
+                StoreDesc storeDesc;
+                storeDesc.setConnectConfig(adaptor->connConfig);
+                storeDesc.setStoreKindbyTypeID(storageID.getTypeID());
+                cntIDs.push_back(databox.first);
+                cntDescs.push_back(databox.second);
+                storeDescs.push_back(storeDesc);
+
+            }
+            
+            // step5: save baisc info
+            fileList.push_back(pathList);  
         }
         return true;
     }
 
-    ContentDesc& MetaService::getContentDesc(ContentID &cntID) {
-
-        ContentDesc cntDesc;
-        impl_->getContentDesc(cntID, cntDesc);
-        return cntDesc;
-    }
-
-
     bool MetaService::addClientToSemanticSpaceEntry(SemanticSpaceEntry *entry, MetaClient* client) {
-    
         if(entry->clients.find(client) != entry->clients.end()) {
             return false;
         }
@@ -426,17 +417,16 @@ namespace SDS {
                 auto ret = createContentIndex(semanticSpaceName, storageSpaceName, dirPath);
                 HANDLE_SIGPIPE(SendCreateContentIndexReply(client->fd, ret), client->fd);
             } break;
-            case MessageTypeDataSearchRequest: {
-                std::vector<std::string> geoNames;
+            case MessageTypeDataBoxSearchRequest: {
+                size_t databoxID;
+                std::string SSName;
                 std::vector<std::string> times;
                 std::vector<std::string> varNames;
-                ContentID cntID;
-                std::string groupName;
-
-                RETURN_NOT_OK(ReadSearchContentIndexRequest(input, geoNames, times, varNames, groupName));
-                searchContentIndex(geoNames, times, varNames, cntID, groupName);
-                HANDLE_SIGPIPE(SendSearchContentIndexReply(client->fd, cntID.getSpaceID(), cntID.getTimeID(), cntID.getVarID()), client->fd);
-
+                std::vector<FilePathList> fileList;
+                std::vector<size_t> dbIDs;
+                RETURN_NOT_OK(ReadSearchDataBoxRequest(input, SSName, times, varNames));
+                auto ret = searchDataBox(SSName, times, varNames, fileList,  dbIDs);
+                HANDLE_SIGPIPE(SendSearchDataBoxReply(client->fd, dbIDs, fileList), client->fd);
             } break;
             case MessageTypeDataFileSearchRequest: {
                 std::string SSName;
@@ -471,10 +461,4 @@ namespace SDS {
             return semanticManger->createDataBoxIndex(spaceID, storeID, adaptor);
         }  
     }
-
-
-
-
-
-
 }

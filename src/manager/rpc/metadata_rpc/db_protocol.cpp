@@ -46,43 +46,35 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendCreateRequest(int sock, std::string spaceID, std::string timeID, 
-                            std::string varID, std::string path) {
-        ARROW_LOG(INFO) <<  "Send create request, cntID:" << spaceID <<" " << timeID <<" " << varID;
+    Status SendCreateRequest(int sock, ContentID &cntID, ContentDesc &cntDesc,
+                                StoreDesc &stoDesc, FilePathList &fileList) {
+        ARROW_LOG(INFO) <<  "Send databox create request, cntID:" << cntID.getSpaceID()
+                         <<" " << cntID.getTimeID() << " " << cntID.getVarID();
 
         flatbuffers::FlatBufferBuilder fbb;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto timeIDf = fbb.CreateString(timeID);
-        auto varIDf = fbb.CreateString(varID);
-        auto pathf = fbb.CreateString(path);
-        auto message = CreateDBCreateRequest(fbb, spaceIDf, timeIDf, varIDf, pathf);
+        auto cntIDf = GetContentID(fbb, cntID);
+        auto cntDescf = GetContentDesc(fbb, cntDesc);
+        auto stoDescf = GetStoreDesc(fbb, stoDesc);
+        auto fileListf = GetFilePathList(fbb, &fileList);
+        auto message = CreateDBCreateRequest(fbb, cntIDf, cntDescf, stoDescf, fileListf);
         return messageSend(sock, MessageTypeCreateRequest, &fbb, message);
     }
 
-    Status ReadCreateRequest(uint8_t* data, std::string &spaceID, std::string &timeID, 
-                            std::string &varID, std::string &path) {
+    Status ReadCreateRequest(uint8_t* data, ContentID &cntID, ContentDesc &cntDesc,
+                                StoreDesc &storeDesc, FilePathList &fileList) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBCreateRequest>(data);
-        spaceID = message->space_id()->str();
-        timeID = message->time_id()->str();
-        varID = message->var_id()->str();
-        path = message->path()->str();
+        SetContentID(message->cnt_id(), cntID);
+        SetContentDesc(message->cnt_desc(), cntDesc);
+        SetStoreDesc(message->sto_desc(), storeDesc);
+        SetFilePathList(message->file_path_list(), &fileList);
         return Status::OK();
     }
  
     Status SendCreateReply(int sock, DBMeta &dbMeta) {
         flatbuffers::FlatBufferBuilder fbb;
-        std::vector<std::string> varNames;
-        std::vector<flatbuffers::Offset<flatbuffers::String>> names;
-
-        for(auto item: dbMeta.varList) {
-            auto name = fbb.CreateString(item.varName);
-            names.push_back(name);
-        }
-
-        auto nameVector = fbb.CreateVector(names);
-        auto message = CreateDBCreateReply(fbb, dbMeta.stepCount, dbMeta.varCount,
-                                            dbMeta.varLen, nameVector);
+        auto dbMetaf = GetDBMeta(fbb, dbMeta);
+        auto message = CreateDBCreateReply(fbb, dbMetaf);
         return messageSend(sock, MessageTypeCreateReply, &fbb, message);
     }
 
@@ -90,37 +82,23 @@ namespace SDS {
     Status ReadCreateReply(uint8_t* data, DBMeta &dbMeta) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBCreateReply>(data);
-        dbMeta.stepCount = message->step_count();
-        dbMeta.varCount = message->var_count();
-        dbMeta.varLen = message->var_len();
-        auto nameList = message->var_name();
-
-        for(int i = 0; i < nameList->size(); i++) {
-            VarDesc varDesc;
-            varDesc.varName = nameList->Get(i)->str();
-            dbMeta.varList.push_back(varDesc);
-        }
-
+        SetDBMeta(message->db_meta(), dbMeta);
         return Status::OK();   
     }
 
-    Status SendGetRequest(int sock, std::string spaceID, std::string timeID, std::string varID, int64_t timeout) {
+    Status SendGetRequest(int sock, ContentID &cntID, int64_t timeout) {
         flatbuffers::FlatBufferBuilder fbb;
-        ARROW_LOG(INFO) <<  "Send get request, cntID:" << spaceID <<" " << timeID <<" " << varID;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto timeIDf = fbb.CreateString(timeID);
-        auto varIDf = fbb.CreateString(varID);
-        auto message = CreateDBgetRequest(fbb, spaceIDf, timeIDf, varIDf, timeout);
+        ARROW_LOG(INFO) <<  "Send get request, cntID:" << cntID.getSpaceID()
+                         << " " << cntID.getTimeID() << " " << cntID.getVarID();
+        auto contentIDf = GetContentID(fbb, cntID);
+        auto message = CreateDBgetRequest(fbb, contentIDf, timeout);
         return messageSend(sock, MessageTypeGetRequest, &fbb, message);
     }
 
-    Status ReadGetRequest(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID, int64_t &timeout) {
-        
+    Status ReadGetRequest(uint8_t* data, ContentID &cntID, int64_t &timeout) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBgetRequest>(data);
-        spaceID = message->space_id()->str();
-        timeID = message->time_id()->str();
-        varID = message->var_id()->str();
+        SetContentID(message->cnt_id(), cntID);
         timeout = message->timeout();
         return Status::OK(); 
     }
@@ -140,24 +118,19 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendContainRequest(int sock, std::string spaceID, std::string timeID, 
-                            std::string varID) {
-        ARROW_LOG(INFO) <<  "Send contain request, cntID:" << spaceID <<" " << timeID <<" " << varID;
-
+    Status SendContainRequest(int sock, ContentID &cntID) {
+        ARROW_LOG(INFO) <<  "Send contain request, cntID:" << cntID.getSpaceID() 
+                        << " " << cntID.getTimeID() << " " << cntID.getVarID();
         flatbuffers::FlatBufferBuilder fbb;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto timeIDf = fbb.CreateString(timeID);
-        auto varIDf = fbb.CreateString(varID);
-        auto message = CreateDBcontainRequest(fbb, spaceIDf, timeIDf, varIDf);
+        auto contentIDf = GetContentID(fbb, cntID); 
+        auto message = CreateDBcontainRequest(fbb, contentIDf);
         return messageSend(sock, MessageTypeConnectRequest, &fbb, message);
     }
 
-    Status ReadContainRequest(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID) {
+    Status ReadContainRequest(uint8_t* data, ContentID &cntID) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBcontainRequest>(data);
-        spaceID = message->space_id()->str();
-        timeID = message->time_id()->str();
-        varID = message->var_id()->str();
+        SetContentID(message->cnt_id(), cntID);
         return Status::OK(); 
     }
 
@@ -174,24 +147,19 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendReleaseRequest(int sock, std::string spaceID, std::string timeID, 
-                            std::string varID) {
-        ARROW_LOG(INFO) <<  "Send release request, cntID:" << spaceID <<" " << timeID <<" " << varID;
-
+    Status SendReleaseRequest(int sock, ContentID &cntID) {
+        ARROW_LOG(INFO) <<  "Send release request, cntID:" << cntID.getSpaceID() 
+                         << " " << cntID.getTimeID() << " " << cntID.getVarID();
         flatbuffers::FlatBufferBuilder fbb;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto timeIDf = fbb.CreateString(timeID);
-        auto varIDf = fbb.CreateString(varID);
-        auto message = CreateDBReleaseRequest(fbb, spaceIDf, timeIDf, varIDf);
+        auto contentIDf = GetContentID(fbb, cntID);
+        auto message = CreateDBReleaseRequest(fbb, contentIDf);
         return messageSend(sock, MessageTypeReleaseRequest, &fbb, message);
     }
 
-    Status ReadReleaseRequest(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID) {
+    Status ReadReleaseRequest(uint8_t* data, ContentID &cntID) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBReleaseRequest>(data);
-        spaceID = message->space_id()->str();
-        timeID = message->time_id()->str();
-        varID = message->var_id()->str();
+        SetContentID(message->cnt_id(), cntID);
         return Status::OK(); 
     }
 
@@ -208,24 +176,20 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendDeleteRequest(int sock, std::string spaceID, std::string timeID, 
-                            std::string varID) {
-        ARROW_LOG(INFO) <<  "Send release request, cntID:" << spaceID <<" " << timeID <<" " << varID;
-
+    Status SendDeleteRequest(int sock, ContentID &cntID) {
+        ARROW_LOG(INFO) <<  "Send release request, cntID:" << cntID.getSpaceID() << " "
+                                                           << cntID.getTimeID() << " "
+                                                           << cntID.getVarID();                    
         flatbuffers::FlatBufferBuilder fbb;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto timeIDf = fbb.CreateString(timeID);
-        auto varIDf = fbb.CreateString(varID);
-        auto message = CreateDBDeleteRequest(fbb, spaceIDf, timeIDf, varIDf);
+        auto contentIDf = GetContentID(fbb, cntID);
+        auto message = CreateDBDeleteRequest(fbb, contentIDf);
         return messageSend(sock, MessageTypeDeleteRequest, &fbb, message);
     }
 
-    Status ReadDeleteRequest(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID) {
+    Status ReadDeleteRequest(uint8_t* data, ContentID &cntID) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBDeleteRequest>(data);
-        spaceID = message->space_id()->str();
-        timeID = message->time_id()->str();
-        varID = message->var_id()->str();
+        SetContentID(message->cnt_id(), cntID);
         return Status::OK(); 
     }
 
@@ -242,13 +206,118 @@ namespace SDS {
         return Status::OK();
     }
 
+    Status SendGetContentIDRequest(int sock, size_t dbID) {
+        ARROW_LOG(INFO) <<  "Send get contentID  request, dbID:" << dbID ;                    
+        flatbuffers::FlatBufferBuilder fbb;
+        auto message = CreateGetContentIDRequest(fbb, dbID);
+        return messageSend(sock, MessageTypeGetContentIDRequest, &fbb, message);
+    }
 
+    Status ReadGetContentIDRequest(uint8_t* data, size_t &dbID) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<GetContentIDRequest>(data);
+        dbID = message->db_id();
+        return Status::OK();
+    }
 
+    Status SendGetContentIDReply(int sock, ContentID &cntID) {
+        flatbuffers::FlatBufferBuilder fbb;
+        auto cntIDf = GetContentID(fbb, cntID);
+        auto message = CreateGetContentIDReply(fbb, cntIDf);
+        return messageSend(sock, MessageTypeGetContentIDReply, &fbb, message);
+    }
 
+    Status ReadGetContentIDReply(uint8_t* data, ContentID &cntID) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<GetContentIDReply>(data);
+        SetContentID(message->cnt_id(), cntID);
+        return Status::OK();
+    }
 
+    flatbuffers::Offset<DataBoxMetaRequest> GetDBMeta(flatbuffers::FlatBufferBuilder &fbb, DBMeta &dbMeta) {
+        auto groupNamef = fbb.CreateString(dbMeta.vlDesc.groupName);
+        std::vector<flatbuffers::Offset<AttrRequest>> globalAttrsfVec;
+        for(auto item : dbMeta.vlDesc.attrs) {
+            auto attrNamef = fbb.CreateString(item.first);
+            auto attrValf = fbb.CreateString(item.second);
+            auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
+            globalAttrsfVec.push_back(attrf);
+        }
+        auto globalAttrsfVecf = fbb.CreateVector(globalAttrsfVec);
 
-    
+        std::vector<flatbuffers::Offset<VarDescRequest>> varDescfVec;
+        for(auto item : dbMeta.vlDesc.desc) {
+            auto varNamef = fbb.CreateString(item.varName);
+            auto varTypef = fbb.CreateString(item.varType);
+            auto shapeVecf = fbb.CreateVector(item.shape);
+            auto groupPath = fbb.CreateString(item.groupPath);
+            std::vector<flatbuffers::Offset<AttrRequest>> attrsfVec;
+            for(auto item : dbMeta.vlDesc.attrs) {
+                auto attrNamef = fbb.CreateString(item.first);
+                auto attrValf = fbb.CreateString(item.second);
+                auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
+                attrsfVec.push_back(attrf);
+            }
+            auto attrsfVecf = fbb.CreateVector(attrsfVec);
+            auto varDescf = CreateVarDescRequest(fbb, varNamef, varTypef, item.varLen,
+                                                    item.resRation, shapeVecf, item.ncVarID,
+                                                    item.ncGroupID, groupPath, attrsfVecf);
+            varDescfVec.push_back(varDescf);
+        }
+        auto varDescfVecf = fbb.CreateVector(varDescfVec);
+        auto vlDescf = CreateVLDescRequest(fbb, groupNamef, dbMeta.vlDesc.groupLen, varDescfVecf, globalAttrsfVecf);
+        auto message = CreateDataBoxMetaRequest(fbb, dbMeta.id, dbMeta.stepCount, dbMeta.varCount,
+                                                dbMeta.varLen, vlDescf, dbMeta.filled);
+        return message;
 
+    }
+
+    Status SetDBMeta(const DataBoxMetaRequest *dbMetaf, DBMeta &dbMeta) {
+
+        dbMeta.id = dbMetaf->id();
+        dbMeta.filled = dbMetaf->filled();
+        dbMeta.stepCount = dbMetaf->step_count();
+        dbMeta.varCount = dbMetaf->var_count();
+        dbMeta.varLen = dbMetaf->var_len();
+        
+        std::unordered_map<std::string, std::string> globalAttrs;
+        for(int k = 0; k < dbMetaf->vldesc()->attrs()->size(); k++) {
+            std::string attrName = dbMetaf->vldesc()->attrs()->Get(k)->attr_name()->str();
+            std::string attrVal = dbMetaf->vldesc()->attrs()->Get(k)->attr_val()->str();
+            globalAttrs.insert({attrName, attrVal});
+        }
+
+        dbMeta.vlDesc.setVLDesc(dbMetaf->vldesc()->group_name()->str(), 
+                                    dbMetaf->vldesc()->group_len(), globalAttrs);
+        std::vector<VarDesc> varDesc;
+        for(int j = 0; j < dbMetaf->vldesc()->vars()->size(); j++) {
+            VarDesc desc;
+            Dimes shape;
+            for(int k = 0; k < dbMetaf->vldesc()->vars()->Get(j)->shape()->size(); k++) {
+                shape.push_back(dbMetaf->vldesc()->vars()->Get(j)->shape()->Get(k));
+            }
+
+            std::unordered_map<std::string, std::string> attrs;
+            for(int k = 0; k < dbMetaf->vldesc()->vars()->Get(j)->attrs()->size(); k++) {
+                std::string attrName = dbMetaf->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_name()->str();
+                std::string attrVal = dbMetaf->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_val()->str();
+                attrs.insert({attrName, attrVal});
+            }
+
+            desc.setVarDesc(dbMetaf->vldesc()->vars()->Get(j)->var_name()->str(),
+                    dbMetaf->vldesc()->vars()->Get(j)->var_len(),
+                    dbMetaf->vldesc()->vars()->Get(j)->res_ration(),
+                    dbMetaf->vldesc()->vars()->Get(j)->var_type()->str(),
+                    shape,
+                    dbMetaf->vldesc()->vars()->Get(j)->nc_group_id(),
+                    dbMetaf->vldesc()->vars()->Get(j)->nc_var_id(),
+                    dbMetaf->vldesc()->vars()->Get(j)->group_path()->str(),
+                    attrs);
+            varDesc.push_back(desc);   
+        }
+        dbMeta.vlDesc.setVarListVarDesc(varDesc);
+        return Status::OK();
+    }
 
     
 }

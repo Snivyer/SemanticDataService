@@ -36,10 +36,13 @@ namespace SDS
        
         arrow::Status importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath, bool &result);
        
-        arrow::Status searchContentIndex(std::vector<std::string> &geoNames, std::vector<std::string> &times,
-                                        std::vector<std::string> &varNames, ContentID &cntID, std::string groupName = "default");
+        arrow::Status searchDataBox(std::string spaceName, std::vector<std::string> &times,
+                                        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
+                                        std::vector<size_t> &dbIDs);
+            
 
-
+      
+        
         arrow::Status searchDataFile(std::string spaceName, std::vector<std::string> &times,
                                         std::vector<std::string> &varNames, std::vector<FilePathList> &fileList);
             

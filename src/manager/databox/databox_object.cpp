@@ -41,19 +41,17 @@ namespace SDS {
 
 
 
-    arrow::Status DataboxObject::fillData(Adaptor* adaptor) {
+    arrow::Status DataboxObject::fillData(Adaptor* adaptor, ContentDesc &cntDesc, size_t dbID) {
 
         if(!adaptor) {
              return arrow::Status::OK();
         }
 
         // fill the data recordbatch 
-        // todo: 这个需要重新改一下，今天先不改了，2-18
-        adaptor->getVarDescList(meta_.vlDesc);
+        meta_.vlDesc.setVLDesc(cntDesc.vlDesc.groupName, cntDesc.vlDesc.groupLen, 
+                                cntDesc.vlDesc.attrs);
+        meta_.vlDesc.setVarListVarDesc(cntDesc.vlDesc.desc);
 
-        if(meta_.varList.size() == 0) {
-            return arrow::Status::UnknownError("test");
-        }
 
         std::shared_ptr<arrow::Schema> schema;
         FilePathList* list = adaptor->pathList;
@@ -77,6 +75,7 @@ namespace SDS {
         meta_.stepCount = batchs_.size();
         meta_.varCount = meta_.vlDesc.desc.size();
         meta_.varLen = meta_.vlDesc.desc[0].varLen;
+        meta_.id = dbID;
 
         meta_.filled = true;
         schema_ = makeSchema(meta_.vlDesc.desc);

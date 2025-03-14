@@ -14,8 +14,7 @@ namespace SDS_Retrieval {
             std::unordered_map<std::string, SpaceInfo*> storageSpaceTree_;
 
             // databox cache
-            std::unordered_map<SDS::ContentID, DataboxObject*, ContentIDHasher> databoxsCache_;
-
+            std::unordered_map<size_t, DataboxObject*> databoxsCache_;
 
             std::vector<FilePathList> resultCache_;
         
@@ -73,7 +72,8 @@ namespace SDS_Retrieval {
         std::cout << "创建空间:create/cr + 行政区划名 + 存储系统 + 根路径" << std::endl;
         std::cout << "加载空间:load/lo + 空间名" << std::endl;
         std::cout << "导入数据:import/im + 行政区划名 + 文件目录路径" << std::endl;
-        std::cout << "查询数据:search/sea + 行政区划名 + 时间段 + 变量列表" << std::endl;
+        std::cout << "查询数据文件:search/sea + 行政区划名 + 时间段 + 变量列表" << std::endl;
+        std::cout << "查询数据箱子:find/fi + 行政区划名 + 时间段 + 变量列表" << std::endl;
         std::cout << "展示元数据:show/sh + 元数据关键字(如:semanticspace或storespace等)" << std::endl;
         std::cout << "详细展示元数据:detail/de +  元数据关键字(如:semanticspace或storespace等)" << std::endl;
         std::cout << "导出数据:export/ex + 导入数据类型(如file, databox等)" << std::endl; 
@@ -116,6 +116,8 @@ namespace SDS_Retrieval {
                 isSuccess = loadSemanticSpace(infos);
             } else if ((op == "search") || (op == "sea")) {
                 isSuccess = searchData(infos);
+            } else if ((op == "find") || (op == "fi")) {
+                isSuccess = searchDataBox(infos);
             } else if ((op == "show") || (op == "sh")) {
                 showContentInfo(infos);
             } else if ((op == "detail") || (op == "detail")) {
@@ -127,7 +129,6 @@ namespace SDS_Retrieval {
                 isSuccess = createByBucket(infos);
             } else if (op == "export" || (op == "ex")) {
                 isSuccess = exportData(infos);
-
             } else if (op == "help" || op == "he") {
                 menu();
                 isSuccess = true;
@@ -233,12 +234,14 @@ namespace SDS_Retrieval {
         
         std::string opType = infos[1];
         transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
-        std::string destPath = infos[2];
+        
     
         if ((opType == "file")) {
+            std::string destPath = infos[2];
             return exportFile(destPath);
         } else if ((opType == "databox")) {
-
+            size_t dbID = std::stoi(infos[2]);
+            return exportDataBox(dbID);
         } else {
             printOpTypeError(opType);
             return false;
@@ -594,8 +597,9 @@ namespace SDS_Retrieval {
     bool SDS_Retrieval_Client::searchDataFile(std::string SSName, std::vector<std::string> &times,
                                                  std::vector<std::string> &varNames) {
         auto status = impl_->meta_client_->searchDataFile(SSName, times, varNames, impl_->resultCache_);
+        size_t spaceID = impl_->semanticSpaceCache_[SSName].spaceID;
         if(status.ok()) {
-            return showSearchResult(SSName, SSName);
+            return showSearchResult(SSName, std::to_string(spaceID));
         }
         std::cout << "暂时没有检索到该语义空间文件信息..." << std::endl;
         return true;
@@ -603,7 +607,24 @@ namespace SDS_Retrieval {
 
     bool SDS_Retrieval_Client::searchDataBox(std::string SSName, std::vector<std::string> &times,
                                                  std::vector<std::string> &varNames) {
-        
+
+        std::vector<size_t> dbIDs;
+        auto status = impl_->meta_client_->searchDataBox(SSName, times, varNames, impl_->resultCache_, dbIDs);
+        if(status.ok()) {
+            int totalFileNum = 0;
+            for(auto pathList: impl_->resultCache_) {
+                pathList.printWithTreeModel();
+                totalFileNum += pathList.fileNames.size();
+            }
+            std::cout  << "本语义空间下共计检索出" << totalFileNum << "个文件" << std::endl;
+
+            std::cout  << "本次预创建" << dbIDs.size() << "个数据箱子,其ID如下:" << std::endl;
+            for(auto id : dbIDs) {
+                std::cout << id << " ";
+            }
+            std::cout << std::endl;
+        }
+        return true;
 
     }
 
@@ -722,5 +743,17 @@ namespace SDS_Retrieval {
         }
         return true;
     }
+
+    bool SDS_Retrieval_Client::exportDataBox(size_t dbID) {
+        DataboxObject* dbObject;
+        // todo: 这个对象是否也需要缓存下
+
+        auto ret = impl_->db_client_->getDB(dbID, 0, dbObject);
+        if(ret.ok()) {
+            dbObject->print();
+        }
+        return true;
+    }
+
 
 }

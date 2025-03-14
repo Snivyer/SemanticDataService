@@ -250,11 +250,9 @@ namespace SDSlet {
         std::shared_ptr<BasicMetaServer> rpcServer = impl_->getBasicMetaServer();
         std::vector<std::shared_ptr<BasicDataServer>> dataServerPool = impl_->getRpcDataServers();
         int64_t shareMemorySize = impl_->getShareMemorySize(); 
-        Adaptor* adaptor = impl_->getAdaptor();
         std::string socketName = impl_->getStoreSocketName();
 
-        std::shared_ptr<DataBoxStore> store =  DataBoxStore::createStore(loop, shareMemorySize, adaptor, rpcServer);
-        store->setMetaServer(impl_->getMetaService());
+        std::shared_ptr<DataBoxStore> store =  DataBoxStore::createStore(loop, shareMemorySize, rpcServer);
 
         impl_->setDBStore(store);
         for(auto sender :  dataServerPool) {

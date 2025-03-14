@@ -154,7 +154,27 @@ namespace SDS {
         int groupLen; 
         std::vector<VarDesc> desc;        
         int attrLen;            
-        std::unordered_map<std::string, std::string> attrs;       
+        std::unordered_map<std::string, std::string> attrs;  
+        
+        void setVLDesc(std::string groupName, int groupLen, 
+                    std::unordered_map<std::string, std::string> &globalAttrs) {
+            this->groupName = groupName;
+            this->groupLen = groupLen;
+            for(auto item : globalAttrs) {
+                this->attrs.insert({item.first, item.second});
+            }
+        }
+
+        void setVarListVarDesc(std::vector<VarDesc> &varDesc) {
+            int i = 0;
+            for(auto item: varDesc) {
+                VarDesc newDesc;
+                newDesc.setVarDesc(item);
+                this->desc.push_back(newDesc);
+                this->varID.insert({newDesc.varName, i});
+                i++;
+            }
+        }
         
         void print() {
             std::cout << "变量组内变量数量:" << groupLen << std::endl;
@@ -268,23 +288,12 @@ namespace SDS {
         }
 
         void setVarListDesc(std::string groupName, int groupLen, 
-                                std::unordered_map<std::string, std::string> attrs) {
-            vlDesc.groupName = groupName;
-            vlDesc.groupLen = groupLen;
-            for(auto item: attrs) {
-                vlDesc.attrs.insert({item});
-            }
+                                std::unordered_map<std::string, std::string> &attrs) {
+           vlDesc.setVLDesc(groupName, groupLen, attrs);
         }
 
         void setVarListVarDesc(std::vector<VarDesc> &varDesc) {
-            int i = 0;
-            for(auto item: varDesc) {
-                VarDesc desc;
-                desc.setVarDesc(item);
-                vlDesc.desc.push_back(desc);
-                vlDesc.varID.insert({desc.varName, i});
-                i++;
-            }
+            vlDesc.setVarListVarDesc(varDesc);
         }
 
         void print() {

@@ -153,24 +153,15 @@ namespace SDS {
        
     }
 
-    arrow::Status MetaServiceClient::searchContentIndex(std::vector<std::string> &geoNames,
-                                                         std::vector<std::string> &times,
-                                                         std::vector<std::string> &varNames,
-                                                         ContentID &cntID,
-                                                         std::string groupName) {
+    arrow::Status MetaServiceClient::searchDataBox(std::string spaceName, std::vector<std::string> &times,
+                                                    std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
+                                                    std::vector<size_t> &dbIDs) {
 
         int client = impl_->getMetaConn();
-        RETURN_NOT_OK(SendSearchContentIndexRequest(client, geoNames, times, varNames, groupName));
+        RETURN_NOT_OK(SendSearchDataBoxRequest(client, spaceName, times, varNames));
         std::vector<uint8_t> buffer;
-        RETURN_NOT_OK(messageReceive(client, MessageTypeDataSearchReply, &buffer));
-
-        std::string spaceID;
-        std::string timeID;
-        std::string varID;
-        RETURN_NOT_OK(ReadSearchContentIndexReply(buffer.data(), spaceID, timeID, varID));
-        cntID.setSpaceID(spaceID);
-        cntID.setTimeID(timeID);
-        cntID.setVarID(varID);
+        RETURN_NOT_OK(messageReceive(client, MessageTypeDataBoxSearchReply, &buffer));
+        RETURN_NOT_OK(ReadSearchDataBoxReply(buffer.data(), dbIDs, fileList));
         return Status::OK();
     }
 

@@ -9,19 +9,20 @@
 #include "abstract/meta/cnt_ID.h"
 #include "abstract/event/events.h"
 #include "abstract/IO/io.h"
-#include "abstract/adaptor/adaptor.h"
+#include "abstract/adaptor/adaptor_factory.h"
 #include "abstract/utils/directory_operation.h"
 #include "manager/databox/databox_manager.h"
 #include "manager/databox/databox_object.h"
 #include "manager/rpc/metadata_rpc/db_protocol.h"
 #include "manager/rpc/data_rpc/meta_server.h"
 #include "manager/rpc/data_rpc/server.h"
-#include "API/dataspace/meta_service.h"
+#include "API/dataspace/meta_service_client.h"
 
 
 
 namespace SDS
 {
+    static size_t globalDataBoxID = 0;
 
     struct SendEndpoint {
         std::string ip;
@@ -53,11 +54,12 @@ namespace SDS
     class DataBoxStore {
         public:
             ~DataBoxStore();
-            static std::shared_ptr<DataBoxStore> createStore(std::shared_ptr<EventLoop> loop, int64_t systemMemory, Adaptor* adaptor, std::shared_ptr<BasicMetaServer> rpcServer);
+            static std::shared_ptr<DataBoxStore> createStore(std::shared_ptr<EventLoop> loop, int64_t systemMemory, 
+                                                                std::shared_ptr<BasicMetaServer> rpcServer);
 
             // create a databox object and add it into the dbentry
-            bool createDB(const ContentID& cntID, FilePathList &filePath,
-                            Client* client);
+            bool createDB(const ContentID &cntID, ContentDesc &cntDesc,
+                             StoreDesc &stoDesc, FilePathList &filePath, Client* client);
 
             
             // delete db objects that have been created
@@ -89,11 +91,15 @@ namespace SDS
             // the main message process 
             Status processMessage(Client* client);
 
+            void connectToMetaService();
+            void disconnectToMetaService();
+
 
             void addDataServer(std::shared_ptr<BasicDataServer> server);
-            void setMetaServer(std::shared_ptr<MetaService> metaService);
 
             void runServer();
+
+           
 
         
     
@@ -104,6 +110,7 @@ namespace SDS
             bool addClientToEntry(DataBoxTableEntry* entry, Client* client);
             bool removeClientFromEntry(DataBoxTableEntry* entry, Client*  client);
             bool prepareTransffer(const ContentID &cntID, DataboxObject* dbObject, SendEndpoint &ep);
+            bool getContentIDByDBID(size_t dbID, ContentID &cntID);
             
     };
 

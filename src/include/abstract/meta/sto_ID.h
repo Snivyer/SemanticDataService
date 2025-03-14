@@ -23,6 +23,7 @@ namespace SDS {
         void setSpaceID(const std::string ID);
         std::string getTypeID() const;
         void setTypeID(const std::string ID);
+
         std::string getSiteID() const;
         void setSiteID(const std::string ID);
 

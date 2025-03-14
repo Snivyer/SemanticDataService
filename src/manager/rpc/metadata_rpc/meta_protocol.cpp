@@ -181,75 +181,15 @@ namespace SDS {
                                                         geo_logitude_vector, geo_latitude_vector);
 
         // Serialize Content ID
-        for(int i = 0; i <cntIDVec.size(); i++) {
-            auto spaceIDf = fbb.CreateString(cntIDVec[i].getSpaceID());
-            auto timeIDf = fbb.CreateString(cntIDVec[i].getTimeID());
-            auto varIDf = fbb.CreateString(cntIDVec[i].getVarID());
-            auto cntIDf = CreateContentIDRequest(fbb, spaceIDf, timeIDf, varIDf);
+        for(int i = 0; i < cntIDVec.size(); i++) {
+            auto cntIDf = GetContentID(fbb, cntIDVec[i]);
             cntIDfVec.push_back(cntIDf);
         }
         auto cntIDfVecf = fbb.CreateVector(cntIDfVec);
 
         // Serialize Content Decription
         for(int i = 0; i < cntDescVec.size(); i++) {
-
-            // Serialize Space Description
-            auto geoNamef = fbb.CreateString(cntDescVec[i].ssDesc.geoName);
-            auto adcodef = fbb.CreateString(cntDescVec[i].ssDesc.adCode);
-            std::vector<double> geo_logitude;
-            std::vector<double> geo_latitude;
-
-            for(auto item : cntDescVec[i].ssDesc.geoPerimeter) {
-                geo_logitude.push_back(item.logitude);
-                geo_latitude.push_back(item.latitude);
-            }
-            auto geo_logitude_vec = fbb.CreateVector(geo_logitude);
-            auto geo_latitude_vec = fbb.CreateVector(geo_latitude);
-
-            auto SSDescf = CreateSSDescRequest(fbb, geoNamef, adcodef, cntDescVec[i].ssDesc.geoCentral.logitude,
-                                            cntDescVec[i].ssDesc.geoCentral.latitude, geo_logitude_vec, geo_latitude_vec);
-            
-            // Serialize Time Decription
-            time_t reportT = std::mktime(&(cntDescVec[i].tsDesc.reportT));
-            time_t startT = std::mktime(&(cntDescVec[i].tsDesc.startT));
-            time_t endT = std::mktime(&(cntDescVec[i].tsDesc.endT));
-            auto tsDescf = CreateTSDescRequest(fbb, reportT, startT, endT,
-                                                cntDescVec[i].tsDesc.interval, cntDescVec[i].tsDesc.count);
-
-            // Serialize Var Description
-            auto groupNamef = fbb.CreateString(cntDescVec[i].vlDesc.groupName);
-            std::vector<flatbuffers::Offset<AttrRequest>> globalAttrsfVec;
-            for(auto item : cntDescVec[i].vlDesc.attrs) {
-                auto attrNamef = fbb.CreateString(item.first);
-                auto attrValf = fbb.CreateString(item.second);
-                auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
-                globalAttrsfVec.push_back(attrf);
-            }
-            auto globalAttrsfVecf = fbb.CreateVector(globalAttrsfVec);
-
-            std::vector<flatbuffers::Offset<VarDescRequest>> varDescfVec;
-            for(auto item : cntDescVec[i].vlDesc.desc) {
-                auto varNamef = fbb.CreateString(item.varName);
-                auto varTypef = fbb.CreateString(item.varType);
-                auto shapeVecf = fbb.CreateVector(item.shape);
-                auto groupPath = fbb.CreateString(item.groupPath);
-                std::vector<flatbuffers::Offset<AttrRequest>> attrsfVec;
-                for(auto item : cntDescVec[i].vlDesc.attrs) {
-                    auto attrNamef = fbb.CreateString(item.first);
-                    auto attrValf = fbb.CreateString(item.second);
-                    auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
-                    attrsfVec.push_back(attrf);
-                }
-                auto attrsfVecf = fbb.CreateVector(attrsfVec);
-                auto varDescf = CreateVarDescRequest(fbb, varNamef, varTypef, item.varLen,
-                                                        item.resRation, shapeVecf, item.ncVarID,
-                                                        item.ncGroupID, groupPath, attrsfVecf);
-                varDescfVec.push_back(varDescf);
-            }
-            auto varDescfVecf = fbb.CreateVector(varDescfVec);
-            auto vlDescf = CreateVLDescRequest(fbb, groupNamef, cntDescVec[i].vlDesc.groupLen, varDescfVecf, globalAttrsfVecf);
-
-            auto cntDescf = CreateContentDescRequest(fbb, SSDescf, tsDescf, vlDescf);
+            auto cntDescf = GetContentDesc(fbb, cntDescVec[i]);
             cntDescfVec.push_back(cntDescf);
         }
         auto cntDescfVecf = fbb.CreateVector(cntDescfVec);
@@ -287,72 +227,10 @@ namespace SDS {
         for(int i = 0; i < cntIDVecf->size(); i++) {
             // Deserialize Content ID
             ContentID cntID;
-            cntID.setSpaceID(cntIDVecf->Get(i)->space_id()->str());
-            cntID.setTimeID(cntIDVecf->Get(i)->time_id()->str());
-            cntID.setVarID(cntIDVecf->Get(i)->var_id()->str());
+            SetContentID(cntIDVecf->Get(i), cntID);
 
             ContentDesc cntDesc;
-            // Deserialize space Desc
-            std::vector<GeoCoordinate> geoCoor;
-            for(int j = 0; j < cntDescVecf->Get(i)->ssdesc()->perimeter_latitude()->size(); j++) {
-                GeoCoordinate geo;
-                geo.latitude = cntDescVecf->Get(i)->ssdesc()->perimeter_latitude()->Get(j);
-                geo.logitude = cntDescVecf->Get(i)->ssdesc()->perimeter_logitude()->Get(j);
-                geoCoor.push_back(geo);
-            }
-
-            cntDesc.setSpaceDesc(cntDescVecf->Get(i)->ssdesc()->geo_names()->str(),
-                                    cntDescVecf->Get(i)->ssdesc()->adcode()->str(),
-                                    cntDescVecf->Get(i)->ssdesc()->logitude(),
-                                    cntDescVecf->Get(i)->ssdesc()->latitude(),
-                                    geoCoor);
-            
-            // Deserialize time Desc
-            cntDesc.setTimeSlotDesc(cntDescVecf->Get(i)->tsdesc()->report_t(),
-                                    cntDescVecf->Get(i)->tsdesc()->start_t(),
-                                    cntDescVecf->Get(i)->tsdesc()->end_t(),
-                                    cntDescVecf->Get(i)->tsdesc()->interval(),
-                                    cntDescVecf->Get(i)->tsdesc()->count());
-
-            // Deserialize var Desc
-            std::unordered_map<std::string, std::string> globalAttrs;
-            for(int k = 0; k < cntDescVecf->Get(i)->vldesc()->attrs()->size(); k++) {
-                std::string attrName = cntDescVecf->Get(i)->vldesc()->attrs()->Get(k)->attr_name()->str();
-                std::string attrVal = cntDescVecf->Get(i)->vldesc()->attrs()->Get(k)->attr_val()->str();
-                globalAttrs.insert({attrName, attrVal});
-            }
-
-            cntDesc.setVarListDesc(cntDescVecf->Get(i)->vldesc()->group_name()->str(), 
-                                    cntDescVecf->Get(i)->vldesc()->group_len(), globalAttrs);
-            
-            std::vector<VarDesc> varDesc;
-            for(int j = 0; j < cntDescVecf->Get(i)->vldesc()->vars()->size(); j++) {
-                VarDesc desc;
-                Dimes shape;
-                for(int k = 0; k < cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->shape()->size(); k++) {
-                    shape.push_back(cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->shape()->Get(k));
-                }
-
-                std::unordered_map<std::string, std::string> attrs;
-                for(int k = 0; k < cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->attrs()->size(); k++) {
-                    std::string attrName = cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_name()->str();
-                    std::string attrVal = cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_val()->str();
-                    attrs.insert({attrName, attrVal});
-                }
-
-                desc.setVarDesc(cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_name()->str(),
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_len(),
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->res_ration(),
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->var_type()->str(),
-                                shape,
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_group_id(),
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->nc_var_id(),
-                                cntDescVecf->Get(i)->vldesc()->vars()->Get(j)->group_path()->str(),
-                                attrs);
-               varDesc.push_back(desc);   
-            }
-
-            cntDesc.setVarListVarDesc(varDesc);
+            SetContentDesc(cntDescVecf->Get(i), cntDesc);
             space.databoxsIndex.insert({cntID, cntDesc});
         } 
         return Status::OK();
@@ -469,21 +347,7 @@ namespace SDS {
             auto storeIDf = CreateStorageIDRequest(fbb, spaceIDf, typeIDf, siteIDf);
             stoIDfVec.push_back(storeIDf);
 
-            auto dirPathf = fbb.CreateString(item.second->pathList->dirPath);
-            auto sitePathf = fbb.CreateString(item.second->pathList->sitePath);
-            std::vector<flatbuffers::Offset<flatbuffers::String>> pathfVector;
-            for(auto path :item.second->pathList->fileNames) {
-                auto pathf = fbb.CreateString(path);
-                pathfVector.push_back(pathf);
-            }
-            auto pathfVectorf = fbb.CreateVector(pathfVector);
-            std::vector<flatbuffers::Offset<StoreSiteRequest>> sitesVector;
-            for(auto site: item.second->pathList->sites) {
-                auto childSitef =  CreateSiteRequest(fbb, site);
-                sitesVector.push_back(childSitef);
-            }
-            auto sitesVectorf = fbb.CreateVector(sitesVector);
-            auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, sitesVectorf, sitePathf, pathfVectorf);
+            auto filePathListf = GetFilePathList(fbb, item.second->pathList);
             filePathListVec.push_back(filePathListf);
         }
 
@@ -516,15 +380,7 @@ namespace SDS {
             stoID.setSiteID(message->sto_ids()->Get(i)->site_id()->c_str());
 
             FilePathList* pathList = new FilePathList();
-            pathList->dirPath = message->file_path_list()->Get(i)->dir_path()->c_str();
-            pathList->sitePath = message->file_path_list()->Get(i)->site_path()->c_str();
-            auto pathVector = message->file_path_list()->Get(i)->file_name();
-            for(int j = 0; j < pathVector->size(); j++) {
-                pathList->fileNames.push_back(pathVector->Get(j)->c_str());
-            }
-            auto siteVector = message->file_path_list()->Get(i)->sites();
-            ReadSiteRequest(siteVector, &(pathList->sites));
-
+            SetFilePathList(message->file_path_list()->Get(i), pathList);
             Adaptor* adaptor = new Adaptor(space.stoMeta.conConf, pathList);
             space.adaptorIndex.insert({stoID, adaptor});
         }
@@ -568,18 +424,17 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendSearchContentIndexRequest(int sock, std::vector<std::string> &geoNames, std::vector<std::string> &times, 
-                                            std::vector<std::string> &varNames, std::string &groupName) {
-        ARROW_LOG(INFO) <<  "Send content index search request:";
+  
+   
+
+
+    Status SendSearchDataBoxRequest(int sock, std::string &SSName, std::vector<std::string> &times, 
+                                    std::vector<std::string> &varNames) {
+        ARROW_LOG(INFO) <<  "Send data box search request:";
         flatbuffers::FlatBufferBuilder fbb;
-        std::vector<flatbuffers::Offset<flatbuffers::String>> geoNamesf;
+        auto SSNamef = fbb.CreateString(SSName);
         std::vector<flatbuffers::Offset<flatbuffers::String>> timesf;
         std::vector<flatbuffers::Offset<flatbuffers::String>> varNamesf;
-
-        for(auto name: geoNames) {
-            auto namef = fbb.CreateString(name);
-            geoNamesf.push_back(namef);
-        }
 
         for(auto time: times) {
             auto timef = fbb.CreateString(time);
@@ -591,29 +446,20 @@ namespace SDS {
             varNamesf.push_back(namef);
         }
 
-        auto geoNameVector = fbb.CreateVector(geoNamesf);
         auto timeVector = fbb.CreateVector(timesf);
         auto varNameVector = fbb.CreateVector(varNamesf);
-        auto groupNamesf = fbb.CreateString(groupName);
-
-        auto message = CreateContentIndexSearchRequest(fbb, geoNameVector, timeVector, varNameVector, groupNamesf);
-        return messageSend(sock, MessageTypeDataSearchRequest, &fbb, message);
+        auto message = CreateDataFileSearchRequest(fbb, SSNamef, timeVector, varNameVector);
+        return messageSend(sock, MessageTypeDataBoxSearchRequest, &fbb, message);
+      
     }
     
-    Status ReadSearchContentIndexRequest(uint8_t* data, std::vector<std::string> &geoNames, std::vector<std::string> &times,
-                                             std::vector<std::string> &varNames, std::string &groupName) {
-
+    Status ReadSearchDataBoxRequest(uint8_t* data, std::string &SSName, std::vector<std::string> &times, 
+                                        std::vector<std::string> &varNames) {
         DCHECK(data);
-        auto message = flatbuffers::GetRoot<ContentIndexSearchRequest>(data);
-
-        auto geoNameVector = message->geo_names();
+        auto message = flatbuffers::GetRoot<DataFileSearchRequest>(data);
+        SSName = message->semantic_name()->str();
         auto timeVector = message->times();
         auto varVector = message->var_names();
-        groupName = message->group_name()->c_str();
-
-        for(int i = 0; i < geoNameVector->size(); i++) {
-            geoNames.push_back(geoNameVector->Get(i)->str());
-        }
 
         for(int i = 0; i < timeVector->size(); i++) {
             times.push_back(timeVector->Get(i)->str());
@@ -624,29 +470,41 @@ namespace SDS {
         }
 
         return Status::OK();
-
     }
-    Status SendSearchContentIndexReply(int sock, std::string spaceID, std::string timeID, std::string varID) {
-        
+
+    Status SendSearchDataBoxReply(int sock, std::vector<size_t> &dbIDs, std::vector<FilePathList> &filePath) {
         flatbuffers::FlatBufferBuilder fbb;
-        auto spaceIDf = fbb.CreateString(spaceID);
-        auto timeIDf = fbb.CreateString(timeID);
-        auto varIDf = fbb.CreateString(varID);
-        auto message = CreateContentIndexSearchReply(fbb, spaceIDf, timeIDf, varIDf);
-        return messageSend(sock, MessageTypeDataSearchReply, &fbb, message);        
+        auto dbIDsf = fbb.CreateVector(dbIDs);
 
+        std::vector<flatbuffers::Offset<FilePathListRequest>> filePathf;
+        for(auto item: filePath) {
+            auto filePathListf = GetFilePathList(fbb, &item);
+            filePathf.push_back(filePathListf);
+        }
+        auto filePathVectorf = fbb.CreateVector(filePathf);
+        auto  message = CreateDataBoxSearchReply(fbb, dbIDsf, filePathVectorf);
+        return messageSend(sock, MessageTypeDataBoxSearchReply, &fbb, message);     
     }
 
-    Status ReadSearchContentIndexReply(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID) {
+    Status ReadSearchDataBoxReply(uint8_t* data, std::vector<size_t> &dbIDs, std::vector<FilePathList> &filePath) {
         DCHECK(data);
-        auto message = flatbuffers::GetRoot<ContentIndexSearchReply>(data);
-        spaceID = message->space_id()->str();
-        timeID = message->time_id()->str();
-        varID = message->var_id()->str();
-        return Status::OK(); 
+        auto message = flatbuffers::GetRoot<DataBoxSearchReply>(data);
+        auto databoxIDs = message->databox_id();
+        for(int i = 0; i < databoxIDs->size(); i++) {
+            dbIDs.push_back(databoxIDs->Get(i));
+        }
+
+        auto filePathVector = message->file_path_lists();
+        for(int i = 0; i < filePathVector->size(); i++) {
+            FilePathList pathList;
+            SetFilePathList(filePathVector->Get(i), &pathList);
+            filePath.push_back(pathList);
+        }
+        return Status::OK();
     }
 
-    Status SendSearchDataFileRequest(int sock, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames) {
+    Status SendSearchDataFileRequest(int sock, std::string &SSName, std::vector<std::string> &times,
+                                     std::vector<std::string> &varNames) {
         ARROW_LOG(INFO) <<  "Send data file search request:";
         flatbuffers::FlatBufferBuilder fbb;
         auto SSNamef = fbb.CreateString(SSName);
@@ -686,42 +544,13 @@ namespace SDS {
         }
 
         return Status::OK();
-
-    }
-
-
-    flatbuffers::Offset<StoreSiteRequest> CreateSiteRequest(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site) {
-        auto siteNamef = fbb.CreateString(site->siteName);
-        auto siteValf = fbb.CreateString(site->siteVal);
-        std::vector<flatbuffers::Offset<StoreSiteRequest>> childSitesVector;
-        for(auto childSite: site->subSites) {
-            auto childMessage = CreateSiteRequest(fbb, childSite);
-            childSitesVector.push_back(childMessage);
-        }
-        auto childSitesVectorf = fbb.CreateVector(childSitesVector);
-
-        return CreateStoreSiteRequest(fbb, siteNamef, siteValf, childSitesVectorf);
     }
 
     Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath) {
         flatbuffers::FlatBufferBuilder fbb;
         std::vector<flatbuffers::Offset<FilePathListRequest>> filePathf;
         for(auto item: filePath) {
-            auto dirPathf = fbb.CreateString(item.dirPath);
-            auto sitePathf = fbb.CreateString(item.sitePath);
-            std::vector<flatbuffers::Offset<flatbuffers::String>> pathfVector;
-            for(auto path :item.fileNames) {
-                auto pathf = fbb.CreateString(path);
-                pathfVector.push_back(pathf);
-            }
-            auto pathfVectorf = fbb.CreateVector(pathfVector);
-            std::vector<flatbuffers::Offset<StoreSiteRequest>> sitesVector;
-            for(auto site: item.sites) {
-                auto childSitef =  CreateSiteRequest(fbb, site);
-                sitesVector.push_back(childSitef);
-            }
-            auto sitesVectorf = fbb.CreateVector(sitesVector);
-            auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, sitesVectorf, sitePathf, pathfVectorf);
+            auto filePathListf = GetFilePathList(fbb, &item);
             filePathf.push_back(filePathListf);
         }
         auto filePathVectorf = fbb.CreateVector(filePathf);
@@ -729,17 +558,7 @@ namespace SDS {
         return messageSend(sock, MessageTypeDataFileSearchReply, &fbb, message);
     }
 
-    Status ReadSiteRequest(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector) { 
-        for(int i = 0; i < siteVectorf->size(); i++) {
-            StoreSite* site = new  StoreSite();
-            site->siteName = siteVectorf->Get(i)->site_name()->c_str();
-            site->siteVal = siteVectorf->Get(i)->site_val()->c_str(); 
-            auto childSites = siteVectorf->Get(i)->sub_sites();   
-            ReadSiteRequest(childSites, &(site->subSites));
-            siteVector->push_back(site);
-        }
-        return Status::OK();
-    }
+
 
     Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath) {
         DCHECK(data);
@@ -747,17 +566,224 @@ namespace SDS {
         auto filePathVector = message->file_path_lists();
         for(int i = 0; i < filePathVector->size(); i++) {
             FilePathList pathList;
-            pathList.dirPath = filePathVector->Get(i)->dir_path()->c_str();
-            pathList.sitePath = filePathVector->Get(i)->site_path()->c_str();
-            auto pathVector = filePathVector->Get(i)->file_name();
-            for(int j = 0; j < pathVector->size(); j++) {
-                pathList.fileNames.push_back(pathVector->Get(j)->c_str());
-            }
-            auto siteVector = filePathVector->Get(i)->sites();
-            ReadSiteRequest(siteVector, &(pathList.sites));
+            SetFilePathList(filePathVector->Get(i), &pathList);
             filePath.push_back(pathList);
         }
         return Status::OK();
     }
 
+    flatbuffers::Offset<StoreSiteRequest> GetSite(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site) {
+        auto siteNamef = fbb.CreateString(site->siteName);
+        auto siteValf = fbb.CreateString(site->siteVal);
+        std::vector<flatbuffers::Offset<StoreSiteRequest>> childSitesVector;
+        for(auto childSite: site->subSites) {
+            auto childMessage = GetSite(fbb, childSite);
+            childSitesVector.push_back(childMessage);
+        }
+        auto childSitesVectorf = fbb.CreateVector(childSitesVector);
+
+        return CreateStoreSiteRequest(fbb, siteNamef, siteValf, childSitesVectorf);
+    }
+
+    Status SetSite(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector) { 
+        for(int i = 0; i < siteVectorf->size(); i++) {
+            StoreSite* site = new  StoreSite();
+            site->siteName = siteVectorf->Get(i)->site_name()->c_str();
+            site->siteVal = siteVectorf->Get(i)->site_val()->c_str(); 
+            auto childSites = siteVectorf->Get(i)->sub_sites();   
+            SetSite(childSites, &(site->subSites));
+            siteVector->push_back(site);
+        }
+        return Status::OK();
+    }
+
+    flatbuffers::Offset<ContentIDRequest> GetContentID(flatbuffers::FlatBufferBuilder &fbb, ContentID &cntID) {
+        auto spaceIDf = fbb.CreateString(cntID.getSpaceID());
+        auto timeIDf = fbb.CreateString(cntID.getTimeID());
+        auto varIDf = fbb.CreateString(cntID.getVarID());
+        auto cntIDf = CreateContentIDRequest(fbb, spaceIDf, timeIDf, varIDf);
+        return cntIDf;
+    }
+
+    Status SetContentID(const ContentIDRequest *cntIDf, ContentID &cntID) {
+        cntID.setSpaceID(cntIDf->space_id()->c_str());
+        cntID.setTimeID(cntIDf->time_id()->c_str());
+        cntID.setVarID(cntIDf->var_id()->c_str());
+        return Status::OK();
+    }
+
+    flatbuffers::Offset<ContentDescRequest> GetContentDesc(flatbuffers::FlatBufferBuilder &fbb, ContentDesc &cntDesc) {
+        // Serialize Space Description
+        auto geoNamef = fbb.CreateString(cntDesc.ssDesc.geoName);
+        auto adcodef = fbb.CreateString(cntDesc.ssDesc.adCode);
+        std::vector<double> geo_logitude;
+        std::vector<double> geo_latitude;
+
+        for(auto item : cntDesc.ssDesc.geoPerimeter) {
+            geo_logitude.push_back(item.logitude);
+            geo_latitude.push_back(item.latitude);
+        }
+        auto geo_logitude_vec = fbb.CreateVector(geo_logitude);
+        auto geo_latitude_vec = fbb.CreateVector(geo_latitude);
+
+        auto SSDescf = CreateSSDescRequest(fbb, geoNamef, adcodef, cntDesc.ssDesc.geoCentral.logitude,
+            cntDesc.ssDesc.geoCentral.latitude, geo_logitude_vec, geo_latitude_vec);
+        
+        // Serialize Time Decription
+        time_t reportT = std::mktime(&(cntDesc.tsDesc.reportT));
+        time_t startT = std::mktime(&(cntDesc.tsDesc.startT));
+        time_t endT = std::mktime(&(cntDesc.tsDesc.endT));
+        auto tsDescf = CreateTSDescRequest(fbb, reportT, startT, endT,
+            cntDesc.tsDesc.interval, cntDesc.tsDesc.count);
+
+        // Serialize Var Description
+        auto groupNamef = fbb.CreateString(cntDesc.vlDesc.groupName);
+        std::vector<flatbuffers::Offset<AttrRequest>> globalAttrsfVec;
+        for(auto item : cntDesc.vlDesc.attrs) {
+            auto attrNamef = fbb.CreateString(item.first);
+            auto attrValf = fbb.CreateString(item.second);
+            auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
+            globalAttrsfVec.push_back(attrf);
+        }
+        auto globalAttrsfVecf = fbb.CreateVector(globalAttrsfVec);
+
+        std::vector<flatbuffers::Offset<VarDescRequest>> varDescfVec;
+        for(auto item : cntDesc.vlDesc.desc) {
+            auto varNamef = fbb.CreateString(item.varName);
+            auto varTypef = fbb.CreateString(item.varType);
+            auto shapeVecf = fbb.CreateVector(item.shape);
+            auto groupPath = fbb.CreateString(item.groupPath);
+            std::vector<flatbuffers::Offset<AttrRequest>> attrsfVec;
+            for(auto item : cntDesc.vlDesc.attrs) {
+                auto attrNamef = fbb.CreateString(item.first);
+                auto attrValf = fbb.CreateString(item.second);
+                auto attrf = CreateAttrRequest(fbb, attrNamef, attrValf);
+                attrsfVec.push_back(attrf);
+            }
+            auto attrsfVecf = fbb.CreateVector(attrsfVec);
+            auto varDescf = CreateVarDescRequest(fbb, varNamef, varTypef, item.varLen,
+                                                    item.resRation, shapeVecf, item.ncVarID,
+                                                    item.ncGroupID, groupPath, attrsfVecf);
+            varDescfVec.push_back(varDescf);
+        }
+        auto varDescfVecf = fbb.CreateVector(varDescfVec);
+        auto vlDescf = CreateVLDescRequest(fbb, groupNamef, cntDesc.vlDesc.groupLen, varDescfVecf, globalAttrsfVecf);
+        auto cntDescf = CreateContentDescRequest(fbb, SSDescf, tsDescf, vlDescf);
+        return cntDescf;
+    }
+
+    Status SetContentDesc(const ContentDescRequest *cntDescf, ContentDesc &cntDesc) {
+        // Deserialize space Desc
+        std::vector<GeoCoordinate> geoCoor;
+        for(int j = 0; j < cntDescf->ssdesc()->perimeter_latitude()->size(); j++) {
+            GeoCoordinate geo;
+            geo.latitude = cntDescf->ssdesc()->perimeter_latitude()->Get(j);
+            geo.logitude = cntDescf->ssdesc()->perimeter_logitude()->Get(j);
+            geoCoor.push_back(geo);
+        }
+
+        cntDesc.setSpaceDesc(cntDescf->ssdesc()->geo_names()->str(),
+                        cntDescf->ssdesc()->adcode()->str(),
+                        cntDescf->ssdesc()->logitude(),
+                        cntDescf->ssdesc()->latitude(),
+                        geoCoor);
+
+        // Deserialize time Desc
+        cntDesc.setTimeSlotDesc(cntDescf->tsdesc()->report_t(),
+                        cntDescf->tsdesc()->start_t(),
+                        cntDescf->tsdesc()->end_t(),
+                        cntDescf->tsdesc()->interval(),
+                        cntDescf->tsdesc()->count());
+
+        // Deserialize var Desc
+        std::unordered_map<std::string, std::string> globalAttrs;
+        for(int k = 0; k < cntDescf->vldesc()->attrs()->size(); k++) {
+            std::string attrName = cntDescf->vldesc()->attrs()->Get(k)->attr_name()->str();
+            std::string attrVal = cntDescf->vldesc()->attrs()->Get(k)->attr_val()->str();
+            globalAttrs.insert({attrName, attrVal});
+        }
+
+        cntDesc.setVarListDesc(cntDescf->vldesc()->group_name()->str(), 
+                                cntDescf->vldesc()->group_len(), globalAttrs);
+
+        std::vector<VarDesc> varDesc;
+        for(int j = 0; j < cntDescf->vldesc()->vars()->size(); j++) {
+            VarDesc desc;
+            Dimes shape;
+            for(int k = 0; k < cntDescf->vldesc()->vars()->Get(j)->shape()->size(); k++) {
+                shape.push_back(cntDescf->vldesc()->vars()->Get(j)->shape()->Get(k));
+            }
+
+            std::unordered_map<std::string, std::string> attrs;
+            for(int k = 0; k < cntDescf->vldesc()->vars()->Get(j)->attrs()->size(); k++) {
+                std::string attrName = cntDescf->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_name()->str();
+                std::string attrVal = cntDescf->vldesc()->vars()->Get(j)->attrs()->Get(k)->attr_val()->str();
+                attrs.insert({attrName, attrVal});
+            }
+
+            desc.setVarDesc(cntDescf->vldesc()->vars()->Get(j)->var_name()->str(),
+                    cntDescf->vldesc()->vars()->Get(j)->var_len(),
+                    cntDescf->vldesc()->vars()->Get(j)->res_ration(),
+                    cntDescf->vldesc()->vars()->Get(j)->var_type()->str(),
+                    shape,
+                    cntDescf->vldesc()->vars()->Get(j)->nc_var_id(),
+                    cntDescf->vldesc()->vars()->Get(j)->nc_group_id(),
+                    cntDescf->vldesc()->vars()->Get(j)->group_path()->str(),
+                    attrs);
+            varDesc.push_back(desc);   
+        }
+        cntDesc.setVarListVarDesc(varDesc);
+        return Status::OK();
+    }
+
+    flatbuffers::Offset<FilePathListRequest> GetFilePathList(flatbuffers::FlatBufferBuilder &fbb, FilePathList *fileList) {
+        auto dirPathf = fbb.CreateString(fileList->dirPath);
+        auto sitePathf = fbb.CreateString(fileList->sitePath);
+        std::vector<flatbuffers::Offset<flatbuffers::String>> pathfVector;
+        for(auto path : fileList->fileNames) {
+            auto pathf = fbb.CreateString(path);
+            pathfVector.push_back(pathf);
+        }
+        auto pathfVectorf = fbb.CreateVector(pathfVector);
+        std::vector<flatbuffers::Offset<StoreSiteRequest>> sitesVector;
+        for(auto site: fileList->sites) {
+            auto childSitef =  GetSite(fbb, site);
+            sitesVector.push_back(childSitef);
+        }
+        auto sitesVectorf = fbb.CreateVector(sitesVector);
+        auto filePathListf = CreateFilePathListRequest(fbb, dirPathf, sitesVectorf, sitePathf, pathfVectorf); 
+        return filePathListf;
+    }
+
+
+    Status SetFilePathList(const FilePathListRequest *fileListf, FilePathList *pathList) {
+        pathList->dirPath = fileListf->dir_path()->c_str();
+        pathList->sitePath =  fileListf->site_path()->c_str();
+        auto pathVector =  fileListf->file_name();
+        for(int j = 0; j < pathVector->size(); j++) {
+            pathList->fileNames.push_back(pathVector->Get(j)->c_str());
+        }
+        auto siteVector = fileListf->sites();
+        SetSite(siteVector, &(pathList->sites));
+        return Status::OK();
+    }
+
+    flatbuffers::Offset<StoreDescRequest> GetStoreDesc(flatbuffers::FlatBufferBuilder &fbb, StoreDesc &storeDesc) {
+        auto SSNamef = fbb.CreateString(storeDesc.SSName);
+        auto kindf = fbb.CreateString(storeDesc.getStoreKind());
+        auto rootPathf = fbb.CreateString(storeDesc.conConf.rootPath);
+        auto storeDescf = CreateStoreDescRequest(fbb, SSNamef, storeDesc.writable, storeDesc.size,
+                                                    storeDesc.capacity, kindf, rootPathf);
+        return storeDescf;
+    }
+
+    Status SetStoreDesc(const StoreDescRequest *storeDescf, StoreDesc &storeDesc) {
+        storeDesc.SSName = storeDescf->ssname()->c_str();
+        storeDesc.writable = storeDescf->writable();
+        storeDesc.size = storeDescf->size();
+        storeDesc.capacity = storeDescf->capacity();
+        storeDesc.setStoreKind(storeDescf->kind()->c_str());
+        storeDesc.conConf.rootPath = storeDescf->root_path()->c_str();
+        return Status::OK();
+    }
 }

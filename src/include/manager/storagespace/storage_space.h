@@ -19,7 +19,7 @@
 
 namespace SDS
 {
-   static size_t globalSpaceID = 0;
+    static size_t globalSpaceID = 0;
 
     struct StorageSpace {
         size_t spaceID;

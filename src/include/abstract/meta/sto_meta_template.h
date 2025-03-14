@@ -147,6 +147,10 @@ namespace SDS {
 
         StoreDesc():size(0),capacity(2) {};
 
+        void setConnectConfig(ConnectConfig &conConf) {
+            this->conConf.setConfig(conConf);
+        }
+
         void setStoreKind(std::string kindStr) {
             if(kindStr == "Ceph") {
                 kind = StoreSpaceKind::Ceph;
@@ -173,6 +177,20 @@ namespace SDS {
                     return "Local";
                 default:
                     return "None";
+            }
+        }
+
+        void setStoreKindbyTypeID(std::string typeID) {
+            if(typeID == "100") {
+                kind = StoreSpaceKind::Ceph;
+            } else if (typeID == "011") {
+                kind = StoreSpaceKind::Lustre;
+            } else if (typeID == "010") {
+                kind = StoreSpaceKind::BB;
+            } else if (typeID == "001") {
+                kind = StoreSpaceKind::Local;
+            } else if (typeID == "000") {
+                kind = StoreSpaceKind::None;
             }
         }
 

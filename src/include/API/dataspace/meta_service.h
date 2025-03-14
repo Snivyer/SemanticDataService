@@ -18,6 +18,7 @@
 #include "manager/semanticspace/semantic_space.h"
 #include "manager/storagespace/storage_space.h"
 #include "manager/rpc/metadata_rpc/meta_protocol.h"
+#include "API/dataspace/databox_client.h"
 
 using arrow::Status;
 
@@ -38,14 +39,15 @@ namespace SDS {
             bool createContentIndex(std::string SemanticSpaceName, std::string StoreSpaceName, std::string dirName);
 
             // search the content index to get content ID
-            bool searchContentIndex(std::vector<std::string> geoNames, std::vector<std::string> times, std::vector<std::string> varNames, 
-                                    ContentID& cntID, std::string varGroupName = "default");
-
             bool searchDataFile(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames,
                                  std::vector<FilePathList> &fileList);
+
+            bool searchDataBox(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames,
+                std::vector<FilePathList> &fileList, std::vector<size_t> &dbIDs);
             
-            ContentDesc& getContentDesc(ContentID &cntID);
-           
+            void disconnectToDataBoxService();
+            void connectToDataBoxService();
+
             void connectClient(int listenerSock);
             void disconnectClient(MetaClient* client);
             Status processMessage(MetaClient* client);
@@ -62,6 +64,10 @@ namespace SDS {
             bool addClientToSemanticSpaceEntry(SemanticSpaceEntry *entry, MetaClient* client);
             bool addClientToStorageSpaceEntry(StorageSpaceEntry *entry, MetaClient* client);
             bool createContentIndexInternal(std::string spaceID, size_t storageID, std::string dirName);
+            bool searchData(std::string SSName, std::vector<std::string> &times, 
+                std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
+                std::vector<ContentID> &cntIDs, std::vector<ContentDesc> &cntDescs, std::vector<StoreDesc> &storeDescs, bool isFile = true);
+            
 
             
     };

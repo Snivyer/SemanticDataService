@@ -29,9 +29,9 @@ namespace SDS
                                 const std::string& managerSocketName);
 
         arrow::Status disconnect();
-        
-        arrow::Status createDB(ContentID &cntID, std::string dataPath);
 
+       
+        // version 1 interface
         arrow::Status getDB(ContentID &cntID, int64_t timeout, DataboxObject *object);
 
         arrow::Status containDB(ContentID &cntID, bool &is_contain);
@@ -40,10 +40,26 @@ namespace SDS
 
         arrow::Status deleteDB(ContentID &cntID, bool &is_delete);
 
+        // version2 interface
+        arrow::Status createDB(ContentID &cntID, ContentDesc &cntDesc,
+                                 StoreDesc &desc, FilePathList &fileList, DBMeta& dbMeta);
+        
+        arrow::Status getDB(size_t dbID, int64_t timeout, DataboxObject *object);
+
+        arrow::Status containDB(size_t dbID, bool &is_contain);
+
+        arrow::Status releaseDB(size_t dbID, bool &is_release);
+
+        arrow::Status deleteDB(size_t dbID, bool &is_delete);
+            
+        arrow::Status getContentID(size_t dbID, ContentID &cntID); 
+        
+
         private:
             class Impl;
             std::shared_ptr<Impl> impl_;
             explicit DataBoxClient(std::shared_ptr<Impl> impl);
+           
 
     };
 

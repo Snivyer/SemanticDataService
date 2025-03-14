@@ -58,6 +58,9 @@ struct SemanticSpaceLoadReplyBuilder;
 struct StorageSpaceCreateRequest;
 struct StorageSpaceCreateRequestBuilder;
 
+struct StoreDescRequest;
+struct StoreDescRequestBuilder;
+
 struct StorageSpaceCreateReply;
 struct StorageSpaceCreateReplyBuilder;
 
@@ -66,12 +69,6 @@ struct ContentIndexCreateRequstBuilder;
 
 struct ContentIndexReply;
 struct ContentIndexReplyBuilder;
-
-struct ContentIndexSearchRequest;
-struct ContentIndexSearchRequestBuilder;
-
-struct ContentIndexSearchReply;
-struct ContentIndexSearchReplyBuilder;
 
 struct DataFileSearchRequest;
 struct DataFileSearchRequestBuilder;
@@ -84,6 +81,9 @@ struct FilePathListRequestBuilder;
 
 struct DataFileSearchReply;
 struct DataFileSearchReplyBuilder;
+
+struct DataBoxSearchReply;
+struct DataBoxSearchReplyBuilder;
 
 struct StorageSpaceLoadRequest;
 struct StorageSpaceLoadRequestBuilder;
@@ -1409,6 +1409,121 @@ inline ::flatbuffers::Offset<StorageSpaceCreateRequest> CreateStorageSpaceCreate
       root_path__);
 }
 
+struct StoreDescRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StoreDescRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SSNAME = 4,
+    VT_WRITABLE = 6,
+    VT_SIZE = 8,
+    VT_CAPACITY = 10,
+    VT_KIND = 12,
+    VT_ROOT_PATH = 14
+  };
+  const ::flatbuffers::String *ssname() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SSNAME);
+  }
+  bool writable() const {
+    return GetField<uint8_t>(VT_WRITABLE, 0) != 0;
+  }
+  uint64_t size() const {
+    return GetField<uint64_t>(VT_SIZE, 0);
+  }
+  uint64_t capacity() const {
+    return GetField<uint64_t>(VT_CAPACITY, 0);
+  }
+  const ::flatbuffers::String *kind() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_KIND);
+  }
+  const ::flatbuffers::String *root_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ROOT_PATH);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SSNAME) &&
+           verifier.VerifyString(ssname()) &&
+           VerifyField<uint8_t>(verifier, VT_WRITABLE, 1) &&
+           VerifyField<uint64_t>(verifier, VT_SIZE, 8) &&
+           VerifyField<uint64_t>(verifier, VT_CAPACITY, 8) &&
+           VerifyOffset(verifier, VT_KIND) &&
+           verifier.VerifyString(kind()) &&
+           VerifyOffset(verifier, VT_ROOT_PATH) &&
+           verifier.VerifyString(root_path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StoreDescRequestBuilder {
+  typedef StoreDescRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_ssname(::flatbuffers::Offset<::flatbuffers::String> ssname) {
+    fbb_.AddOffset(StoreDescRequest::VT_SSNAME, ssname);
+  }
+  void add_writable(bool writable) {
+    fbb_.AddElement<uint8_t>(StoreDescRequest::VT_WRITABLE, static_cast<uint8_t>(writable), 0);
+  }
+  void add_size(uint64_t size) {
+    fbb_.AddElement<uint64_t>(StoreDescRequest::VT_SIZE, size, 0);
+  }
+  void add_capacity(uint64_t capacity) {
+    fbb_.AddElement<uint64_t>(StoreDescRequest::VT_CAPACITY, capacity, 0);
+  }
+  void add_kind(::flatbuffers::Offset<::flatbuffers::String> kind) {
+    fbb_.AddOffset(StoreDescRequest::VT_KIND, kind);
+  }
+  void add_root_path(::flatbuffers::Offset<::flatbuffers::String> root_path) {
+    fbb_.AddOffset(StoreDescRequest::VT_ROOT_PATH, root_path);
+  }
+  explicit StoreDescRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StoreDescRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StoreDescRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StoreDescRequest> CreateStoreDescRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> ssname = 0,
+    bool writable = false,
+    uint64_t size = 0,
+    uint64_t capacity = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> kind = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> root_path = 0) {
+  StoreDescRequestBuilder builder_(_fbb);
+  builder_.add_capacity(capacity);
+  builder_.add_size(size);
+  builder_.add_root_path(root_path);
+  builder_.add_kind(kind);
+  builder_.add_ssname(ssname);
+  builder_.add_writable(writable);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StoreDescRequest> CreateStoreDescRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *ssname = nullptr,
+    bool writable = false,
+    uint64_t size = 0,
+    uint64_t capacity = 0,
+    const char *kind = nullptr,
+    const char *root_path = nullptr) {
+  auto ssname__ = ssname ? _fbb.CreateString(ssname) : 0;
+  auto kind__ = kind ? _fbb.CreateString(kind) : 0;
+  auto root_path__ = root_path ? _fbb.CreateString(root_path) : 0;
+  return CreateStoreDescRequest(
+      _fbb,
+      ssname__,
+      writable,
+      size,
+      capacity,
+      kind__,
+      root_path__);
+}
+
 struct StorageSpaceCreateReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StorageSpaceCreateReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1656,181 +1771,6 @@ inline ::flatbuffers::Offset<ContentIndexReply> CreateContentIndexReply(
   ContentIndexReplyBuilder builder_(_fbb);
   builder_.add_result(result);
   return builder_.Finish();
-}
-
-struct ContentIndexSearchRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ContentIndexSearchRequestBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_GEO_NAMES = 4,
-    VT_TIMES = 6,
-    VT_VAR_NAMES = 8,
-    VT_GROUP_NAME = 10
-  };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *geo_names() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_GEO_NAMES);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *times() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_TIMES);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *var_names() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VAR_NAMES);
-  }
-  const ::flatbuffers::String *group_name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_GROUP_NAME);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_GEO_NAMES) &&
-           verifier.VerifyVector(geo_names()) &&
-           verifier.VerifyVectorOfStrings(geo_names()) &&
-           VerifyOffset(verifier, VT_TIMES) &&
-           verifier.VerifyVector(times()) &&
-           verifier.VerifyVectorOfStrings(times()) &&
-           VerifyOffset(verifier, VT_VAR_NAMES) &&
-           verifier.VerifyVector(var_names()) &&
-           verifier.VerifyVectorOfStrings(var_names()) &&
-           VerifyOffset(verifier, VT_GROUP_NAME) &&
-           verifier.VerifyString(group_name()) &&
-           verifier.EndTable();
-  }
-};
-
-struct ContentIndexSearchRequestBuilder {
-  typedef ContentIndexSearchRequest Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_geo_names(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> geo_names) {
-    fbb_.AddOffset(ContentIndexSearchRequest::VT_GEO_NAMES, geo_names);
-  }
-  void add_times(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> times) {
-    fbb_.AddOffset(ContentIndexSearchRequest::VT_TIMES, times);
-  }
-  void add_var_names(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> var_names) {
-    fbb_.AddOffset(ContentIndexSearchRequest::VT_VAR_NAMES, var_names);
-  }
-  void add_group_name(::flatbuffers::Offset<::flatbuffers::String> group_name) {
-    fbb_.AddOffset(ContentIndexSearchRequest::VT_GROUP_NAME, group_name);
-  }
-  explicit ContentIndexSearchRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<ContentIndexSearchRequest> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<ContentIndexSearchRequest>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<ContentIndexSearchRequest> CreateContentIndexSearchRequest(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> geo_names = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> times = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> var_names = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> group_name = 0) {
-  ContentIndexSearchRequestBuilder builder_(_fbb);
-  builder_.add_group_name(group_name);
-  builder_.add_var_names(var_names);
-  builder_.add_times(times);
-  builder_.add_geo_names(geo_names);
-  return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<ContentIndexSearchRequest> CreateContentIndexSearchRequestDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *geo_names = nullptr,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *times = nullptr,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *var_names = nullptr,
-    const char *group_name = nullptr) {
-  auto geo_names__ = geo_names ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*geo_names) : 0;
-  auto times__ = times ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*times) : 0;
-  auto var_names__ = var_names ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*var_names) : 0;
-  auto group_name__ = group_name ? _fbb.CreateString(group_name) : 0;
-  return CreateContentIndexSearchRequest(
-      _fbb,
-      geo_names__,
-      times__,
-      var_names__,
-      group_name__);
-}
-
-struct ContentIndexSearchReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ContentIndexSearchReplyBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SPACE_ID = 4,
-    VT_TIME_ID = 6,
-    VT_VAR_ID = 8
-  };
-  const ::flatbuffers::String *space_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_SPACE_ID);
-  }
-  const ::flatbuffers::String *time_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TIME_ID);
-  }
-  const ::flatbuffers::String *var_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_VAR_ID);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_SPACE_ID) &&
-           verifier.VerifyString(space_id()) &&
-           VerifyOffset(verifier, VT_TIME_ID) &&
-           verifier.VerifyString(time_id()) &&
-           VerifyOffset(verifier, VT_VAR_ID) &&
-           verifier.VerifyString(var_id()) &&
-           verifier.EndTable();
-  }
-};
-
-struct ContentIndexSearchReplyBuilder {
-  typedef ContentIndexSearchReply Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_space_id(::flatbuffers::Offset<::flatbuffers::String> space_id) {
-    fbb_.AddOffset(ContentIndexSearchReply::VT_SPACE_ID, space_id);
-  }
-  void add_time_id(::flatbuffers::Offset<::flatbuffers::String> time_id) {
-    fbb_.AddOffset(ContentIndexSearchReply::VT_TIME_ID, time_id);
-  }
-  void add_var_id(::flatbuffers::Offset<::flatbuffers::String> var_id) {
-    fbb_.AddOffset(ContentIndexSearchReply::VT_VAR_ID, var_id);
-  }
-  explicit ContentIndexSearchReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<ContentIndexSearchReply> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<ContentIndexSearchReply>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<ContentIndexSearchReply> CreateContentIndexSearchReply(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> space_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> time_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> var_id = 0) {
-  ContentIndexSearchReplyBuilder builder_(_fbb);
-  builder_.add_var_id(var_id);
-  builder_.add_time_id(time_id);
-  builder_.add_space_id(space_id);
-  return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<ContentIndexSearchReply> CreateContentIndexSearchReplyDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *space_id = nullptr,
-    const char *time_id = nullptr,
-    const char *var_id = nullptr) {
-  auto space_id__ = space_id ? _fbb.CreateString(space_id) : 0;
-  auto time_id__ = time_id ? _fbb.CreateString(time_id) : 0;
-  auto var_id__ = var_id ? _fbb.CreateString(var_id) : 0;
-  return CreateContentIndexSearchReply(
-      _fbb,
-      space_id__,
-      time_id__,
-      var_id__);
 }
 
 struct DataFileSearchRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -2138,6 +2078,72 @@ inline ::flatbuffers::Offset<DataFileSearchReply> CreateDataFileSearchReplyDirec
   auto file_path_lists__ = file_path_lists ? _fbb.CreateVector<::flatbuffers::Offset<FilePathListRequest>>(*file_path_lists) : 0;
   return CreateDataFileSearchReply(
       _fbb,
+      file_path_lists__);
+}
+
+struct DataBoxSearchReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DataBoxSearchReplyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DATABOX_ID = 4,
+    VT_FILE_PATH_LISTS = 6
+  };
+  const ::flatbuffers::Vector<uint64_t> *databox_id() const {
+    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_DATABOX_ID);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>> *file_path_lists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>> *>(VT_FILE_PATH_LISTS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_DATABOX_ID) &&
+           verifier.VerifyVector(databox_id()) &&
+           VerifyOffset(verifier, VT_FILE_PATH_LISTS) &&
+           verifier.VerifyVector(file_path_lists()) &&
+           verifier.VerifyVectorOfTables(file_path_lists()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DataBoxSearchReplyBuilder {
+  typedef DataBoxSearchReply Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_databox_id(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> databox_id) {
+    fbb_.AddOffset(DataBoxSearchReply::VT_DATABOX_ID, databox_id);
+  }
+  void add_file_path_lists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>>> file_path_lists) {
+    fbb_.AddOffset(DataBoxSearchReply::VT_FILE_PATH_LISTS, file_path_lists);
+  }
+  explicit DataBoxSearchReplyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DataBoxSearchReply> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DataBoxSearchReply>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<DataBoxSearchReply> CreateDataBoxSearchReply(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> databox_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<FilePathListRequest>>> file_path_lists = 0) {
+  DataBoxSearchReplyBuilder builder_(_fbb);
+  builder_.add_file_path_lists(file_path_lists);
+  builder_.add_databox_id(databox_id);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DataBoxSearchReply> CreateDataBoxSearchReplyDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint64_t> *databox_id = nullptr,
+    const std::vector<::flatbuffers::Offset<FilePathListRequest>> *file_path_lists = nullptr) {
+  auto databox_id__ = databox_id ? _fbb.CreateVector<uint64_t>(*databox_id) : 0;
+  auto file_path_lists__ = file_path_lists ? _fbb.CreateVector<::flatbuffers::Offset<FilePathListRequest>>(*file_path_lists) : 0;
+  return CreateDataBoxSearchReply(
+      _fbb,
+      databox_id__,
       file_path_lists__);
 }
 

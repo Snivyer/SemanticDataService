@@ -45,17 +45,17 @@ namespace SDS
 
      // communicate with databox client
      struct Client {
-        int fd;
+          int fd;
 
-        Client(int fd) {
-          this->fd = fd;
-        }
+          Client(int fd) {
+               this->fd = fd;
+          }
 
      };
 
      typedef struct {
         // The ID of the requested databox.
-        ContentID cntID;
+          ContentID cntID;
      } DataBoxRequest;
 
 
@@ -64,10 +64,11 @@ namespace SDS
 
 
      typedef struct {
-        ContentID cntID;
-        std::unordered_set<Client*> clients;
-        DataBoxState state;
-        DataboxObject* ptr;
+          size_t dbID;
+          ContentID cntID;
+          std::unordered_set<Client*> clients;
+          DataBoxState state;
+          DataboxObject* ptr;
      } DataBoxTableEntry;
 
 
@@ -75,6 +76,7 @@ namespace SDS
 
           // DataBox that are in the DataBox Store
           std::unordered_map<ContentID, DataBoxTableEntry*, ContentIDHasher> databoxs;
+          std::unordered_map<size_t, ContentID> dbID2CntID;
 
           // The amount of memory that we allow to be allocated in the store.
           int64_t memoryCapacity;

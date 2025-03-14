@@ -35,8 +35,8 @@ namespace SDS {
     const int64_t MessageTypeDataImportFromLocalReply        = 10;
     const int64_t MessageTypeDataImportFromOtherRequest      = 11;
     const int64_t MessageTypeDataImportFromOtherReply        = 12;
-    const int64_t MessageTypeDataSearchRequest               = 13;
-    const int64_t MessageTypeDataSearchReply                 = 14;
+    const int64_t MessageTypeDataBoxSearchRequest            = 13;
+    const int64_t MessageTypeDataBoxSearchReply              = 14;
     const int64_t MessageTypeSemanticSpaceLoadRequest        = 15;
     const int64_t MessageTypeSemanticSpaceLoadReply          = 16;
     const int64_t MessageTypeDataFileSearchRequest           = 17;
@@ -85,10 +85,10 @@ namespace SDS {
     Status ReadCreateContentIndexReply(uint8_t* data, bool &result);
      
     /* search content index message functions*/
-    Status SendSearchContentIndexRequest(int sock, std::vector<std::string> &geoNames, std::vector<std::string> &times, std::vector<std::string> &varNames, std::string &groupName);
-    Status ReadSearchContentIndexRequest(uint8_t* data, std::vector<std::string> &geoNames, std::vector<std::string> &times, std::vector<std::string> &varNames, std::string &groupName);
-    Status SendSearchContentIndexReply(int sock, std::string spaceID, std::string timeID, std::string varID);
-    Status ReadSearchContentIndexReply(uint8_t* data, std::string &spaceID, std::string &timeID, std::string &varID);
+    Status SendSearchDataBoxRequest(int sock, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varName);
+    Status ReadSearchDataBoxRequest(uint8_t* data, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
+    Status SendSearchDataBoxReply(int sock, std::vector<size_t> &databoxID, std::vector<FilePathList> &filePath);
+    Status ReadSearchDataBoxReply(uint8_t* data, std::vector<size_t> &databoxID, std::vector<FilePathList> &filePath);
 
     /* search data file message functions*/
     Status SendSearchDataFileRequest(int sock, std::string &SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
@@ -96,7 +96,20 @@ namespace SDS {
     Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath);
     Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath);
 
-    flatbuffers::Offset<StoreSiteRequest> CreateSiteRequest(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site);
-    Status ReadSiteRequest(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector);
+    /*some structure*/
+    flatbuffers::Offset<StoreSiteRequest> GetSite(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site);
+    Status SetSite(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector);
+
+    flatbuffers::Offset<ContentIDRequest> GetContentID(flatbuffers::FlatBufferBuilder &fbb, ContentID &cntID);
+    Status SetContentID(const ContentIDRequest *cntIDf, ContentID &cntID);
+
+    flatbuffers::Offset<ContentDescRequest> GetContentDesc(flatbuffers::FlatBufferBuilder &fbb, ContentDesc &cntDesc);
+    Status SetContentDesc(const ContentDescRequest *cntDescf, ContentDesc &cntDesc);
+
+    flatbuffers::Offset<FilePathListRequest> GetFilePathList(flatbuffers::FlatBufferBuilder &fbb, FilePathList *fileList);
+    Status SetFilePathList(const FilePathListRequest *fileListf, FilePathList *fileList);
+
+    flatbuffers::Offset<StoreDescRequest> GetStoreDesc(flatbuffers::FlatBufferBuilder &fbb, StoreDesc &storeDesc);
+    Status SetStoreDesc(const StoreDescRequest *storeDescf, StoreDesc &storeDesc);
 
 };
