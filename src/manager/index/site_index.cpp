@@ -6,7 +6,8 @@ namespace SDS {
     // 初始化空间索引
     SiteIndex::SiteIndex() {
         SiteNode *node = new SiteNode();
-        node->siteID = 0;
+        node->siteID = 1;
+        node->siteName = "root";
         _entrance.type = IndexType::Site;
         _entrance.rootNode = node;
         _entrance.nodeNum = 0;
@@ -100,6 +101,15 @@ namespace SDS {
 
 
     bool SiteIndex::insert(std::string siteName, SiteNode* &node, SiteNode* pNode) {
+        if(pNode == nullptr) {
+            return false;
+        }
+
+        if(siteName == pNode->siteName) {
+            node = pNode;
+            return true;
+        } 
+
         if(pNode->CSNode.size() == 0) {
             node = new SiteNode();
             node->siteID = 1;                          
@@ -107,24 +117,24 @@ namespace SDS {
             node->PSiteID = pNode->getCompleteSiteID();
             node->PSiteNode = pNode;
             pNode->CSNode.push_back(node);
-            std::cout << "创建站点索引根节点,SpaceID为:" << node->siteID
-                        << ",站点名为:" << node->siteName << std::endl;
+            std::cout << "创建站点索引根节点,SiteID为:" << node->siteID
+                      << ",站点名为:" << node->siteName.data() << ", 其父站点ID为:" 
+                      << node->PSiteID.data() << std::endl;   
             return true;
-        } else {
-            if(siteName == pNode->siteName) {
-                node = pNode;
-            } else {
-                node = new SiteNode();
-                node->siteID = pNode->CSNode.size() + 1;
-                node->siteName = siteName;      
-                node->PSiteID = pNode->getCompleteSiteID();
-                node->PSiteNode = pNode;
-                pNode->CSNode.push_back(node);
-                std::cout << "创建空间索引根节点,SpaceID为:" << node->siteID << ",站点名为:" 
-                    << node->siteName.data() << ", 其父站点ID为:" << node->PSiteID.data() << std::endl; 
-                return true;
-            }
+        } 
+                
+        auto ret = search(siteName, node, pNode->CSNode);
+        if(!ret) {
+            node = new SiteNode();
+            node->siteID = pNode->CSNode.size() + 1;
+            node->siteName = siteName;      
+            node->PSiteID = pNode->getCompleteSiteID();
+            node->PSiteNode = pNode;
+            pNode->CSNode.push_back(node);
+            std::cout << "创建空间索引根节点,SiteID为:" << node->siteID << ",站点名为:" 
+                << node->siteName.data() << ", 其父站点ID为:" << node->PSiteID.data() << std::endl; 
         }
+        return true;
     }
 
 
@@ -137,17 +147,12 @@ namespace SDS {
             return false; 
         }
 
-        if(search(path, node)) {
-            result.push_back(node);
-            return true;
-        }
-
         // insert mulptile node accoring the relationship of adcode
         std::vector<std::string> siteNames = splitString(path, '/');
-        SiteNode *pNode = node;
+        SiteNode *pNode = (SiteNode*) (this->_entrance.rootNode);
 
         for(int i = 0; i < siteNames.size(); i++) {
-            if(insert(siteNames[i], node, pNode) ) {
+            if(insert(siteNames[i], node, pNode)) {
                 pNode = node;
             } else {
                 result.push_back(node);

@@ -86,19 +86,20 @@ namespace SDS {
         return Status::OK();   
     }
 
-    Status SendGetRequest(int sock, ContentID &cntID, int64_t timeout) {
+    Status SendGetRequest(int sock, std::vector<size_t> &ids, int64_t timeout) {
         flatbuffers::FlatBufferBuilder fbb;
-        ARROW_LOG(INFO) <<  "Send get request, cntID:" << cntID.getSpaceID()
-                         << " " << cntID.getTimeID() << " " << cntID.getVarID();
-        auto contentIDf = GetContentID(fbb, cntID);
-        auto message = CreateDBgetRequest(fbb, contentIDf, timeout);
+        ARROW_LOG(INFO) <<  "Send get request";
+        auto idsf = fbb.CreateVector(ids);
+        auto message = CreateDBgetRequest(fbb, idsf, timeout);
         return messageSend(sock, MessageTypeGetRequest, &fbb, message);
     }
 
-    Status ReadGetRequest(uint8_t* data, ContentID &cntID, int64_t &timeout) {
+    Status ReadGetRequest(uint8_t* data, std::vector<size_t> &ids, int64_t &timeout) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBgetRequest>(data);
-        SetContentID(message->cnt_id(), cntID);
+        for(int i = 0; i < message->ids()->size(); i++) {
+            ids.push_back(message->ids()->Get(i));
+        }
         timeout = message->timeout();
         return Status::OK(); 
     }
@@ -118,19 +119,17 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendContainRequest(int sock, ContentID &cntID) {
-        ARROW_LOG(INFO) <<  "Send contain request, cntID:" << cntID.getSpaceID() 
-                        << " " << cntID.getTimeID() << " " << cntID.getVarID();
+    Status SendContainRequest(int sock, size_t id) {
+        ARROW_LOG(INFO) <<  "Send contain request";
         flatbuffers::FlatBufferBuilder fbb;
-        auto contentIDf = GetContentID(fbb, cntID); 
-        auto message = CreateDBcontainRequest(fbb, contentIDf);
+        auto message = CreateDBcontainRequest(fbb, id);
         return messageSend(sock, MessageTypeConnectRequest, &fbb, message);
     }
 
-    Status ReadContainRequest(uint8_t* data, ContentID &cntID) {
+    Status ReadContainRequest(uint8_t* data, size_t &id) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBcontainRequest>(data);
-        SetContentID(message->cnt_id(), cntID);
+        id = message->id();
         return Status::OK(); 
     }
 
@@ -147,19 +146,17 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendReleaseRequest(int sock, ContentID &cntID) {
-        ARROW_LOG(INFO) <<  "Send release request, cntID:" << cntID.getSpaceID() 
-                         << " " << cntID.getTimeID() << " " << cntID.getVarID();
+    Status SendReleaseRequest(int sock, size_t id) {
+        ARROW_LOG(INFO) <<  "Send release request";
         flatbuffers::FlatBufferBuilder fbb;
-        auto contentIDf = GetContentID(fbb, cntID);
-        auto message = CreateDBReleaseRequest(fbb, contentIDf);
+        auto message = CreateDBReleaseRequest(fbb, id);
         return messageSend(sock, MessageTypeReleaseRequest, &fbb, message);
     }
 
-    Status ReadReleaseRequest(uint8_t* data, ContentID &cntID) {
+    Status ReadReleaseRequest(uint8_t* data, size_t &id) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBReleaseRequest>(data);
-        SetContentID(message->cnt_id(), cntID);
+        id = message->id();
         return Status::OK(); 
     }
 
@@ -176,20 +173,20 @@ namespace SDS {
         return Status::OK();
     }
 
-    Status SendDeleteRequest(int sock, ContentID &cntID) {
-        ARROW_LOG(INFO) <<  "Send release request, cntID:" << cntID.getSpaceID() << " "
-                                                           << cntID.getTimeID() << " "
-                                                           << cntID.getVarID();                    
+    Status SendDeleteRequest(int sock, std::vector<size_t> &ids) {
+        ARROW_LOG(INFO) <<  "Send release request";                   
         flatbuffers::FlatBufferBuilder fbb;
-        auto contentIDf = GetContentID(fbb, cntID);
-        auto message = CreateDBDeleteRequest(fbb, contentIDf);
+        auto idsf = fbb.CreateVector(ids);
+        auto message = CreateDBDeleteRequest(fbb, idsf);
         return messageSend(sock, MessageTypeDeleteRequest, &fbb, message);
     }
 
-    Status ReadDeleteRequest(uint8_t* data, ContentID &cntID) {
+    Status ReadDeleteRequest(uint8_t* data, std::vector<size_t> &ids) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DBDeleteRequest>(data);
-        SetContentID(message->cnt_id(), cntID);
+        for(int i = 0; i < message->ids()->size(); i++) {
+            ids.push_back(message->ids()->Get(i));
+        }
         return Status::OK(); 
     }
 

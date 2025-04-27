@@ -558,8 +558,6 @@ namespace SDS {
         return messageSend(sock, MessageTypeDataFileSearchReply, &fbb, message);
     }
 
-
-
     Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath) {
         DCHECK(data);
         auto message = flatbuffers::GetRoot<DataFileSearchReply>(data);
@@ -569,6 +567,114 @@ namespace SDS {
             SetFilePathList(filePathVector->Get(i), &pathList);
             filePath.push_back(pathList);
         }
+        return Status::OK();
+    }
+
+    Status SendTimeIndexRequest(int sock) {
+        flatbuffers::FlatBufferBuilder fbb;
+        auto message = CreateMetaClientConnectRequest(fbb, sock);
+        return messageSend(sock, MessageTypeTimeIndexRequest, &fbb, message);
+    }
+
+    Status SendTimeIndexReply(int sock, TimeIndex* index) {
+        flatbuffers::FlatBufferBuilder fbb;
+        std::vector<TimeSlotNode*> timeSlots;
+        index->saveAsTimeSlots(timeSlots);
+
+        std::vector<flatbuffers::Offset<TimeSlotNodeRequest>> tslot;
+        for(auto item: timeSlots) {
+            auto timeSlotf = GetTimeSlotNode(fbb, item);
+            tslot.push_back(timeSlotf);
+        }
+
+        auto tslotf = fbb.CreateVector(tslot);
+        auto message = CreateTimeIndexRequest(fbb, tslotf);
+        return messageSend(sock, MessageTypeTimeIndexReply, &fbb, message);
+    }
+
+    Status ReadTimeIndexReply(uint8_t* data, TimeIndex* &index) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<TimeIndexRequest>(data);
+
+        std::vector<TimeSlotNode*> list;
+        for(int i = 0; i < message->timeslots()->size(); i++) {
+            TimeSlotNode* node = nullptr;
+            SetTimeSlotNode(message->timeslots()->Get(i), node);
+            list.push_back(node);
+        }
+
+        index = new TimeIndex();
+        index->loadWithTimeSlots(list);
+        return Status::OK();
+    }
+
+    Status SendVarIndexRequest(int sock) {
+        flatbuffers::FlatBufferBuilder fbb;
+        auto message = CreateMetaClientConnectRequest(fbb, sock);
+        return messageSend(sock, MessageTypeVarIndexRequest, &fbb, message);
+    }
+
+    Status SendVarIndexReply(int sock, VarIndex* index) {
+        flatbuffers::FlatBufferBuilder fbb;
+        std::vector<VarListNode*> list;
+        std::vector<flatbuffers::Offset<VarListNodeRequest>> varListNodeVec;
+        index->saveAsVarList(list);
+        for(auto item: list) {
+            auto listNodef = GetVarListNode(fbb, item);
+            varListNodeVec.push_back(listNodef);
+        }
+
+        auto varListNodeVecf = fbb.CreateVector(varListNodeVec);
+        auto message = CreateVarIndexRequest(fbb, varListNodeVecf);
+        return messageSend(sock, MessageTypeVarIndexReply, &fbb, message);
+    }
+
+    Status ReadVarIndexReply(uint8_t* data, VarIndex* &index) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<VarIndexRequest>(data);
+        std::vector<VarListNode*> list;
+        for(int i = 0; i < message->varlist_nodes()->size(); i++) {
+            VarListNode* node = nullptr;
+            SetVarListNode(message->varlist_nodes()->Get(i), node);
+            list.push_back(node);
+        }
+
+        index = new  VarIndex();
+        index->loadWithVarList(list);
+        return Status::OK();
+    }
+
+    Status SendBindDataSourceRequest(int sock, std::string &SSName, StorageID &storeID) {
+        flatbuffers::FlatBufferBuilder fbb;
+        auto ssnamef = fbb.CreateString(SSName);
+        auto spaceIDf = fbb.CreateString(storeID.getSpaceID());
+        auto typeIDf = fbb.CreateString(storeID.getTypeID());
+        auto siteIDf = fbb.CreateString(storeID.getSiteID());
+        auto storeIDf = CreateStorageIDRequest(fbb, spaceIDf, typeIDf, siteIDf);
+        auto message = CreateBindDataSourceRequest(fbb, ssnamef, storeIDf);
+        return messageSend(sock, MessageTypeBindDataSourceRequest, &fbb, message);
+    }
+
+    Status ReadBindDataSourceRequest(uint8_t* data, std::string &SSName, StorageID &storeID) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<BindDataSourceRequest>(data);
+        SSName = message->ss_name()->c_str();
+        storeID.setSpaceID(message->store_id()->space_id()->c_str());
+        storeID.setTypeID(message->store_id()->type_id()->c_str());
+        storeID.setSiteID(message->store_id()->site_id()->c_str());
+        return Status::OK();
+    }
+
+    Status SendBindDataSourceReply(int sock, bool &ret) {
+        flatbuffers::FlatBufferBuilder fbb;
+        auto message = CreateStatusReply(fbb, ret);
+        return messageSend(sock, MessageTypeBindDataSourceReply, &fbb, message);
+    }
+
+    Status ReadBindDataSourceReply(uint8_t* data, bool &ret) {
+        DCHECK(data);
+        auto message = flatbuffers::GetRoot<StatusReply>(data);
+        ret = message->status();
         return Status::OK();
     }
 
@@ -784,6 +890,82 @@ namespace SDS {
         storeDesc.capacity = storeDescf->capacity();
         storeDesc.setStoreKind(storeDescf->kind()->c_str());
         storeDesc.conConf.rootPath = storeDescf->root_path()->c_str();
+        return Status::OK();
+    }
+
+    flatbuffers::Offset<TimeListRequest> GetTimeList(flatbuffers::FlatBufferBuilder &fbb, TimeList* slot) {
+        std::vector<time_t> timeV;
+        for(auto item : slot->timeIndex) {
+            timeV.push_back(item);
+        }
+        auto timeVf = fbb.CreateVector(timeV);
+        auto timeListf = CreateTimeListRequest(fbb, slot->timeIntervalID,
+                                                slot->endTime, timeVf);
+
+        return timeListf;
+    }
+
+    Status SetTimeList(const TimeListRequest *timeListf, TimeList* &list) {
+        std::vector<time_t> times;
+        for(int i = 0; i < timeListf->times()->size(); i++) {
+            times.push_back(timeListf->times()->Get(i));
+        }
+        
+        list = new TimeList(timeListf->interval_id(),
+                                timeListf->end_time(),
+                                times);
+        return Status::OK();
+    }
+
+    flatbuffers::Offset<TimeSlotNodeRequest> GetTimeSlotNode(flatbuffers::FlatBufferBuilder &fbb,
+                                                 TimeSlotNode* slot) { 
+        std::vector<flatbuffers::Offset<TimeListRequest>> timeListVec;
+        for(auto item : slot->timeIntervalIndex) {
+            auto listf = GetTimeList(fbb, item.second);
+            timeListVec.push_back(listf);
+        }        
+        auto timeListVecf = fbb.CreateVector(timeListVec);
+        auto timeIntervalIndex =  CreateTimeSlotNodeRequest(fbb, slot->timeSlotID, slot->reportTime, 
+                                                            slot->intervalNums, timeListVecf);
+        return timeIntervalIndex;
+    }
+    
+    
+    Status SetTimeSlotNode(const TimeSlotNodeRequest *timeSlotNodef, TimeSlotNode* &slot) {
+        std::vector<TimeList*> timeListVec;
+        for(int i = 0; i < timeSlotNodef->time_interval_index()->size(); i++) {
+            TimeList* tlist;
+            SetTimeList(timeSlotNodef->time_interval_index()->Get(i), tlist);
+            timeListVec.push_back(tlist);
+        }
+        
+        slot = new TimeSlotNode(timeSlotNodef->timeslot_id(), timeSlotNodef->report_time(),
+                                  timeSlotNodef->interval_num(), timeListVec);
+        return Status::OK();
+    }
+
+
+    flatbuffers::Offset<VarListNodeRequest> GetVarListNode(flatbuffers::FlatBufferBuilder &fbb, VarListNode* node) {
+        std::vector<flatbuffers::Offset<flatbuffers::String>> varIndex;
+        for(auto item: node->varIndex) {
+            auto varNamef = fbb.CreateString(item.first);
+            varIndex.push_back(varNamef);
+        }
+        auto varIndexf = fbb.CreateVector(varIndex);
+        auto groupNamef = fbb.CreateString(node->groupName);
+        auto varList = CreateVarListNodeRequest(fbb, groupNamef, node->varListID, node->varNum, varIndexf);
+        return varList;
+    }
+    
+    
+    Status SetVarListNode(const VarListNodeRequest *varListNode, VarListNode* &node) {
+        std::vector<std::string> varIndex;
+        for(int i = 0; i < varListNode->var_name()->size(); i++) {
+            varIndex.push_back(varListNode->var_name()->Get(i)->c_str());
+        }
+        
+        node = new VarListNode(varListNode->varlist_id(), varListNode->var_num(), 
+                                varListNode->group_name()->c_str(), varIndex);
         return Status::OK();
     }
 }

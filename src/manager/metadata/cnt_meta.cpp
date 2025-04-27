@@ -24,6 +24,9 @@ namespace SDS {
         }
     }
 
+    bool ContentMeta::extractSSDescWithGaodeAPI(SSDesc &ssDesc, std::string adcode) {
+        return getSSDescByCode(adcode, ssDesc);
+    }
 
     bool ContentMeta::extractSSDesc(SSDesc &ssDesc, std::string province, std::string city, std::string district) {
         try {
@@ -341,7 +344,7 @@ namespace SDS {
             if(tmList.size() > 0) {
                 std::sort(tmList.begin(), tmList.end(), compareTm);
                 tsDesc.startT = *tmList.begin();
-                tsDesc.endT = *(tmList.end() -1);
+                tsDesc.endT = *(tmList.end() - 1);
                 tsDesc.reportT = tsDesc.startT;
                 tm secondFileTm = *(tmList.begin() + 1);
                 tsDesc.interval = mktime(&(secondFileTm)) - mktime(&(tsDesc.startT));

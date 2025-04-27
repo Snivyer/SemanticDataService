@@ -4,7 +4,6 @@ namespace SDS_Retrieval {
 
     class SDS_Retrieval_Client::Impl {
         public:
-
             // semantic space cache
             std::unordered_map<std::string, SemanticSpace> semanticSpaceCache_;
             std::unordered_map<std::string, SpaceInfo*> semanticSpaceTree_;
@@ -24,6 +23,10 @@ namespace SDS_Retrieval {
             // databox client
             std::shared_ptr<DataBoxClient> db_client_;
 
+            // index cache
+            TimeIndex* timeIndex_;
+            VarIndex* varIndex_;
+
 
             Impl() {}
             ~Impl() {}
@@ -31,7 +34,8 @@ namespace SDS_Retrieval {
     };
 
     SDS_Retrieval_Client::SDS_Retrieval_Client(std::shared_ptr<Impl> impl):impl_(std::move(impl)) {
-
+        impl_->timeIndex_ = nullptr;
+        impl_->varIndex_ = nullptr;
     }
 
     std::shared_ptr<SDS_Retrieval_Client> SDS_Retrieval_Client::createClient() {
@@ -70,12 +74,13 @@ namespace SDS_Retrieval {
 
     void SDS_Retrieval_Client::menu() { 
         std::cout << "创建空间:create/cr + 行政区划名 + 存储系统 + 根路径" << std::endl;
-        std::cout << "加载空间:load/lo + 空间名" << std::endl;
+        std::cout << "加载空间:load/lo + 关键字(如:semanticspace或storagespace等) + 空间名" << std::endl;
+        std::cout << "绑定数据源bind/bi + 空间名 + 存储ID" << std::endl;
         std::cout << "导入数据:import/im + 行政区划名 + 文件目录路径" << std::endl;
         std::cout << "查询数据文件:search/sea + 行政区划名 + 时间段 + 变量列表" << std::endl;
         std::cout << "查询数据箱子:find/fi + 行政区划名 + 时间段 + 变量列表" << std::endl;
-        std::cout << "展示元数据:show/sh + 元数据关键字(如:semanticspace或storespace等)" << std::endl;
-        std::cout << "详细展示元数据:detail/de +  元数据关键字(如:semanticspace或storespace等)" << std::endl;
+        std::cout << "展示元数据:show/sh + 元数据关键字(如:semanticspace或storagespace等)" << std::endl;
+        std::cout << "详细展示元数据:detail/de +  元数据关键字(如:semanticspace或storagespace等)" << std::endl;
         std::cout << "导出数据:export/ex + 导入数据类型(如file, databox等)" << std::endl; 
         std::cout << "帮助:help/he" << std::endl;
         std::cout << "退出系统:quit/qu" << std::endl;
@@ -111,9 +116,9 @@ namespace SDS_Retrieval {
             if((op == "import") || (op == "im")) {
                 isSuccess = importData(infos);
             } else if ((op == "create") || (op == "cr")) {
-                isSuccess = createSemanticStoreSpace(infos);
+                isSuccess = createSpace(infos);
             } else if((op == "load") || (op == "lo")) {
-                isSuccess = loadSemanticSpace(infos);
+                isSuccess = load(infos);
             } else if ((op == "search") || (op == "sea")) {
                 isSuccess = searchData(infos);
             } else if ((op == "find") || (op == "fi")) {
@@ -126,7 +131,7 @@ namespace SDS_Retrieval {
             else if ((op == "getdata") || (op == "ge")) {
                 isSuccess = getData(infos);
             } else if ((op == "bind") || (op == "bi")) {
-                isSuccess = createByBucket(infos);
+                isSuccess = bindData(infos);
             } else if (op == "export" || (op == "ex")) {
                 isSuccess = exportData(infos);
             } else if (op == "help" || op == "he") {
@@ -144,6 +149,31 @@ namespace SDS_Retrieval {
             infos.clear(); 
         }
         return 0;
+    }
+
+    bool SDS_Retrieval_Client::createSpace(std::vector<std::string>& infos) {
+        std::string opType = infos[1];
+        transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
+
+        if ((opType == "semanticspace") || (opType == "sem")) { 
+            std::string acode;
+            const std::string geoName = infos[2];
+            std::string admin = GetGeoName(geoName, acode);
+            std::vector<std::string> geoNames = splitString(admin, '-');
+            std::string ssName = geoNames[geoNames.size() - 1]; 
+            return createSemanticSpace(ssName, geoNames);
+        }else if((opType == "storagespace") || (opType == "st") ) {
+            StoreTemplate temp;
+            temp.SSName = infos[2];
+            temp.setStoreKind(infos[3]);
+            temp.setPath(infos[4]);
+            std::string storageID;
+            return createStorageSpace(temp);
+        }else{
+            printOpTypeError(opType);
+            return false;
+        }
+
     }
 
     
@@ -221,6 +251,20 @@ namespace SDS_Retrieval {
         }
     }
 
+    bool SDS_Retrieval_Client::bindData(std::vector<std::string>& infos) {
+        std::string opType = infos[1];
+        transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
+        if ((opType == "datasource") || (opType == "ds")) {
+            std::string ssName = infos[2];
+            std::vector<std::string> storeIDs;
+            storeIDs = splitString(infos[3], '-');
+            return bindDataSource(ssName, storeIDs);
+        } else{
+            printOpTypeError(opType);
+            return false;
+        }
+    }
+
 
     bool SDS_Retrieval_Client::importData(std::vector<std::string>& infos) {
         std::string ssName = infos[1];
@@ -231,17 +275,18 @@ namespace SDS_Retrieval {
     }
 
     bool SDS_Retrieval_Client::exportData(std::vector<std::string>& infos) {
-        
         std::string opType = infos[1];
         transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
-        
     
         if ((opType == "file")) {
             std::string destPath = infos[2];
             return exportFile(destPath);
         } else if ((opType == "databox")) {
-            size_t dbID = std::stoi(infos[2]);
-            return exportDataBox(dbID);
+            std::vector<size_t> ids;
+            for(int i = 2; i < infos.size(); i++) {
+                ids.push_back(std::stoi(infos[2]));
+            }
+            return exportDataBox(ids);
         } else {
             printOpTypeError(opType);
             return false;
@@ -265,18 +310,25 @@ namespace SDS_Retrieval {
                 showSemanticSpace();
             }
         } else if ((opType == "time") || (opType == "ti")) {
-
-        } else if ((opType == "storespace") || (opType == "st")) {
+            if(infos.size() == 3) {
+                time_t reportTime; 
+                string_to_time(infos[2], reportTime);
+                showTime(reportTime);
+            } else {
+                showTime();
+            }
+        } else if ((opType == "storagespace") || (opType == "st")) {
             if(infos.size() == 3) {
                 showStorageSpace(infos[2]);
             } else {
                 showStorageSpace();
             }
-           
-        } else if ((opType == "groupbyvar") || (opType == "gr")) {
-            // printVarGroupInfo();
-        } else if ((opType == "indexbyvar") || (opType == "in")) {
-            // printVarIndexsInfo();
+        } else if ((opType == "vars") || (opType == "va")) {
+            if(infos.size() == 3) {
+                showVars(infos[2]);
+            } else {
+                showVars();
+            }
         } else if ((opType == "databox") || (opType == "da")) {
             showDBInfo();
         } else {
@@ -298,7 +350,7 @@ namespace SDS_Retrieval {
             }
         } else if ((opType == "time") || (opType == "ti")) {
             // printTimeInfo();
-        } else if ((opType == "storespace") || (opType == "st")) {
+        } else if ((opType == "storagespace") || (opType == "st")) {
             if(infos.size() == 4) {
                 detailStorageSpace(spaceName, infos[3]);
             } else {
@@ -315,32 +367,24 @@ namespace SDS_Retrieval {
         }
     }
 
-    bool SDS_Retrieval_Client::createSemanticStoreSpace(std::vector<std::string>& infos) {
-        std::string admin = infos[1];
-        std::string spaceID;
-        std::vector<std::string> geoNames = splitString(admin, '-');
-        std::string ssName = geoNames[geoNames.size() - 1];
+    bool SDS_Retrieval_Client::load(std::vector<std::string>& infos) {
+        std::string opType = infos[1];
+        transform(opType.begin(), opType.end(), opType.begin(), ::tolower);
 
-        // create semantic space and storage space
-        bool ret = createSemanticSpace(ssName, geoNames);
-        if(!ret) {
+        if ((opType == "semanticspace") || (opType == "sem")) {
+            std::string ssName = infos[2];
+            return loadSemanticSpace(ssName);
+        } else if ((opType == "storagespace") || (opType == "st")) {
+            std::string ssName = infos[2];
+            return loadStorageSpace(ssName);
+        } else if ((opType == "varindex") || (opType == "vi")) {
+            return loadVarIndex();
+        } else if ((opType == "timeindex") || (opType == "ti")) {
+            return loadTimeIndex();
+        } else {
+            printOpTypeError(opType);
             return false;
         }
-       
-        // create storage space
-        StoreTemplate temp;
-        temp.SSName = ssName;
-        temp.setStoreKind(infos[2]);
-        temp.setPath(infos[3]);
-        std::string storageID;
-                
-        ret = createStorageSpace(spaceID, ssName, temp);
-        return ret;
-    }
-
-    bool SDS_Retrieval_Client::loadSemanticSpace(std::vector<std::string>& infos) {
-        std::string ssName = infos[1];
-        return loadSemanticSpace(ssName);
     }
 
     int SDS_Retrieval_Client::printError(bool flag, std::string code) {
@@ -478,16 +522,22 @@ namespace SDS_Retrieval {
         }
     }
 
-    bool SDS_Retrieval_Client::createStorageSpace(std::string spaceID, std::string SSName, StoreTemplate &temp) {
+    bool SDS_Retrieval_Client::createStorageSpace(StoreTemplate &temp) {
         StorageSpace space;
-        auto ret = impl_->storageSpaceCache_.find(SSName);
+        auto ret = impl_->storageSpaceCache_.find(temp.SSName);
         if(ret != impl_->storageSpaceCache_.end()) {
             return true;
         }
-        
-        auto status = impl_->meta_client_->createStorageSpace(spaceID, SSName, temp, space);
+
+        auto ret1 = impl_->semanticSpaceCache_.find(temp.SSName);
+        if(ret1 == impl_->semanticSpaceCache_.end()) {
+            return false;
+        }
+
+        std::string spaceID = ret1->second.getCompleteSpaceID();
+        auto status = impl_->meta_client_->createStorageSpace(spaceID, temp, space);
         if(status.ok()) {
-            impl_->storageSpaceCache_[SSName] = space;
+            impl_->storageSpaceCache_[temp.SSName] = space;
             cacheStorageSpace(space);
             return true;
         }
@@ -524,7 +574,6 @@ namespace SDS_Retrieval {
         if(spaceID.size() == 0) {
             return true;
         }
-
         auto ret = impl_->storageSpaceTree_.find(spaceID);
         if(ret != impl_->storageSpaceTree_.end()) {
             ret->second->children.insert({info->spaceID, info});
@@ -593,6 +642,123 @@ namespace SDS_Retrieval {
             std::cout << "暂时没有创建该存储空间, 请预先创建..." << std::endl;
         }
     }
+
+    bool SDS_Retrieval_Client::loadVarIndex() {
+        auto ret = impl_->meta_client_->loadVarIndex(impl_->varIndex_);
+        if(!ret.ok()) {
+            std::cout << "暂时没有任何变量列表信息，请预先导入数据..." << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+    bool SDS_Retrieval_Client::showVars(std::string groupName) {
+        if(impl_->varIndex_ == nullptr) {
+            bool ret = loadVarIndex();
+            if(!ret) {
+                return true;
+            }
+        }
+
+        if(groupName == "*") {
+            impl_->varIndex_->printWithTreeModel();
+        } else {
+            VarListNode* node = nullptr;
+            if(impl_->varIndex_->search(groupName, node)) {
+                node->printWithTreeModel();
+            } else {
+                std::cout << "暂时没有该变量列表信息, 请再次确认..." << std::endl;
+            }
+        }
+        return true; 
+    }
+
+    bool SDS_Retrieval_Client::detailVarGroup(std::string groupName) {
+        if(impl_->varIndex_ != nullptr) {
+            VarListNode* node = nullptr;
+            if(impl_->varIndex_->search(groupName, node)) {
+                node->printWithTreeModel();
+                return true;
+            }
+            delete impl_->varIndex_;
+            impl_->varIndex_ = nullptr;
+        }
+
+        bool ret = loadVarIndex();
+        if(!ret) {
+            return false;
+        }
+
+        VarListNode* node = nullptr;
+        if(impl_->varIndex_->search(groupName, node)) {
+            node->printWithTreeModel();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    bool SDS_Retrieval_Client::detailVar(std::string groupName, std::string varName) {
+        if(impl_->varIndex_ != nullptr) {
+            VarListNode* node = nullptr;
+            if(impl_->varIndex_->search(groupName, node)) {
+                auto ret = node->varIndex.find(varName);
+                if(ret != node->varIndex.end()) {
+                    // todo: 这里如何显示呀！
+                    return true;
+                }
+            }
+            delete impl_->varIndex_;
+            impl_->varIndex_ = nullptr;
+        }
+
+        bool ret = loadVarIndex();
+        if(!ret) {
+            return false;
+        }
+
+        VarListNode* node = nullptr;
+        if(impl_->varIndex_->search(groupName, node)) {
+            auto ret = node->varIndex.find(varName);
+            if(ret != node->varIndex.end()) {
+                // todo: 这里如何显示呀！
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    bool SDS_Retrieval_Client::loadTimeIndex() {
+        auto ret = impl_->meta_client_->loadTimeIndex(impl_->timeIndex_);
+        if(!ret.ok()) {
+            std::cout << "暂时没有任何时间段信息，请预先导入数据..." << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+    bool SDS_Retrieval_Client::showTime(time_t reportTime) {
+        if(impl_->timeIndex_ == nullptr) {
+            bool ret = loadTimeIndex();
+            if(!ret) {
+                return true;
+            }
+        }
+
+        if(reportTime == 0 ) {
+            impl_->timeIndex_->printWithTreeModel();
+        } else {
+            TimeSlotNode* node = nullptr;
+            if(impl_->timeIndex_->search(reportTime, node)) {
+                node->printWithTreeModel();
+            } else {
+                std::cout << "暂时没有该时间段信息, 请再次确认..." << std::endl;
+            }
+        }
+        return true;
+    }
+
 
     bool SDS_Retrieval_Client::searchDataFile(std::string SSName, std::vector<std::string> &times,
                                                  std::vector<std::string> &varNames) {
@@ -744,16 +910,32 @@ namespace SDS_Retrieval {
         return true;
     }
 
-    bool SDS_Retrieval_Client::exportDataBox(size_t dbID) {
-        DataboxObject* dbObject;
-        // todo: 这个对象是否也需要缓存下
-
-        auto ret = impl_->db_client_->getDB(dbID, 0, dbObject);
+    bool SDS_Retrieval_Client::exportDataBox(std::vector<size_t> &ids) {
+        auto ret = impl_->db_client_->getDB(ids, 0);
         if(ret.ok()) {
-            dbObject->print();
+            return true;
+        }
+        std::cout << "数据箱子导出失败,请核对对象ID" << std::endl;
+        return false;
+    }
+
+    bool SDS_Retrieval_Client::bindDataSource(std::string ssName, std::vector<std::string> &storeIDs)  {
+        if(storeIDs.size() != 3) {
+            std::cout << "请输入正确的存储ID(格式为:addre ID-type ID-site ID)" << std::endl;
+            return false;
+        }
+        
+        bool ret = false;
+        StorageID storageID;
+        storageID.setSpaceID(storeIDs[0]);
+        storageID.setTypeID(storeIDs[1]);
+        storageID.setSiteID(storeIDs[2]);
+        impl_->meta_client_->bindDataSource(ssName, storageID, ret);
+        if(!ret) {
+            std::cout << "数据源绑定失败,请确认绑定信息是否正确" << std::endl;
+            return false;
         }
         return true;
     }
-
 
 }

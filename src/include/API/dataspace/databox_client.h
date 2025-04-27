@@ -30,29 +30,20 @@ namespace SDS
 
         arrow::Status disconnect();
 
-       
-        // version 1 interface
-        arrow::Status getDB(ContentID &cntID, int64_t timeout, DataboxObject *object);
-
-        arrow::Status containDB(ContentID &cntID, bool &is_contain);
-
-        arrow::Status releaseDB(ContentID &cntID, bool &is_release);
-
-        arrow::Status deleteDB(ContentID &cntID, bool &is_delete);
-
+    
         // version2 interface
         arrow::Status createDB(ContentID &cntID, ContentDesc &cntDesc,
                                  StoreDesc &desc, FilePathList &fileList, DBMeta& dbMeta);
         
-        arrow::Status getDB(size_t dbID, int64_t timeout, DataboxObject *object);
+        arrow::Status getDB(std::vector<size_t> &ids, int64_t timeout);
 
-        arrow::Status containDB(size_t dbID, bool &is_contain);
+        arrow::Status containDB(size_t id, bool &is_contain);
 
-        arrow::Status releaseDB(size_t dbID, bool &is_release);
+        arrow::Status releaseDB(size_t id, bool &is_release);
 
-        arrow::Status deleteDB(size_t dbID, bool &is_delete);
+        arrow::Status deleteDB(std::vector<size_t> &ids, bool &is_delete);
             
-        arrow::Status getContentID(size_t dbID, ContentID &cntID); 
+        arrow::Status getContentID(size_t id, ContentID &cntID); 
         
 
         private:

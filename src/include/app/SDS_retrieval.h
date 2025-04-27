@@ -5,6 +5,7 @@
 #include "manager/storagespace/storage_space.h"
 #include "abstract/utils/directory_operation.h"
 #include "abstract/meta/cnt_ID.h"
+#include "abstract/GIS/search_API.h"
 #include <unordered_map>
 
 using namespace SDS;
@@ -19,8 +20,6 @@ namespace SDS_Retrieval {
         std::string spaceName;    
         std::unordered_map<std::string, SpaceInfo*> children;
     };
-
-
 
     class SDS_Retrieval_Client {
         public:
@@ -37,13 +36,16 @@ namespace SDS_Retrieval {
 
             /*operations_related*/ 
             // create semantic space and storage space
-            bool createSemanticStoreSpace(std::vector<std::string>& infos);
+            bool createSpace(std::vector<std::string>& infos);
 
-            // load semantic space
-            bool loadSemanticSpace(std::vector<std::string>& infos);
+            // load space
+            bool load(std::vector<std::string>& infos);
 
             // create semantic space and storage space in the specified bucket
             bool createByBucket(std::vector<std::string>& infos);
+
+            // bind data source, databox
+            bool bindData(std::vector<std::string>& infos);
 
             // data import
             bool importData(std::vector<std::string>& infos);
@@ -82,7 +84,7 @@ namespace SDS_Retrieval {
             explicit SDS_Retrieval_Client(std::shared_ptr<Impl> impl);
 
             /* semantic space related*/
-      
+
             // create semantic space 
             bool createSemanticSpace(std::string SSName, std::vector<std::string> geoNames);
 
@@ -96,25 +98,32 @@ namespace SDS_Retrieval {
             void showSemanticSpace(std::string SSName = "*");
             void detailSemanticSpace(std::string SSName, std::string model = "table");
 
-
             /* storage space related*/
             // create storage space
-            bool createStorageSpace(std::string spaceID, std::string SSName, StoreTemplate &temp);
-
+            bool createStorageSpace(StoreTemplate &temp);
             bool loadStorageSpace(std::string SSName);
             void cacheStorageSpace(StorageSpace &space);
             bool addToStorageSpaceTree(StorageSpace &space);
             bool addToStorageSpaceTree(std::string PSSID, SpaceInfo* info, int keyLength = 3);
 
             // show storage space
-            void showStorageSpace(std::string ssName = "*");
+            void showStorageSpace(std::string SSName = "*");
             void detailStorageSpace(std::string SSName, std::string model = "table");
 
             /*search related*/
             bool searchDataFile(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
             bool searchDataBox(std::string SSName, std::vector<std::string> &times, std::vector<std::string> &varNames);
             
+            /*var related*/
+            bool loadVarIndex();
+            bool showVars(std::string groupName = "*");
+            bool detailVarGroup(std::string groupName);
+            bool detailVar(std::string groupName, std::string varName);
 
+            /*time related*/
+            bool loadTimeIndex();
+            bool showTime(time_t reportTime = 0);
+        
             /*show search result*/
             bool showSearchResult(std::string spaceName, std::string spaceID);
 
@@ -130,11 +139,10 @@ namespace SDS_Retrieval {
 
             /*data export*/
             bool exportFile(std::string destPath);
-            bool exportDataBox(size_t dbID);
+            bool exportDataBox(std::vector<size_t> &ids);
 
-
-
-
+            /*bind data*/
+            bool bindDataSource(std::string ssName, std::vector<std::string> &storeIDs);
     };
 }
 

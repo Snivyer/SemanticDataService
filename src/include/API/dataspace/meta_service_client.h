@@ -32,21 +32,21 @@ namespace SDS
         arrow::Status loadStorageSpace(std::string ssName, StorageSpace &space);
     
 
-        arrow::Status createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space);
+        arrow::Status createStorageSpace(std::string spaceID, StoreTemplate &temp, StorageSpace &space);
        
         arrow::Status importDataFromLocal(std::string semanticSpace, std::string storageSpace, std::string dirPath, bool &result);
        
         arrow::Status searchDataBox(std::string spaceName, std::vector<std::string> &times,
                                         std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
                                         std::vector<size_t> &dbIDs);
-            
-
-      
         
+        arrow::Status loadTimeIndex(TimeIndex* &timeIndex);
+        arrow::Status loadVarIndex(VarIndex* &varIndex);
+            
         arrow::Status searchDataFile(std::string spaceName, std::vector<std::string> &times,
                                         std::vector<std::string> &varNames, std::vector<FilePathList> &fileList);
             
-            
+        arrow::Status bindDataSource(std::string ssName, StorageID &storageID, bool &ret);
         
         private:
             class Impl;

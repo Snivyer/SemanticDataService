@@ -8,6 +8,7 @@
 #pragma once
 #include "meta.h"
 #include "abstract/GIS/geo_read.h"
+#include "abstract/GIS/search_API.h"
 #include "abstract/utils/string_operation.h"
 #include "abstract/meta/cnt_meta_template.h"
 #include "abstract/meta/cnt_ID.h"
@@ -41,6 +42,9 @@ namespace SDS
 
         // extract the semantic space desciption according to arbitrary number of geoNames
         bool extractSSDesc(SSDesc &ssDesc, std::vector<std::string> &geoNames);
+
+        bool extractSSDescWithGaodeAPI(SSDesc &ssDesc, std::string adcode);
+        
 
         
         // extract the time slot desciption according to directory name

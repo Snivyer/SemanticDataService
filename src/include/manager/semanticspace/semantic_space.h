@@ -109,6 +109,9 @@ namespace SDS
         SemanticSpace* getSpaceByName(std::string spaceName);
         SemanticSpace* getSpaceByID(std::string spaceID);
 
+        // add a data source
+        bool createDataSourceIndex(StorageID &storageID, Adaptor *adaptor);
+
         // add a data box index into the semantic space
         bool createDataBoxIndex(std::string spaceID, StorageID &storageID, Adaptor *adaptor);
 
@@ -131,12 +134,13 @@ namespace SDS
         std::map<std::string, SemanticSpace*> _spaceIDMap;
 
         // create time index
-        bool createTimeIndex(Adaptor* adaptor, SemanticSpace* space,
-                                ContentID &cntID, TSDesc &desc);
+        bool createTimeIndex(Adaptor* adaptor, ContentID &cntID, TSDesc &desc);
+       
 
         // create var index 
-        bool createVarIndex(Adaptor* adaptor, SemanticSpace* space, 
-                                ContentID &cntID, VLDesc &desc);
+        bool createVarIndex(Adaptor* adaptor, ContentID &cntID, VLDesc &desc);
+       
+        
 
 
 

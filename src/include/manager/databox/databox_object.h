@@ -38,8 +38,7 @@ namespace SDS{
           
             DataboxObject();
             ~DataboxObject();
-
-   
+            
             DBMeta& getDBMeta();
             arrow::Status fillData(Adaptor *adaptor, ContentDesc &cntDesc, size_t dbID);
             arrow::Status removeData();

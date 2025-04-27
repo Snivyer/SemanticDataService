@@ -4,21 +4,17 @@ namespace SDS
 {
 
     // 初始化空间索引
-    VarIndex::VarIndex()
-    {
+    VarIndex::VarIndex() {
         _entrance.type = IndexType::VarList;
-
     }
 
     // 析构函数
-    VarIndex::~VarIndex()
-    {
+    VarIndex::~VarIndex() {
 
     }
 
     // 解析检索词
-    bool  VarIndex::getTerm(SearchTerm &term, std::string &varName)
-    {
+    bool  VarIndex::getTerm(SearchTerm &term, std::string &varName) {
         if(term.size() == 1) {
             varName = term[0];
             return true;
@@ -47,7 +43,7 @@ namespace SDS
         return false;
     }
 
-    bool VarIndex:: hasVar(std::string varName) {
+    bool VarIndex::hasVar(std::string varName) {
         for(auto item : varListIndex) {
             auto vlIndex = item.second;
             auto ret = vlIndex->varIndex.find(varName);
@@ -96,6 +92,7 @@ namespace SDS
         // firstly, insert into varlistSet
         varListSet.push_back(node);
         node->varListID = varListSet.size();
+        node->groupName = groupName;
 
         // secondly, insert into varlistIndex
         varListIndex.insert({groupName, node});
@@ -115,6 +112,24 @@ namespace SDS
     bool VarIndex::persist(std::string fileName)
     {
 
+    }
+
+    bool VarIndex::saveAsVarList(std::vector<VarListNode*> &varLists) {
+        varLists = this->varListSet;
+    }
+
+    bool VarIndex::loadWithVarList(std::vector<VarListNode*> &varLists) {
+        _entrance.type = IndexType::VarList;
+        this->varListSet = varLists;
+        for(auto item: varLists) {
+            this->varListIndex.insert({item->groupName, item});
+        }
+    }
+
+    void VarIndex::printWithTreeModel() {
+        for(auto item : this->varListSet) {
+            item->printWithTreeModel();
+        }
     }
     
 

@@ -19,6 +19,7 @@
 #include "manager/storagespace/storage_space.h"
 #include "manager/rpc/metadata_rpc/meta_protocol.h"
 #include "API/dataspace/databox_client.h"
+#include "abstract/utils/directory_operation.h"
 
 using arrow::Status;
 
@@ -31,7 +32,7 @@ namespace SDS {
             SemanticSpace* createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client);
             SemanticSpace* loadSemanticSpace(std::string SSName);
 
-            StorageSpace* createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, MetaClient* client);
+            StorageSpace* createStorageSpace(StoreTemplate &storeInfo, MetaClient* client);
             StorageSpace* loadStorageSpace(std::string SSName);
        
 
@@ -59,6 +60,7 @@ namespace SDS {
             class Impl;
             std::shared_ptr<Impl> impl_;
             explicit MetaService(std::shared_ptr<Impl> impl);
+            void init();
             bool removeClientFromSemanticSpaceEntry(SemanticSpaceEntry* entry, MetaClient* client);
             bool removeClientFromStorageSpaceEntry(StorageSpaceEntry* entry, MetaClient* client);
             bool addClientToSemanticSpaceEntry(SemanticSpaceEntry *entry, MetaClient* client);
@@ -67,8 +69,10 @@ namespace SDS {
             bool searchData(std::string SSName, std::vector<std::string> &times, 
                 std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
                 std::vector<ContentID> &cntIDs, std::vector<ContentDesc> &cntDescs, std::vector<StoreDesc> &storeDescs, bool isFile = true);
-            
-
+            bool initDataSource();
+            bool bindDataSource(std::string SSName, StorageID &storeID);
+            TimeIndex* getTimeIndex();
+            VarIndex* getVarIndex();
             
     };
 

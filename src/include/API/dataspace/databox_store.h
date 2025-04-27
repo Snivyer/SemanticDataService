@@ -36,16 +36,16 @@ namespace SDS
         // The ID of the timer that will time out and cause this wait to return 
         int64_t timer;
         // The databox ID involved in this request.
-        std::vector<ContentID> databoxIDs;
+        std::vector<size_t> databoxIDs;
         // The object information for the objects in this request. This is used in the reply.
-        std::unordered_map<ContentID, DataboxObject*, ContentIDHasher> databoxs;
+        std::unordered_map<size_t, DataboxObject*> databoxs;
+        // todo: 这里是不是没必要缓存呀
 
-        GetRequest(Client *client, const std::vector<ContentID> &ids) {
+        GetRequest(Client *client, const std::vector<size_t> &ids) {
             this->client = client;
             this->timer = -1;
-
-            for(auto cntID : ids) {
-                this->databoxIDs.push_back(cntID);
+            for(auto id : ids) {
+                this->databoxIDs.push_back(id);
             }
         }
     };
@@ -58,29 +58,28 @@ namespace SDS
                                                                 std::shared_ptr<BasicMetaServer> rpcServer);
 
             // create a databox object and add it into the dbentry
-            bool createDB(const ContentID &cntID, ContentDesc &cntDesc,
+            size_t createDB(const ContentID &cntID, ContentDesc &cntDesc,
                              StoreDesc &stoDesc, FilePathList &filePath, Client* client);
 
             
             // delete db objects that have been created
-            bool deleteDB(const std::vector<ContentID> &ids);
+            bool deleteDB(std::vector<size_t> &ids);
             
 
             // get db object
-            bool getDB( Client* client, const std::vector<ContentID> &ids,
-                     int64_t timeout_ms);
+            bool getDB( Client* client, std::vector<size_t> &ids, int64_t timeout_ms);
 
             // return db object with arrow flight
             bool returnDBwithFlight(GetRequest* getReq);
  
             // undersend an databox, this databox is now immutable and can be accessed with flight.
-            bool unsendDB(const ContentID &cntID);
+            bool unsendDB(size_t id);
 
             // check if the databox store contains an databox
-            bool containDB(const ContentID &cntID);
+            bool containDB(size_t id);
 
             // release a client that is no longer using an object
-            bool releaseDB(const ContentID &cntID, Client* client);
+            bool releaseDB(size_t id, Client* client);
 
             // connect a new client to the databox Store
             void connectClient(int listenerSock); 

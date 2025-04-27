@@ -13,7 +13,7 @@ namespace SDS {
             // The amount of memory avaibale to the databox store
             int64_t storeCapacity;
             // A hash table of the databox IDs that are currently being used by this client
-            std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher> dbInUse;
+            std::unordered_map<size_t, std::shared_ptr<DataboxInUseEntry>> dbInUse;
 
             std::unordered_map<size_t, ContentID> dbIndex;
 
@@ -44,11 +44,11 @@ namespace SDS {
                 this->storeCapacity = storeCapacity;
             }
 
-            std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher>& getDBInUse() {
+            std::unordered_map<size_t, std::shared_ptr<DataboxInUseEntry>>& getDBInUse() {
                 return this->dbInUse;
             }
 
-            std::unordered_map<size_t, ContentID> getDBIndex() {
+            std::unordered_map<size_t, ContentID>& getDBIndex() {
                 return this->dbIndex;
             }
             
@@ -111,28 +111,28 @@ namespace SDS {
             dbMeta.filled = true;
         } 
         return Status::OK();                                      
-
-
     }
 
-    arrow::Status DataBoxClient::getDB(ContentID &cntID, int64_t timeout, DataboxObject *object) {
-
-        std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher> useEntry = impl_->getDBInUse();
-        auto dbEntry = useEntry.find(cntID);
-        if(dbEntry != useEntry.end()) {
-            ARROW_CHECK(dbEntry->second->isSeal) << "Client called get on an unsealed object that it created";
-            
-            // get databox object directly from local
-            object = dbEntry->second->object;
-            // increament the count of the number of instance of this object
-            dbEntry->second->count += 1;   
+    arrow::Status DataBoxClient::getDB(std::vector<size_t> &ids, int64_t timeout) {
+        std::vector<size_t> unFoundIDs;
+        auto useEntry = impl_->getDBInUse();
+        for(size_t id : ids) {
+            auto dbEntry = useEntry.find(id);
+            if(dbEntry != useEntry.end()) {
+                ARROW_CHECK(dbEntry->second->isSeal) << "Client called get on an unsealed object that it created";
+                // increament the count of the number of instance of this object
+                dbEntry->second->count += 1;   
+            } else {
+                unFoundIDs.push_back(id);
+            }
+        }
+        if(unFoundIDs.size() == 0) {
             return Status::OK();
         }
 
         // get databox object from the databox store
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendGetRequest(client, cntID, timeout));
-
+        RETURN_NOT_OK(SendGetRequest(client, unFoundIDs, timeout));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeGetReply, &buffer));
         std::string ip;
@@ -140,40 +140,17 @@ namespace SDS {
         RETURN_NOT_OK(ReadGetReply(buffer.data(), ip, port));
 
         if(port != 0) {
-            ARROW_LOG(INFO) << "I start to prepare the arrow flight client at:" << ip <<":" << std::to_string(port);
+            ARROW_LOG(INFO) << "you should prepare the arrow flight client at:" << ip <<":" << std::to_string(port);
             return Status::OK();
         } else {
             return Status::NotImplemented("There are not idel sender, try again!");
         }
+          
     }
 
-    arrow::Status DataBoxClient::getDB(size_t dbID, int64_t timeout, DataboxObject *object) {
-        
-        // std::unordered_map<ContentID, std::shared_ptr<DataboxInUseEntry>, ContentIDHasher> useEntry = impl_->getDBInUse();
-        // auto dbEntry = useEntry.find(cntID);
-        // if(dbEntry != useEntry.end()) {
-        //     ARROW_CHECK(dbEntry->second->isSeal) << "Client called get on an unsealed object that it created";
-            
-        //     // get databox object directly from local
-        //     object = dbEntry->second->object;
-        //     // increament the count of the number of instance of this object
-        //     dbEntry->second->count += 1;   
-        //     return Status::OK();
-        // }
-
-        ContentID cntID;
-        auto ret = this->getContentID(dbID, cntID);
-        if(ret.ok()) {
-            return this->getDB(cntID, timeout, object);
-        } else {
-            return Status::NotImplemented("There is not databox that you want, try again!");
-        }
-    }
-
-    arrow::Status DataBoxClient::containDB(ContentID &cntID, bool &is_contain) {
+    arrow::Status DataBoxClient::containDB(size_t id, bool &is_contain) {
         int client = impl_->getStoreConn();
-    
-        RETURN_NOT_OK(SendContainRequest(client, cntID));
+        RETURN_NOT_OK(SendContainRequest(client, id));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeContaineReply, &buffer));
 
@@ -181,29 +158,31 @@ namespace SDS {
         return Status::OK();
     }
 
-    arrow::Status DataBoxClient::releaseDB(ContentID &cntID, bool &is_release) {
-
+    arrow::Status DataBoxClient::releaseDB(size_t id, bool &is_release) {
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendReleaseRequest(client, cntID));
+        RETURN_NOT_OK(SendReleaseRequest(client, id));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeReleaseReply, &buffer));
-
         RETURN_NOT_OK(ReadReleaseReply(buffer.data(), is_release));
         return Status::OK();
     }
 
-    arrow::Status DataBoxClient::deleteDB(ContentID &cntID, bool &is_delete) {
+    arrow::Status DataBoxClient::deleteDB(std::vector<size_t> &ids, bool &is_delete) {
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendDeleteRequest(client, cntID));
+        RETURN_NOT_OK(SendDeleteRequest(client, ids));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeDeleteReply, &buffer));
-
         RETURN_NOT_OK(ReadDeleteReply(buffer.data(), is_delete));
+
+        auto useEntry = impl_->getDBInUse();
+        for(size_t id : ids) { 
+            useEntry.erase(id);
+        }
         return Status::OK();
     }
 
-    arrow::Status DataBoxClient::getContentID(size_t dbID, ContentID &cntID) {
-        auto ret = impl_->getDBIndex().find(dbID);
+    arrow::Status DataBoxClient::getContentID(size_t id, ContentID &cntID) {
+        auto ret = impl_->getDBIndex().find(id);
         if(ret != impl_->getDBIndex().end()) {
             cntID.setSpaceID(ret->second.getSpaceID());
             cntID.setTimeID(ret->second.getTimeID());
@@ -212,7 +191,7 @@ namespace SDS {
         }
 
         int client = impl_->getStoreConn();
-        RETURN_NOT_OK(SendGetContentIDRequest(client, dbID));
+        RETURN_NOT_OK(SendGetContentIDRequest(client, id));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeGetContentIDReply, &buffer));
         RETURN_NOT_OK(ReadGetContentIDReply(buffer.data(), cntID));

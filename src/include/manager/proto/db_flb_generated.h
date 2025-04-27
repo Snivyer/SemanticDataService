@@ -354,19 +354,19 @@ inline ::flatbuffers::Offset<DBCreateReply> CreateDBCreateReply(
 struct DBgetRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DBgetRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CNT_ID = 4,
+    VT_IDS = 4,
     VT_TIMEOUT = 6
   };
-  const ContentIDRequest *cnt_id() const {
-    return GetPointer<const ContentIDRequest *>(VT_CNT_ID);
+  const ::flatbuffers::Vector<uint64_t> *ids() const {
+    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_IDS);
   }
   int64_t timeout() const {
     return GetField<int64_t>(VT_TIMEOUT, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_CNT_ID) &&
-           verifier.VerifyTable(cnt_id()) &&
+           VerifyOffset(verifier, VT_IDS) &&
+           verifier.VerifyVector(ids()) &&
            VerifyField<int64_t>(verifier, VT_TIMEOUT, 8) &&
            verifier.EndTable();
   }
@@ -376,8 +376,8 @@ struct DBgetRequestBuilder {
   typedef DBgetRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_cnt_id(::flatbuffers::Offset<ContentIDRequest> cnt_id) {
-    fbb_.AddOffset(DBgetRequest::VT_CNT_ID, cnt_id);
+  void add_ids(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> ids) {
+    fbb_.AddOffset(DBgetRequest::VT_IDS, ids);
   }
   void add_timeout(int64_t timeout) {
     fbb_.AddElement<int64_t>(DBgetRequest::VT_TIMEOUT, timeout, 0);
@@ -395,12 +395,23 @@ struct DBgetRequestBuilder {
 
 inline ::flatbuffers::Offset<DBgetRequest> CreateDBgetRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<ContentIDRequest> cnt_id = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> ids = 0,
     int64_t timeout = 0) {
   DBgetRequestBuilder builder_(_fbb);
   builder_.add_timeout(timeout);
-  builder_.add_cnt_id(cnt_id);
+  builder_.add_ids(ids);
   return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DBgetRequest> CreateDBgetRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint64_t> *ids = nullptr,
+    int64_t timeout = 0) {
+  auto ids__ = ids ? _fbb.CreateVector<uint64_t>(*ids) : 0;
+  return CreateDBgetRequest(
+      _fbb,
+      ids__,
+      timeout);
 }
 
 struct DBgetReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -469,15 +480,14 @@ inline ::flatbuffers::Offset<DBgetReply> CreateDBgetReplyDirect(
 struct DBcontainRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DBcontainRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CNT_ID = 4
+    VT_ID = 4
   };
-  const ContentIDRequest *cnt_id() const {
-    return GetPointer<const ContentIDRequest *>(VT_CNT_ID);
+  uint64_t id() const {
+    return GetField<uint64_t>(VT_ID, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_CNT_ID) &&
-           verifier.VerifyTable(cnt_id()) &&
+           VerifyField<uint64_t>(verifier, VT_ID, 8) &&
            verifier.EndTable();
   }
 };
@@ -486,8 +496,8 @@ struct DBcontainRequestBuilder {
   typedef DBcontainRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_cnt_id(::flatbuffers::Offset<ContentIDRequest> cnt_id) {
-    fbb_.AddOffset(DBcontainRequest::VT_CNT_ID, cnt_id);
+  void add_id(uint64_t id) {
+    fbb_.AddElement<uint64_t>(DBcontainRequest::VT_ID, id, 0);
   }
   explicit DBcontainRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -502,9 +512,9 @@ struct DBcontainRequestBuilder {
 
 inline ::flatbuffers::Offset<DBcontainRequest> CreateDBcontainRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<ContentIDRequest> cnt_id = 0) {
+    uint64_t id = 0) {
   DBcontainRequestBuilder builder_(_fbb);
-  builder_.add_cnt_id(cnt_id);
+  builder_.add_id(id);
   return builder_.Finish();
 }
 
@@ -552,15 +562,14 @@ inline ::flatbuffers::Offset<DBcontainReply> CreateDBcontainReply(
 struct DBReleaseRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DBReleaseRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CNT_ID = 4
+    VT_ID = 4
   };
-  const ContentIDRequest *cnt_id() const {
-    return GetPointer<const ContentIDRequest *>(VT_CNT_ID);
+  uint64_t id() const {
+    return GetField<uint64_t>(VT_ID, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_CNT_ID) &&
-           verifier.VerifyTable(cnt_id()) &&
+           VerifyField<uint64_t>(verifier, VT_ID, 8) &&
            verifier.EndTable();
   }
 };
@@ -569,8 +578,8 @@ struct DBReleaseRequestBuilder {
   typedef DBReleaseRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_cnt_id(::flatbuffers::Offset<ContentIDRequest> cnt_id) {
-    fbb_.AddOffset(DBReleaseRequest::VT_CNT_ID, cnt_id);
+  void add_id(uint64_t id) {
+    fbb_.AddElement<uint64_t>(DBReleaseRequest::VT_ID, id, 0);
   }
   explicit DBReleaseRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -585,9 +594,9 @@ struct DBReleaseRequestBuilder {
 
 inline ::flatbuffers::Offset<DBReleaseRequest> CreateDBReleaseRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<ContentIDRequest> cnt_id = 0) {
+    uint64_t id = 0) {
   DBReleaseRequestBuilder builder_(_fbb);
-  builder_.add_cnt_id(cnt_id);
+  builder_.add_id(id);
   return builder_.Finish();
 }
 
@@ -635,15 +644,15 @@ inline ::flatbuffers::Offset<DBReleaseReply> CreateDBReleaseReply(
 struct DBDeleteRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DBDeleteRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CNT_ID = 4
+    VT_IDS = 4
   };
-  const ContentIDRequest *cnt_id() const {
-    return GetPointer<const ContentIDRequest *>(VT_CNT_ID);
+  const ::flatbuffers::Vector<uint64_t> *ids() const {
+    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_IDS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_CNT_ID) &&
-           verifier.VerifyTable(cnt_id()) &&
+           VerifyOffset(verifier, VT_IDS) &&
+           verifier.VerifyVector(ids()) &&
            verifier.EndTable();
   }
 };
@@ -652,8 +661,8 @@ struct DBDeleteRequestBuilder {
   typedef DBDeleteRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_cnt_id(::flatbuffers::Offset<ContentIDRequest> cnt_id) {
-    fbb_.AddOffset(DBDeleteRequest::VT_CNT_ID, cnt_id);
+  void add_ids(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> ids) {
+    fbb_.AddOffset(DBDeleteRequest::VT_IDS, ids);
   }
   explicit DBDeleteRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -668,10 +677,19 @@ struct DBDeleteRequestBuilder {
 
 inline ::flatbuffers::Offset<DBDeleteRequest> CreateDBDeleteRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<ContentIDRequest> cnt_id = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> ids = 0) {
   DBDeleteRequestBuilder builder_(_fbb);
-  builder_.add_cnt_id(cnt_id);
+  builder_.add_ids(ids);
   return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<DBDeleteRequest> CreateDBDeleteRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint64_t> *ids = nullptr) {
+  auto ids__ = ids ? _fbb.CreateVector<uint64_t>(*ids) : 0;
+  return CreateDBDeleteRequest(
+      _fbb,
+      ids__);
 }
 
 struct DBDeleteReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

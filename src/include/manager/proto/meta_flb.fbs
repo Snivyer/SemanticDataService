@@ -178,5 +178,38 @@ table StorageSpaceLoadReply {
     file_path_list:[FilePathListRequest];
 }
 
+table VarListNodeRequest {
+    group_name: string;
+    varlist_id: ulong;
+    var_num: ulong;
+    var_name: [string];
+}
+
+table VarIndexRequest {
+    varlist_nodes: [VarListNodeRequest];
+}
+
+table TimeListRequest {
+    interval_id: ulong;
+    end_time: long;
+    times: [long];
+}
+
+table TimeSlotNodeRequest {
+    timeslot_id: ulong;
+    report_time: long;
+    interval_num: ulong;
+    time_interval_index: [TimeListRequest];
+}
+
+table TimeIndexRequest {
+    timeslots: [TimeSlotNodeRequest];
+}
+
+table BindDataSourceRequest {
+    ss_name: string;
+    store_id: StorageIDRequest;
+}
+
 
 

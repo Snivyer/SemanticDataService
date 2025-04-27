@@ -43,6 +43,12 @@ namespace SDS {
     const int64_t MessageTypeDataFileSearchReply             = 18;
     const int64_t MessageTypeStorageSpaceLoadRequest         = 19;
     const int64_t MessageTypeStorageSpaceLoadReply           = 20;
+    const int64_t MessageTypeTimeIndexRequest                = 21;
+    const int64_t MessageTypeTimeIndexReply                  = 22;
+    const int64_t MessageTypeVarIndexRequest                 = 23;
+    const int64_t MessageTypeVarIndexReply                   = 24;
+    const int64_t MessageTypeBindDataSourceRequest           = 25;
+    const int64_t MessageTypeBindDataSourceReply             = 26;
 
     /* connect message functions*/
     Status SendMetaConnectRequest(int sock);
@@ -96,6 +102,21 @@ namespace SDS {
     Status SendSearchDataFileReply(int sock, std::vector<FilePathList> &filePath);
     Status ReadSearchDataFileReply(uint8_t* data, std::vector<FilePathList> &filePath);
 
+    /*get index message functions*/
+    Status SendTimeIndexRequest(int sock);
+    Status SendTimeIndexReply(int sock, TimeIndex* index);
+    Status ReadTimeIndexReply(uint8_t* data, TimeIndex* &index);
+
+    Status SendVarIndexRequest(int sock);
+    Status SendVarIndexReply(int sock, VarIndex* index);
+    Status ReadVarIndexReply(uint8_t* data, VarIndex* &index);
+
+    /*bind data functions*/
+    Status SendBindDataSourceRequest(int sock, std::string &SSName, StorageID &storeID);
+    Status ReadBindDataSourceRequest(uint8_t* data, std::string &SSName, StorageID &storeID);
+    Status SendBindDataSourceReply(int sock, bool &ret);
+    Status ReadBindDataSourceReply(uint8_t* data, bool &ret);
+
     /*some structure*/
     flatbuffers::Offset<StoreSiteRequest> GetSite(flatbuffers::FlatBufferBuilder &fbb, StoreSite *site);
     Status SetSite(const flatbuffers::Vector<flatbuffers::Offset<StoreSiteRequest>> *siteVectorf, std::vector<StoreSite*> *siteVector);
@@ -111,5 +132,15 @@ namespace SDS {
 
     flatbuffers::Offset<StoreDescRequest> GetStoreDesc(flatbuffers::FlatBufferBuilder &fbb, StoreDesc &storeDesc);
     Status SetStoreDesc(const StoreDescRequest *storeDescf, StoreDesc &storeDesc);
+
+    flatbuffers::Offset<TimeListRequest> GetTimeList(flatbuffers::FlatBufferBuilder &fbb, TimeList* slot);
+    Status SetTimeList(const TimeListRequest *timeListf, TimeList* &list);
+
+    flatbuffers::Offset<TimeSlotNodeRequest> GetTimeSlotNode(flatbuffers::FlatBufferBuilder &fbb, TimeSlotNode* slot);
+    Status SetTimeSlotNode(const TimeSlotNodeRequest *timeSlotNodef, TimeSlotNode* &slot);
+
+    flatbuffers::Offset<VarListNodeRequest> GetVarListNode(flatbuffers::FlatBufferBuilder &fbb, VarListNode* node);
+    Status SetVarListNode(const VarListNodeRequest *varListNode, VarListNode* &node);
+
 
 };

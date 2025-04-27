@@ -63,7 +63,7 @@ namespace SDS
 
     bool StorageSpaceManager::createStoreTreeIndex(size_t stoID, std::string dirPath, StorageID &storeID) {
 
-        // step 1: 提取site信息，生成存储ID
+        // step 1: extract site info and generate storage ID
         auto storeSpace = getSpaceByID(stoID);
         storeID.setSpaceID(intToStringWithPadding(stoID, 3));
         storeID.setTypeID(storeSpace->stoMeta.getTypeID());

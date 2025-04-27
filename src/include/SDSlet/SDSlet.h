@@ -34,7 +34,6 @@ namespace SDSlet
          Status createRpcDataServer(std::string ip, int port, int serverPort = 4444);
          Status createDBStoreServer();
          Status createMetaServer();
-         
-
+      
    };
 }

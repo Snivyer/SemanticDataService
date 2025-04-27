@@ -94,6 +94,24 @@ struct StorageIDRequestBuilder;
 struct StorageSpaceLoadReply;
 struct StorageSpaceLoadReplyBuilder;
 
+struct VarListNodeRequest;
+struct VarListNodeRequestBuilder;
+
+struct VarIndexRequest;
+struct VarIndexRequestBuilder;
+
+struct TimeListRequest;
+struct TimeListRequestBuilder;
+
+struct TimeSlotNodeRequest;
+struct TimeSlotNodeRequestBuilder;
+
+struct TimeIndexRequest;
+struct TimeIndexRequestBuilder;
+
+struct BindDataSourceRequest;
+struct BindDataSourceRequestBuilder;
+
 struct StatusReply FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StatusReplyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -2355,6 +2373,427 @@ inline ::flatbuffers::Offset<StorageSpaceLoadReply> CreateStorageSpaceLoadReplyD
       storagespace,
       sto_ids__,
       file_path_list__);
+}
+
+struct VarListNodeRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VarListNodeRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_GROUP_NAME = 4,
+    VT_VARLIST_ID = 6,
+    VT_VAR_NUM = 8,
+    VT_VAR_NAME = 10
+  };
+  const ::flatbuffers::String *group_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GROUP_NAME);
+  }
+  uint64_t varlist_id() const {
+    return GetField<uint64_t>(VT_VARLIST_ID, 0);
+  }
+  uint64_t var_num() const {
+    return GetField<uint64_t>(VT_VAR_NUM, 0);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *var_name() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VAR_NAME);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_GROUP_NAME) &&
+           verifier.VerifyString(group_name()) &&
+           VerifyField<uint64_t>(verifier, VT_VARLIST_ID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_VAR_NUM, 8) &&
+           VerifyOffset(verifier, VT_VAR_NAME) &&
+           verifier.VerifyVector(var_name()) &&
+           verifier.VerifyVectorOfStrings(var_name()) &&
+           verifier.EndTable();
+  }
+};
+
+struct VarListNodeRequestBuilder {
+  typedef VarListNodeRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_group_name(::flatbuffers::Offset<::flatbuffers::String> group_name) {
+    fbb_.AddOffset(VarListNodeRequest::VT_GROUP_NAME, group_name);
+  }
+  void add_varlist_id(uint64_t varlist_id) {
+    fbb_.AddElement<uint64_t>(VarListNodeRequest::VT_VARLIST_ID, varlist_id, 0);
+  }
+  void add_var_num(uint64_t var_num) {
+    fbb_.AddElement<uint64_t>(VarListNodeRequest::VT_VAR_NUM, var_num, 0);
+  }
+  void add_var_name(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> var_name) {
+    fbb_.AddOffset(VarListNodeRequest::VT_VAR_NAME, var_name);
+  }
+  explicit VarListNodeRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<VarListNodeRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<VarListNodeRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<VarListNodeRequest> CreateVarListNodeRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> group_name = 0,
+    uint64_t varlist_id = 0,
+    uint64_t var_num = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> var_name = 0) {
+  VarListNodeRequestBuilder builder_(_fbb);
+  builder_.add_var_num(var_num);
+  builder_.add_varlist_id(varlist_id);
+  builder_.add_var_name(var_name);
+  builder_.add_group_name(group_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<VarListNodeRequest> CreateVarListNodeRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *group_name = nullptr,
+    uint64_t varlist_id = 0,
+    uint64_t var_num = 0,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *var_name = nullptr) {
+  auto group_name__ = group_name ? _fbb.CreateString(group_name) : 0;
+  auto var_name__ = var_name ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*var_name) : 0;
+  return CreateVarListNodeRequest(
+      _fbb,
+      group_name__,
+      varlist_id,
+      var_num,
+      var_name__);
+}
+
+struct VarIndexRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VarIndexRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VARLIST_NODES = 4
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<VarListNodeRequest>> *varlist_nodes() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<VarListNodeRequest>> *>(VT_VARLIST_NODES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VARLIST_NODES) &&
+           verifier.VerifyVector(varlist_nodes()) &&
+           verifier.VerifyVectorOfTables(varlist_nodes()) &&
+           verifier.EndTable();
+  }
+};
+
+struct VarIndexRequestBuilder {
+  typedef VarIndexRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_varlist_nodes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarListNodeRequest>>> varlist_nodes) {
+    fbb_.AddOffset(VarIndexRequest::VT_VARLIST_NODES, varlist_nodes);
+  }
+  explicit VarIndexRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<VarIndexRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<VarIndexRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<VarIndexRequest> CreateVarIndexRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<VarListNodeRequest>>> varlist_nodes = 0) {
+  VarIndexRequestBuilder builder_(_fbb);
+  builder_.add_varlist_nodes(varlist_nodes);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<VarIndexRequest> CreateVarIndexRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<VarListNodeRequest>> *varlist_nodes = nullptr) {
+  auto varlist_nodes__ = varlist_nodes ? _fbb.CreateVector<::flatbuffers::Offset<VarListNodeRequest>>(*varlist_nodes) : 0;
+  return CreateVarIndexRequest(
+      _fbb,
+      varlist_nodes__);
+}
+
+struct TimeListRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TimeListRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_INTERVAL_ID = 4,
+    VT_END_TIME = 6,
+    VT_TIMES = 8
+  };
+  uint64_t interval_id() const {
+    return GetField<uint64_t>(VT_INTERVAL_ID, 0);
+  }
+  int64_t end_time() const {
+    return GetField<int64_t>(VT_END_TIME, 0);
+  }
+  const ::flatbuffers::Vector<int64_t> *times() const {
+    return GetPointer<const ::flatbuffers::Vector<int64_t> *>(VT_TIMES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint64_t>(verifier, VT_INTERVAL_ID, 8) &&
+           VerifyField<int64_t>(verifier, VT_END_TIME, 8) &&
+           VerifyOffset(verifier, VT_TIMES) &&
+           verifier.VerifyVector(times()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TimeListRequestBuilder {
+  typedef TimeListRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_interval_id(uint64_t interval_id) {
+    fbb_.AddElement<uint64_t>(TimeListRequest::VT_INTERVAL_ID, interval_id, 0);
+  }
+  void add_end_time(int64_t end_time) {
+    fbb_.AddElement<int64_t>(TimeListRequest::VT_END_TIME, end_time, 0);
+  }
+  void add_times(::flatbuffers::Offset<::flatbuffers::Vector<int64_t>> times) {
+    fbb_.AddOffset(TimeListRequest::VT_TIMES, times);
+  }
+  explicit TimeListRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TimeListRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TimeListRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TimeListRequest> CreateTimeListRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t interval_id = 0,
+    int64_t end_time = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<int64_t>> times = 0) {
+  TimeListRequestBuilder builder_(_fbb);
+  builder_.add_end_time(end_time);
+  builder_.add_interval_id(interval_id);
+  builder_.add_times(times);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TimeListRequest> CreateTimeListRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t interval_id = 0,
+    int64_t end_time = 0,
+    const std::vector<int64_t> *times = nullptr) {
+  auto times__ = times ? _fbb.CreateVector<int64_t>(*times) : 0;
+  return CreateTimeListRequest(
+      _fbb,
+      interval_id,
+      end_time,
+      times__);
+}
+
+struct TimeSlotNodeRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TimeSlotNodeRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TIMESLOT_ID = 4,
+    VT_REPORT_TIME = 6,
+    VT_INTERVAL_NUM = 8,
+    VT_TIME_INTERVAL_INDEX = 10
+  };
+  uint64_t timeslot_id() const {
+    return GetField<uint64_t>(VT_TIMESLOT_ID, 0);
+  }
+  int64_t report_time() const {
+    return GetField<int64_t>(VT_REPORT_TIME, 0);
+  }
+  uint64_t interval_num() const {
+    return GetField<uint64_t>(VT_INTERVAL_NUM, 0);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<TimeListRequest>> *time_interval_index() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<TimeListRequest>> *>(VT_TIME_INTERVAL_INDEX);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint64_t>(verifier, VT_TIMESLOT_ID, 8) &&
+           VerifyField<int64_t>(verifier, VT_REPORT_TIME, 8) &&
+           VerifyField<uint64_t>(verifier, VT_INTERVAL_NUM, 8) &&
+           VerifyOffset(verifier, VT_TIME_INTERVAL_INDEX) &&
+           verifier.VerifyVector(time_interval_index()) &&
+           verifier.VerifyVectorOfTables(time_interval_index()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TimeSlotNodeRequestBuilder {
+  typedef TimeSlotNodeRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_timeslot_id(uint64_t timeslot_id) {
+    fbb_.AddElement<uint64_t>(TimeSlotNodeRequest::VT_TIMESLOT_ID, timeslot_id, 0);
+  }
+  void add_report_time(int64_t report_time) {
+    fbb_.AddElement<int64_t>(TimeSlotNodeRequest::VT_REPORT_TIME, report_time, 0);
+  }
+  void add_interval_num(uint64_t interval_num) {
+    fbb_.AddElement<uint64_t>(TimeSlotNodeRequest::VT_INTERVAL_NUM, interval_num, 0);
+  }
+  void add_time_interval_index(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<TimeListRequest>>> time_interval_index) {
+    fbb_.AddOffset(TimeSlotNodeRequest::VT_TIME_INTERVAL_INDEX, time_interval_index);
+  }
+  explicit TimeSlotNodeRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TimeSlotNodeRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TimeSlotNodeRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TimeSlotNodeRequest> CreateTimeSlotNodeRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t timeslot_id = 0,
+    int64_t report_time = 0,
+    uint64_t interval_num = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<TimeListRequest>>> time_interval_index = 0) {
+  TimeSlotNodeRequestBuilder builder_(_fbb);
+  builder_.add_interval_num(interval_num);
+  builder_.add_report_time(report_time);
+  builder_.add_timeslot_id(timeslot_id);
+  builder_.add_time_interval_index(time_interval_index);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TimeSlotNodeRequest> CreateTimeSlotNodeRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t timeslot_id = 0,
+    int64_t report_time = 0,
+    uint64_t interval_num = 0,
+    const std::vector<::flatbuffers::Offset<TimeListRequest>> *time_interval_index = nullptr) {
+  auto time_interval_index__ = time_interval_index ? _fbb.CreateVector<::flatbuffers::Offset<TimeListRequest>>(*time_interval_index) : 0;
+  return CreateTimeSlotNodeRequest(
+      _fbb,
+      timeslot_id,
+      report_time,
+      interval_num,
+      time_interval_index__);
+}
+
+struct TimeIndexRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TimeIndexRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TIMESLOTS = 4
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<TimeSlotNodeRequest>> *timeslots() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<TimeSlotNodeRequest>> *>(VT_TIMESLOTS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_TIMESLOTS) &&
+           verifier.VerifyVector(timeslots()) &&
+           verifier.VerifyVectorOfTables(timeslots()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TimeIndexRequestBuilder {
+  typedef TimeIndexRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_timeslots(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<TimeSlotNodeRequest>>> timeslots) {
+    fbb_.AddOffset(TimeIndexRequest::VT_TIMESLOTS, timeslots);
+  }
+  explicit TimeIndexRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TimeIndexRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TimeIndexRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TimeIndexRequest> CreateTimeIndexRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<TimeSlotNodeRequest>>> timeslots = 0) {
+  TimeIndexRequestBuilder builder_(_fbb);
+  builder_.add_timeslots(timeslots);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TimeIndexRequest> CreateTimeIndexRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<TimeSlotNodeRequest>> *timeslots = nullptr) {
+  auto timeslots__ = timeslots ? _fbb.CreateVector<::flatbuffers::Offset<TimeSlotNodeRequest>>(*timeslots) : 0;
+  return CreateTimeIndexRequest(
+      _fbb,
+      timeslots__);
+}
+
+struct BindDataSourceRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef BindDataSourceRequestBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SS_NAME = 4,
+    VT_STORE_ID = 6
+  };
+  const ::flatbuffers::String *ss_name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SS_NAME);
+  }
+  const StorageIDRequest *store_id() const {
+    return GetPointer<const StorageIDRequest *>(VT_STORE_ID);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SS_NAME) &&
+           verifier.VerifyString(ss_name()) &&
+           VerifyOffset(verifier, VT_STORE_ID) &&
+           verifier.VerifyTable(store_id()) &&
+           verifier.EndTable();
+  }
+};
+
+struct BindDataSourceRequestBuilder {
+  typedef BindDataSourceRequest Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_ss_name(::flatbuffers::Offset<::flatbuffers::String> ss_name) {
+    fbb_.AddOffset(BindDataSourceRequest::VT_SS_NAME, ss_name);
+  }
+  void add_store_id(::flatbuffers::Offset<StorageIDRequest> store_id) {
+    fbb_.AddOffset(BindDataSourceRequest::VT_STORE_ID, store_id);
+  }
+  explicit BindDataSourceRequestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<BindDataSourceRequest> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<BindDataSourceRequest>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<BindDataSourceRequest> CreateBindDataSourceRequest(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> ss_name = 0,
+    ::flatbuffers::Offset<StorageIDRequest> store_id = 0) {
+  BindDataSourceRequestBuilder builder_(_fbb);
+  builder_.add_store_id(store_id);
+  builder_.add_ss_name(ss_name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<BindDataSourceRequest> CreateBindDataSourceRequestDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *ss_name = nullptr,
+    ::flatbuffers::Offset<StorageIDRequest> store_id = 0) {
+  auto ss_name__ = ss_name ? _fbb.CreateString(ss_name) : 0;
+  return CreateBindDataSourceRequest(
+      _fbb,
+      ss_name__,
+      store_id);
 }
 
 #endif  // FLATBUFFERS_GENERATED_METAFLB_H_

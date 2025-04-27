@@ -54,7 +54,8 @@ namespace SDS
      };
 
      typedef struct {
-        // The ID of the requested databox.
+          // The ID of the requested databox.
+          size_t dbID;
           ContentID cntID;
      } DataBoxRequest;
 
@@ -75,8 +76,7 @@ namespace SDS
      struct DataBoxStoreInfo {
 
           // DataBox that are in the DataBox Store
-          std::unordered_map<ContentID, DataBoxTableEntry*, ContentIDHasher> databoxs;
-          std::unordered_map<size_t, ContentID> dbID2CntID;
+          std::unordered_map<size_t, DataBoxTableEntry*> databoxs;
 
           // The amount of memory that we allow to be allocated in the store.
           int64_t memoryCapacity;

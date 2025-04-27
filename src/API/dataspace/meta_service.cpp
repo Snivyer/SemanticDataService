@@ -107,7 +107,14 @@ namespace SDS {
     }
 
     MetaService::MetaService(std::shared_ptr<Impl> impl):impl_(std::move(impl)) {
+        init();
+    }
 
+    void MetaService::init() {
+        auto ret = initDataSource();
+        if(!ret) {
+            ARROW_LOG(DEBUG) << "Cannot Init the data source.";
+        }
     }
 
     SemanticSpace* MetaService::createSemanticSpace(std::string SSName, std::vector<std::string> &geoNames,  MetaClient* client) {
@@ -141,7 +148,7 @@ namespace SDS {
     }
 
 
-    StorageSpace* MetaService::createStorageSpace(std::string spaceID, StoreTemplate &storeInfo, MetaClient* client) {
+    StorageSpace* MetaService::createStorageSpace(StoreTemplate &storeInfo, MetaClient* client) {
         std::string SSName = storeInfo.SSName;
         auto StorageSpaceInfo = impl_->getStorageSpaceInfo();
         if(StorageSpaceInfo.count(SSName) != 0) {
@@ -406,8 +413,16 @@ namespace SDS {
                 RETURN_NOT_OK(ReadCreateStorageSpaceRequest(input, storeInfo.SSName, storeInfo.spaceSize,
                                                 spaceID, kind, storeInfo.writable, storeInfo.connConf));
                 storeInfo.setStoreKind(kind);
-                auto space = createStorageSpace(spaceID, storeInfo, client);
+                auto space = createStorageSpace(storeInfo, client);
                 HANDLE_SIGPIPE(SendCreateStorageSpaceReply(client->fd, space), client->fd);
+            } break;
+            case MessageTypeTimeIndexRequest: {
+                auto timeIndex = getTimeIndex();
+                HANDLE_SIGPIPE(SendTimeIndexReply(client->fd, timeIndex), client->fd);
+            } break;
+            case MessageTypeVarIndexRequest: {
+                auto varIndex = getVarIndex();
+                HANDLE_SIGPIPE(SendVarIndexReply(client->fd, varIndex), client->fd);
             } break;
             case MessageTypeDataImportFromLocalRequest: {
                 std::string semanticSpaceName;
@@ -433,13 +448,18 @@ namespace SDS {
                 std::vector<std::string> times;
                 std::vector<std::string> varNames;
                 std::vector<FilePathList> fileList;
-
                 RETURN_NOT_OK(ReadSearchDataFileRequest(input, SSName, times, varNames));
                 searchDataFile(SSName, times, varNames, fileList);
                 // search data file by semantic name
                 HANDLE_SIGPIPE(SendSearchDataFileReply(client->fd, fileList), client->fd);
             } break;
-
+            case MessageTypeBindDataSourceRequest: { 
+                std::string SSName;
+                StorageID storeID;
+                RETURN_NOT_OK(ReadBindDataSourceRequest(input, SSName, storeID));
+                auto ret = bindDataSource(SSName, storeID);
+                HANDLE_SIGPIPE(SendBindDataSourceReply(client->fd, ret), client->fd);
+            } break;
             default:
                 ARROW_CHECK(0);
         }
@@ -460,5 +480,60 @@ namespace SDS {
             Adaptor* adaptor = storageManager->getSpaceByID(storageID)->getAdaptor(storeID);
             return semanticManger->createDataBoxIndex(spaceID, storeID, adaptor);
         }  
+    }
+
+    bool MetaService::initDataSource() {
+        // step1: create storage space for each backend storage system
+        auto storageManager = impl_->getStorageManager();
+        auto semanticManager = impl_->getSemanticManager();
+        StoreTemplate temp;
+        temp.SSName = "cephfs";
+        temp.connConf.rootPath = "/home/snivyer/ceph_mount/data";
+        temp.kind = StoreSpaceKind::Local;
+
+        auto space = createStorageSpace(temp, nullptr);
+        std::vector<std::string> sourcePath = getDirectoriesWithFiles(temp.connConf.rootPath);
+
+        // each path should be instaced one adaptor
+        for(auto path : sourcePath) {
+            StorageID storageID;
+            storageManager->createStoreTreeIndex(space->spaceID, path, storageID);
+            Adaptor* adaptor = storageManager->getSpaceByID(space->spaceID)->getAdaptor(storageID);
+            semanticManager->createDataSourceIndex(storageID, adaptor);
+        }
+        return true;
+    }
+
+    bool MetaService::bindDataSource(std::string SSName, StorageID &storeID) {
+        auto storageManager = impl_->getStorageManager();
+        StorageSpace* space = storageManager->getSpaceByName(SSName);
+        if(!space) {
+            return false;
+        }
+
+        size_t sourceStoreID = std::stoi(storeID.getSpaceID());
+        auto sourceSpace = storageManager->getSpaceByID(sourceStoreID);
+        if(!sourceSpace) {
+            return false;
+        }
+
+        Adaptor* adaptor = sourceSpace->getAdaptor(storeID);
+        if(!adaptor) {
+            return false;
+        }
+        space->addAdaptor(storeID, adaptor);
+        auto semanticManger = impl_->getSemanticManager();
+        std::string spaceID = semanticManger->getSpaceByName(SSName)->getCompleteSpaceID();
+        return semanticManger->createDataBoxIndex(spaceID, storeID, adaptor);
+    }
+
+    TimeIndex* MetaService::getTimeIndex() {
+        auto spaceManager = impl_->getSemanticManager();
+        return spaceManager->getTimeIndex();
+    }
+
+    VarIndex* MetaService::getVarIndex() {
+        auto spaceManager = impl_->getSemanticManager();
+        return spaceManager->getVarIndex();
     }
 }

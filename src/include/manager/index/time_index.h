@@ -27,6 +27,19 @@ namespace SDS
         std::vector<time_t> timeIndex;
         std::unordered_map<time_t, size_t> timeIDs;
 
+        TimeList(size_t timeIntervalID, time_t endTime, std::vector<time_t> &times) {
+            this->timeIntervalID = timeIntervalID;
+            this->endTime = endTime;
+            int id = 0;
+            for(auto item: times) {
+                this->timeIndex.push_back(item);
+                this->timeIDs.insert({item, id});
+                id++;
+            }
+        }
+
+        TimeList() {}
+
         size_t getTimeID(time_t t) {
             auto ret = timeIDs.find(t);
             if(ret != timeIDs.end()) {
@@ -58,19 +71,37 @@ namespace SDS
             }
         }
 
+        void printWithTreeModel() {
+            for(auto item: timeIndex) {
+                std::cout << "    " << "├─ ";
+                std::string timeStr;
+                time_to_string(item, timeStr);
+                std::cout << timeStr << std::endl;
+            }
+        }
+
     };
 
     // 时间段节点
-    struct TimeSlotNode
-    {
+    struct TimeSlotNode {
         size_t timeSlotID;                      // 时间段ID
         time_t reportTime;                 // 起报时间
         size_t intervalNums;                    // 时间间隔数量
 
         std::unordered_map<time_t, TimeList*>  timeIntervalIndex;  // 不同时间分辨率
-
         TimeSlotNode() {
             intervalNums = 0;
+        }
+
+        TimeSlotNode(size_t timeSlotID, time_t reportTime,
+            size_t intervalNums, std::vector<TimeList*> timeLists)  {
+            this->timeSlotID = timeSlotID;
+            this->reportTime = reportTime;
+            this->intervalNums = intervalNums;
+
+            for(auto item : timeLists) {
+                this->timeIntervalIndex.insert({this->reportTime, item});
+            }
         }
 
         std::string getTimeSlotID(int width = 3) {
@@ -84,6 +115,20 @@ namespace SDS
             }
             return getTimeSlotID();
         }
+
+        void printWithTreeModel() {
+            std::string reportTimeStr;
+            time_to_string(reportTime, reportTimeStr);
+            std::cout << "├─ " << reportTimeStr << "(" << timeSlotID << ")" << std::endl;
+            for(auto item: timeIntervalIndex) {
+
+                std::cout << "  " << "├─ " << "某种时间间隔" << "(" 
+                            << std::to_string(item.second->timeIntervalID) << ")" << std::endl;
+                item.second->printWithTreeModel();
+            }
+
+
+        }
     };
 
 
@@ -92,7 +137,7 @@ namespace SDS
     public:
         TimeIndex();
         ~TimeIndex();
-        
+
         bool search(SearchTerm &term, ResultSet &result);       // 查询节点
         bool insert(SearchTerm &term, ResultSet &result);       // 插入节点
         bool remove(SearchTerm &term, ResultSet &result);       // 移除节点
@@ -101,6 +146,13 @@ namespace SDS
         bool persist(std::string fileName); 
         bool search(time_t reportTime,  TimeSlotNode* &node);
         bool insert(time_t reportTime,  TimeSlotNode* &node);
+
+        
+        // 序列化和反序列化操作
+        bool saveAsTimeSlots(std::vector<TimeSlotNode*> &timeSlots);
+        bool loadWithTimeSlots(std::vector<TimeSlotNode*> &timeSlots);
+
+        void printWithTreeModel();
 
     private:
         std::vector<TimeSlotNode*>   timeSlotSet;

@@ -154,7 +154,31 @@ namespace SDS
             }
         }
     }
+  
+    bool SemanticSpaceManager::createDataSourceIndex(StorageID &storageID, Adaptor *adaptor) {
+        
+        // create a data source 
+        ContentID cntID;
+        ContentDesc cntDesc;
+        cntID.setSpaceID("0");
+        cntID.addStoreID(storageID);
 
+        // create storage index 
+        adaptor->setFilePath();
+      
+        // create a time index
+        auto TSRet = createTimeIndex(adaptor, cntID, cntDesc.tsDesc);
+
+        // create a var index
+        auto VLRet = createVarIndex(adaptor, cntID, cntDesc.vlDesc);
+
+        if(TSRet && VLRet) {
+            // todo: 数据源的描述符应该放在哪里？额外起一个缓存吗？
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     bool SemanticSpaceManager::createDataBoxIndex(std::string spaceID, StorageID &storageID, Adaptor *adaptor) {
         
@@ -169,10 +193,10 @@ namespace SDS
         adaptor->setFilePath();
       
         // create a time index
-        auto TSRet = createTimeIndex(adaptor, space, cntID, cntDesc.tsDesc);
+        auto TSRet = createTimeIndex(adaptor, cntID, cntDesc.tsDesc);
 
         // create a var index
-        auto VLRet = createVarIndex(adaptor, space, cntID, cntDesc.vlDesc);
+        auto VLRet = createVarIndex(adaptor, cntID, cntDesc.vlDesc);
 
         if(TSRet && VLRet) {
             cntDesc.setSpaceDesc(space->ssDesc);
@@ -188,11 +212,9 @@ namespace SDS
         } else {
             return false;
         }
-
     }
 
-    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, SemanticSpace* space, 
-                                                ContentID &cntID, TSDesc &tsDesc) {
+    bool SemanticSpaceManager::createTimeIndex(Adaptor* adaptor, ContentID &cntID, TSDesc &tsDesc) {
         TimeSlotNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);
         if(_metaManager->extractTSDesc(tsDesc)) {
@@ -220,8 +242,7 @@ namespace SDS
         return false;
     }
 
-    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, SemanticSpace* space,
-                                                ContentID &cntID, VLDesc &vlDesc) {
+    bool SemanticSpaceManager::createVarIndex(Adaptor* adaptor, ContentID &cntID, VLDesc &vlDesc) {
         // choose the adimistrator code as the search term
         VarListNode* node = nullptr;
         _metaManager->setAdaptor(adaptor);

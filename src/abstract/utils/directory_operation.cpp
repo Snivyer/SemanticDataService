@@ -99,4 +99,69 @@ namespace SDS {
         return true;
     }
 
+    bool hasFiles(const std::string& dirPath) {
+        DIR* dir = opendir(dirPath.c_str());
+        if (!dir) {
+            return false; 
+        }
+    
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            std::string entryName = entry->d_name;
+            if (entryName == "." || entryName == "..") {
+                continue;
+            }
+    
+            std::string fullPath = dirPath + "/" + entryName;
+            struct stat statbuf;
+            if (stat(fullPath.c_str(), &statbuf) == 0 && S_ISREG(statbuf.st_mode)) {
+                closedir(dir);
+                return true; 
+            }
+        }
+    
+        closedir(dir);
+        return false; 
+    }
+    
+    void traverseDirectory(const std::string& rootPath, const std::string& dirPath, std::vector<std::string>& result) {
+        DIR* dir = opendir(dirPath.c_str());
+        if (!dir) {
+            std::cout << "Error opening directory: " << dirPath << std::endl;
+            return;
+        }
+    
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            std::string entryName = entry->d_name;
+            if (entryName == "." || entryName == "..") {
+                continue;
+            }
+    
+            std::string fullPath = dirPath + "/" + entryName;
+            struct stat statbuf;
+            if (stat(fullPath.c_str(), &statbuf) == 0) {
+                if (S_ISDIR(statbuf.st_mode)) {
+                    traverseDirectory(rootPath, fullPath, result);
+                    if (hasFiles(fullPath)) {
+                        std::string relativePath = fullPath.substr(rootPath.length());
+                        result.push_back(relativePath);
+                    }
+                }
+            }
+        }
+        closedir(dir);
+    }
+    
+    std::vector<std::string> getDirectoriesWithFiles(const std::string& rootPath) {
+        std::vector<std::string> result;
+        traverseDirectory(rootPath, rootPath, result);
+        if (hasFiles(rootPath)) {
+            result.push_back(rootPath);
+        }
+    
+        std::sort(result.begin(), result.end());
+        return result;
+    }
+
 }

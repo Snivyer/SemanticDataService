@@ -51,28 +51,28 @@ namespace SDS {
     Status SendCreateReply(int sock, DBMeta &dbMeta);
     Status ReadCreateReply(uint8_t* data, DBMeta &dbMeta);
 
-    Status SendGetRequest(int sock, ContentID &cntID, int64_t timeout);
-    Status ReadGetRequest(uint8_t* data, ContentID &cntID, int64_t &timeout);
+    Status SendGetRequest(int sock, std::vector<size_t> &ids, int64_t timeout);
+    Status ReadGetRequest(uint8_t* data, std::vector<size_t> &ids, int64_t &timeout);
     Status SendGetReply(int sock, std::string ip, int port);
     Status ReadGetReply(uint8_t* data, std::string &ip, int &port);
 
-    Status SendContainRequest(int sock, ContentID &cntID);
-    Status ReadContainRequest(uint8_t* data, ContentID &cntID);
+    Status SendContainRequest(int sock, size_t id);
+    Status ReadContainRequest(uint8_t* data, size_t &id);
     Status SendContainReply(int sock, bool is_contain);
     Status ReadContainReply(uint8_t* data, bool &is_contain);
 
-    Status SendReleaseRequest(int sock, ContentID &cntID);
-    Status ReadReleaseRequest(uint8_t* data, ContentID &cntID);
+    Status SendReleaseRequest(int sock, size_t id);
+    Status ReadReleaseRequest(uint8_t* data, size_t &id);
     Status SendReleaseReply(int sock, bool is_release);
     Status ReadReleaseReply(uint8_t* data, bool &is_release);
 
-    Status SendDeleteRequest(int sock, ContentID &cntID);
-    Status ReadDeleteRequest(uint8_t* data, ContentID &cntID);
+    Status SendDeleteRequest(int sock, std::vector<size_t> &ids);
+    Status ReadDeleteRequest(uint8_t* data, std::vector<size_t> &ids);
     Status SendDeleteReply(int sock, bool is_release);
     Status ReadDeleteReply(uint8_t* data, bool &is_release);
 
-    Status SendGetContentIDRequest(int sock, size_t dbID);
-    Status ReadGetContentIDRequest(uint8_t* data, size_t &dbID);
+    Status SendGetContentIDRequest(int sock, size_t id);
+    Status ReadGetContentIDRequest(uint8_t* data, size_t &id);
     Status SendGetContentIDReply(int sock, ContentID &cntID);
     Status ReadGetContentIDReply(uint8_t* data, ContentID &cntID);
 

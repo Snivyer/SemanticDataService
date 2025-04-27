@@ -18,6 +18,20 @@ find_package(Threads REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 find_package(HDF5 REQUIRED COMPONENTS CXX)
+find_package(CURL REQUIRED)  
+
+# 自动检测系统架构  
+execute_process(  
+    COMMAND dpkg-architecture -qDEB_HOST_MULTIARCH  
+    OUTPUT_VARIABLE ARCH_TRIPLET  
+    OUTPUT_STRIP_TRAILING_WHITESPACE  
+)  
+
+# 添加架构特定包含路径  
+list(APPEND SYSTEM_INCLUDE_DIRS  
+    "/usr/include/${ARCH_TRIPLET}"  
+    "/usr/local/include/${ARCH_TRIPLET}"  
+)  
 
 set(SDS_SRC_INCLUDE_DIR 
         ${PROJECT_SOURCE_DIR}
@@ -115,7 +129,7 @@ target_link_libraries(SDSlet_test  ArrowFlight::arrow_flight_shared)
 target_link_libraries(SDSlet_test ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(SDSlet_test  gRPC::grpc++)
 target_link_libraries(SDSlet_test  ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})
-
+target_link_libraries(SDSlet_test  ${CURL_LIBRARIES})
 
 # SDSlet client test 
 # add_executable(SDSlet_client_test  SDSlet_client_test.cpp)
@@ -144,7 +158,4 @@ target_link_libraries(MVP1  ArrowFlight::arrow_flight_shared)
 target_link_libraries(MVP1 ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(MVP1  gRPC::grpc++)
 target_link_libraries(MVP1  ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})
-
-
-add_executable(HDF5_test HDF5_read.cpp)
-target_link_libraries(HDF5_test ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})
+target_link_libraries(MVP1  ${CURL_LIBRARIES})

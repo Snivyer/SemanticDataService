@@ -29,7 +29,7 @@ table DBCreateReply {
 }
 
 table DBgetRequest {
-    cnt_id:ContentIDRequest;
+    ids:[ulong];
     timeout:long;
 }
 
@@ -39,7 +39,7 @@ table DBgetReply {
 }
 
 table DBcontainRequest {
-    cnt_id:ContentIDRequest;
+    id:ulong;
 }
 
 table DBcontainReply {
@@ -47,7 +47,7 @@ table DBcontainReply {
 }
 
 table DBReleaseRequest {
-    cnt_id:ContentIDRequest;
+    id:ulong;
 }
 
 table DBReleaseReply {
@@ -55,7 +55,7 @@ table DBReleaseReply {
 }
 
 table DBDeleteRequest {
-    cnt_id:ContentIDRequest;
+    ids:[ulong];
 }
 
 table DBDeleteReply {

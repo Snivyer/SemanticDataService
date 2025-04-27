@@ -21,9 +21,7 @@ namespace SDS
 
   
     // variable list node
-    struct VarListNode
-    {
-                
+    struct VarListNode {       
         /*  Name: varIndex
             key: var name
             value: var ID
@@ -31,17 +29,36 @@ namespace SDS
         std::unordered_map<std::string, size_t> varIndex;
         size_t varListID; 
         size_t varNum;
+        std::string groupName;
 
         VarListNode() {
             varNum = 0;
+        }
+
+        VarListNode(size_t varListID, size_t varNum, std::string groupName,
+                        std::vector<std::string> vars) {
+            this->varListID = varListID;
+            this->varNum = varNum;
+            this->groupName = groupName;
+            int id = 0;
+            for(auto item: vars) {
+                this->varIndex.insert({item, id});
+                id += 1;
+            }
+        }
+
+        void printWithTreeModel() {
+            std::cout << "├─ " << groupName << "(" << std::to_string(varListID) << ")" << std::endl;
+            for(auto item: varIndex) {
+                std::cout << "  "  << "├─ " << item.first << "(" << std::to_string(item.second) << ")" << std::endl;
+            }
+
         }
 
         std::string getVarListID(int width = 3) {
             return intToStringWithPadding(varListID, width);
         }
             
-
-
         std::string getCompleteVarID(std::string varName, int width = 3) {
             if(varNum == 0) {
                 return getVarListID();
@@ -76,7 +93,7 @@ namespace SDS
             key: groupName of var list
             value: set of varListNode
         */
-       std::unordered_map<std::string, VarListNode*> varListIndex;
+        std::unordered_map<std::string, VarListNode*> varListIndex;
         std::vector<VarListNode*> varListSet;
 
         bool search(SearchTerm &term, ResultSet &result);       // 查询节点
@@ -89,6 +106,12 @@ namespace SDS
 
         /*var-realted search*/
         bool hasVar(std::string varName);
+
+        // 序列化和反序列化操作
+        bool saveAsVarList(std::vector<VarListNode*> &varLists);
+        bool loadWithVarList(std::vector<VarListNode*> &varLists);
+
+        void printWithTreeModel();
 
     
     private:

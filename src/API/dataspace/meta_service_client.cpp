@@ -118,7 +118,7 @@ namespace SDS {
         return Status::OK();
     }
 
-    arrow::Status MetaServiceClient::createStorageSpace(std::string spaceID, std::string ssName, StoreTemplate &temp, StorageSpace &space) {
+    arrow::Status MetaServiceClient::createStorageSpace(std::string spaceID, StoreTemplate &temp, StorageSpace &space) {
         std::string kindStr;
         if(temp.kind == StoreSpaceKind::Ceph) {
             kindStr = "Ceph";
@@ -133,7 +133,7 @@ namespace SDS {
         }
 
         int client = impl_->getMetaConn();
-        RETURN_NOT_OK(SendCreateStorageSpaceRequest(client,ssName, temp.spaceSize,
+        RETURN_NOT_OK(SendCreateStorageSpaceRequest(client, temp.SSName, temp.spaceSize,
                                             spaceID, kindStr, temp.writable, temp.connConf));
         std::vector<uint8_t> buffer;
         RETURN_NOT_OK(messageReceive(client, MessageTypeStorageSpaceCreateReply, &buffer));
@@ -156,7 +156,6 @@ namespace SDS {
     arrow::Status MetaServiceClient::searchDataBox(std::string spaceName, std::vector<std::string> &times,
                                                     std::vector<std::string> &varNames, std::vector<FilePathList> &fileList,
                                                     std::vector<size_t> &dbIDs) {
-
         int client = impl_->getMetaConn();
         RETURN_NOT_OK(SendSearchDataBoxRequest(client, spaceName, times, varNames));
         std::vector<uint8_t> buffer;
@@ -165,14 +164,42 @@ namespace SDS {
         return Status::OK();
     }
 
+    arrow::Status MetaServiceClient::loadTimeIndex(TimeIndex* &timeIndex) {
+        int client = impl_->getMetaConn();
+        RETURN_NOT_OK(SendTimeIndexRequest(client));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeTimeIndexReply, &buffer));
+        RETURN_NOT_OK(ReadTimeIndexReply(buffer.data(), timeIndex));
+        return Status::OK();
+    }
+
+    arrow::Status MetaServiceClient::loadVarIndex(VarIndex* &varIndex) {
+        int client = impl_->getMetaConn();
+        RETURN_NOT_OK(SendVarIndexRequest(client));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeVarIndexReply, &buffer));
+        RETURN_NOT_OK(ReadVarIndexReply(buffer.data(), varIndex));
+        return Status::OK();
+    }
+
     arrow::Status MetaServiceClient::searchDataFile(std::string spaceName, std::vector<std::string> &times,
-        std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
-            int client = impl_->getMetaConn();
-            RETURN_NOT_OK(SendSearchDataFileRequest(client, spaceName, times, varNames));
-            std::vector<uint8_t> buffer;
-            RETURN_NOT_OK(messageReceive(client, MessageTypeDataFileSearchReply, &buffer));
-            RETURN_NOT_OK(ReadSearchDataFileReply(buffer.data(), fileList));
-            return Status::OK();
+                std::vector<std::string> &varNames, std::vector<FilePathList> &fileList) {
+        int client = impl_->getMetaConn();
+        RETURN_NOT_OK(SendSearchDataFileRequest(client, spaceName, times, varNames));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeDataFileSearchReply, &buffer));
+        RETURN_NOT_OK(ReadSearchDataFileReply(buffer.data(), fileList));
+        return Status::OK();
+    }
+
+    arrow::Status MetaServiceClient::bindDataSource(std::string ssName, StorageID &storageID, bool &ret) {
+        int client = impl_->getMetaConn();
+        RETURN_NOT_OK(SendBindDataSourceRequest(client, ssName, storageID));
+        std::vector<uint8_t> buffer;
+        RETURN_NOT_OK(messageReceive(client, MessageTypeBindDataSourceReply, &buffer));
+        RETURN_NOT_OK(ReadBindDataSourceReply(buffer.data(), ret));
+        return Status::OK();
+
     }
 
   

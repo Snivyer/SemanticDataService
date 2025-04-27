@@ -82,6 +82,7 @@ namespace SDS {
         // firstly, insert into timeSlotSet
         timeSlotSet.push_back(node);
         node->timeSlotID = timeSlotSet.size();
+        node->reportTime = reportTime;
 
         // secondly, insert into timeSlotIndex
         timeSlotIndex.insert({reportTime, node});
@@ -100,6 +101,26 @@ namespace SDS {
 
     bool TimeIndex::persist(std::string fileName) {
 
+    }
+
+    bool TimeIndex::saveAsTimeSlots(std::vector<TimeSlotNode*> &timeSlots) {
+        timeSlots = this->timeSlotSet;
+        return true;
+    }
+
+    bool TimeIndex::loadWithTimeSlots(std::vector<TimeSlotNode*> &timeSlots) {
+        this->_entrance.type = IndexType::TimeSlot;
+        this->timeSlotSet = timeSlots;
+        for(auto item: timeSlots) {
+            this->timeSlotIndex.insert({item->reportTime, item});
+            this->timeSlotIndexWithID.insert({item->timeSlotID, item});
+        }
+    }
+
+    void TimeIndex::printWithTreeModel() {
+        for(auto item : this->timeSlotIndex) {
+            item.second->printWithTreeModel();
+        }
     }
 
 

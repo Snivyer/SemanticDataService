@@ -13,8 +13,7 @@ namespace SDS {
             std::vector<uint8_t> inputBuffer;
             // A hash table mapping object IDs to a vector of the get request that 
             // are waitting for the object to arrive
-            std::unordered_map<ContentID, std::vector<GetRequest*>, 
-                                ContentIDHasher> databoxGetRequest;
+            std::unordered_map<size_t, std::vector<GetRequest*>> databoxGetRequest;
             
             std::shared_ptr<BasicMetaServer> rpcServer_;
             std::deque<std::shared_ptr<BasicDataServer>> sendPool_;
@@ -36,8 +35,7 @@ namespace SDS {
                 return this->storeInfo;
             }
 
-            std::unordered_map<ContentID, std::vector<GetRequest*>, 
-                                ContentIDHasher>& getDBRequest() {
+            std::unordered_map<size_t, std::vector<GetRequest*>>& getDBRequest() {
                 return this->databoxGetRequest;                        
             }
 
@@ -57,28 +55,16 @@ namespace SDS {
                 return this->inputBuffer;
             }
 
-            void insertDBObjectEntry(const ContentID &cntID, DataBoxTableEntry *entry) {
-                storeInfo.databoxs.insert({cntID, entry});
-                storeInfo.dbID2CntID.insert({entry->dbID, cntID});
+            void insertDBObjectEntry(DataBoxTableEntry *entry) {
+                storeInfo.databoxs.insert({entry->dbID, entry});
             }
 
-            DataBoxTableEntry* getDBObjectEntry(const ContentID &cntID) {
-                auto ret =  storeInfo.databoxs.find(cntID);
+            DataBoxTableEntry* getDBObjectEntry(size_t dbID) {
+                auto ret =  storeInfo.databoxs.find(dbID);
                 if(ret != storeInfo.databoxs.end()) {
                     return ret->second;
                 }
                 return nullptr;
-            }
-
-            bool getContentIDByDBID(size_t dbID, ContentID &cntID) {
-                auto ret = storeInfo.dbID2CntID.find(dbID);
-                if(ret != storeInfo.dbID2CntID.end()) {
-                    cntID.setSpaceID(ret->second.getSpaceID());
-                    cntID.setTimeID(ret->second.getTimeID());
-                    cntID.setVarID(ret->second.getVarID());
-                    return true;
-                }
-                return false;
             }
 
             std::shared_ptr<BasicDataServer> rentSender() {
@@ -114,15 +100,8 @@ namespace SDS {
 
     DataBoxStore::~DataBoxStore() {}
 
-
-    
-    bool DataBoxStore::createDB(const ContentID &cntID, ContentDesc &cntDesc,
+    size_t DataBoxStore::createDB(const ContentID &cntID, ContentDesc &cntDesc,
                                         StoreDesc &stoDesc, FilePathList &filePath, Client* client) {
-
-        // There is already an object with the same ID in the databox store
-        if(impl_->getStoreInfo().databoxs.count(cntID) != 0) {
-            return true;
-        }
 
         // create the databox entry
         globalDataBoxID += 1;
@@ -131,22 +110,20 @@ namespace SDS {
         entry->dbID = globalDataBoxID;
         entry->state = DATABOX_CREATED;
         entry->ptr = nullptr;
-    
 
         // create the actual databox 
         DataboxObject *dbObject = new DataboxObject; 
         Adaptor* adaptor = AdaptorFactory::getAdaptor(stoDesc.kind, stoDesc.conConf, &filePath);
         dbObject->fillData(adaptor, cntDesc, entry->dbID);
         entry->ptr= dbObject;
-
         entry->state = DATABOX_FILLED;
 
         // insert entry into store info
-        impl_->insertDBObjectEntry(cntID, entry);
+        impl_->insertDBObjectEntry(entry);
 
         // record the client who have access this databox object
         addClientToEntry(entry, client);
-        return true;
+        return entry->dbID;
     }
 
     bool DataBoxStore::prepareTransffer(const ContentID &cntID, DataboxObject* dbObject, SendEndpoint &ep) {
@@ -182,7 +159,6 @@ namespace SDS {
 
     bool DataBoxStore::addClientToEntry(DataBoxTableEntry *entry, 
                                         Client* client) {
-    
         if(entry->clients.find(client) != entry->clients.end()) {
             return false;
         }
@@ -199,10 +175,9 @@ namespace SDS {
         return false;
     }
 
-    bool DataBoxStore::deleteDB(const std::vector<ContentID> &ids) {
-
-        for(const auto &cntID : ids) {
-            auto entry = impl_->getDBObjectEntry(cntID);
+    bool DataBoxStore::deleteDB(std::vector<size_t> &ids) {
+        for(size_t id : ids) {
+            auto entry = impl_->getDBObjectEntry(id);
             if(!entry) {
                 continue;
             }
@@ -217,6 +192,17 @@ namespace SDS {
                 continue;
             }
 
+            // release the related to rpc client
+            auto rpcClient = impl_->getRpcServer()->RentOne(entry->cntID.getSpaceID());
+            if(rpcClient->DeleteDB(entry->cntID.getSpaceID())) {
+                if(!rpcClient->BeLive()) {
+                    auto ret = rpcClient->WithdrawSend(entry->cntID.getSpaceID());
+                    if(ret.ok()) {
+                        impl_->returnSender(rpcClient);
+                    }
+                }
+            }
+
             // release the realted to databox
             entry->ptr->removeData();
             if(entry->ptr) {
@@ -224,19 +210,7 @@ namespace SDS {
             }
             entry->ptr = nullptr;
 
-            // release the related to rpc client
-            auto rpcClient = impl_->getRpcServer()->RentOne(cntID.getSpaceID());
-            if(rpcClient->DeleteDB(cntID) == true) {
-
-                if(rpcClient->BeLive() == false) {
-                    auto ret = rpcClient->WithdrawSend(cntID.getSpaceID());
-                    if(ret.ok()) {
-                        impl_->returnSender(rpcClient);
-                    }
-                }
-            }
-
-            impl_->getStoreInfo().databoxs.erase(cntID);
+            impl_->getStoreInfo().databoxs.erase(id);
             delete entry;
         }
         return true;
@@ -244,29 +218,26 @@ namespace SDS {
             
 
     // get db object
-    bool DataBoxStore::getDB(Client* client, const std::vector<ContentID> &ids,
-                int64_t timeout) {
+    bool DataBoxStore::getDB(Client* client, std::vector<size_t> &ids, int64_t timeout) {
 
         // create a get request for ths databox
         GetRequest* getReq = new GetRequest(client, ids);
-        for(auto cntID : ids) {
-            auto entry = impl_->getDBObjectEntry(cntID);
-
+        for(auto id : ids) {
+            auto entry = impl_->getDBObjectEntry(id);
             if(entry && entry->state == DATABOX_FILLED) {
                 auto databoxObject = entry->ptr;
-                getReq->databoxs[cntID] = databoxObject;
+                getReq->databoxs[id] = databoxObject;
                 addClientToEntry(entry, client);
             } else {
                 // add a placeholder databox object to the get request to indicate that the object
                 // is not present
                 DataboxObject* dbObject = new DataboxObject;
-                getReq->databoxs[cntID] = dbObject;
+                getReq->databoxs[id] = dbObject;
                 auto dbRequest = impl_->getDBRequest();
-                dbRequest[cntID].push_back(getReq);
+                dbRequest[id].push_back(getReq);
             }
         }
 
-     
         if(timeout == 0) {
             return returnDBwithFlight(getReq);
         } else if(timeout != -1) {
@@ -281,13 +252,12 @@ namespace SDS {
 
     bool DataBoxStore::returnDBwithFlight(GetRequest* getReq) {
 
-        for(auto cntID : getReq->databoxIDs) {
+        for(size_t id : getReq->databoxIDs) {
             SendEndpoint ep;
-            auto dbObject = getReq->databoxs[cntID];
-       
-            if(prepareTransffer(cntID, dbObject, ep) == true) {
+            auto entry = impl_->getDBObjectEntry(id);
+            if(prepareTransffer(entry->cntID, entry->ptr, ep)) {
                 ARROW_LOG(INFO) << "Return databox with arrow flight, prepare your arrow flight client, please";
-                unsendDB(cntID);
+                unsendDB(id);
             }
             SendGetReply(getReq->client->fd, ep.ip, ep.port), getReq->client->fd;
            
@@ -301,10 +271,8 @@ namespace SDS {
     }
  
     // seal an databox, this databox is now immutable and can be accessed with get.
-    bool DataBoxStore::unsendDB(const ContentID &cntID) {
-
-        auto entry = impl_->getDBObjectEntry(cntID);
-
+    bool DataBoxStore::unsendDB(size_t id) {
+        auto entry = impl_->getDBObjectEntry(id);
         if(!entry) {
             return false;
         }
@@ -314,15 +282,14 @@ namespace SDS {
     }
 
     // check if the databox store contains an databox
-    bool DataBoxStore::containDB(const ContentID &cntID) {
-        auto entry = impl_->getDBObjectEntry(cntID);
+    bool DataBoxStore::containDB(size_t id) {
+        auto entry = impl_->getDBObjectEntry(id);
         return entry && (entry->state != DATABOX_CREATED) ? OBJECT_FOUND : OBJECT_NOT_FOUND;
     }
 
     // release a client that is no longer using an object
-    bool DataBoxStore::releaseDB(const ContentID &cntID, Client* client) {
-        auto entry = impl_->getDBObjectEntry(cntID);
-
+    bool DataBoxStore::releaseDB(size_t id, Client* client) {
+        auto entry = impl_->getDBObjectEntry(id);
         if(!entry) {
             return false;
         }
@@ -374,49 +341,45 @@ namespace SDS {
                 StoreDesc stoDesc;
                 FilePathList pathList;
                 RETURN_NOT_OK(ReadCreateRequest(input, cntID, cntDesc, stoDesc, pathList));
-                createDB(cntID, cntDesc, stoDesc, pathList, client);
+                size_t id = createDB(cntID, cntDesc, stoDesc, pathList, client);
                 {
-                    auto dbMeta = impl_->getDBObjectEntry(cntID)->ptr->getDBMeta();
+                    auto dbMeta = impl_->getDBObjectEntry(id)->ptr->getDBMeta();
                     HANDLE_SIGPIPE(SendCreateReply(client->fd, dbMeta), client->fd);
                 }
             } break;
             case MessageTypeGetRequest: {
                 int64_t timeout;
-                ContentID cntID;
-                RETURN_NOT_OK(ReadGetRequest(input, cntID, timeout));
-                std::vector<ContentID> ids;
-                ids.push_back(cntID);
+                std::vector<size_t> ids;
+                RETURN_NOT_OK(ReadGetRequest(input, ids, timeout));
                 getDB(client, ids, timeout);
             } break;
             case MessageTypeContaineRequest: {
-                ContentID cntID;
-                RETURN_NOT_OK(ReadContainRequest(input, cntID));
-                bool ret = containDB(cntID);
+                size_t id;
+                RETURN_NOT_OK(ReadContainRequest(input, id));
+                bool ret = containDB(id);
                 {
                     HANDLE_SIGPIPE(SendContainReply(client->fd, ret), client->fd);
                 }
             } break;
             case MessageTypeReleaseRequest: {
-                ContentID cntID;
-                RETURN_NOT_OK(ReadReleaseRequest(input, cntID));
-                bool ret = releaseDB(cntID, client);
+                size_t id;
+                RETURN_NOT_OK(ReadReleaseRequest(input, id));
+                bool ret = releaseDB(id, client);
                 {
                     HANDLE_SIGPIPE(SendReleaseReply(client->fd, ret), client->fd);
                 }
             } break;
             case MessageTypeDeleteRequest: {
-                ContentID cntID;
-                RETURN_NOT_OK(ReadDeleteRequest(input, cntID));
-                std::vector<ContentID> ids;
-                ids.push_back(cntID);
+                std::vector<size_t> ids;
+                RETURN_NOT_OK(ReadDeleteRequest(input, ids));
                 bool ret = deleteDB(ids);
                 {
                     HANDLE_SIGPIPE(SendDeleteReply(client->fd, ret), client->fd);
                 }
             } break;
             case MessageTypeGetContentIDRequest: {
-                ContentID cntID;
                 size_t dbID;
+                ContentID cntID;
                 RETURN_NOT_OK(ReadGetContentIDRequest(input, dbID));
                 bool ret = getContentIDByDBID(dbID, cntID);
                 {
@@ -455,6 +418,7 @@ namespace SDS {
     }
 
     bool DataBoxStore::getContentIDByDBID(size_t dbID, ContentID &cntID) {
-        return impl_->getContentIDByDBID(dbID, cntID);
+        cntID = impl_->getDBObjectEntry(dbID)->cntID;
+        return true;
     }
 }
